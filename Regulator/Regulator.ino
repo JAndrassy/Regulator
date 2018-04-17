@@ -1,6 +1,7 @@
 #include <MemoryFree.h>
 #include <TimeLib.h>
 #include <WiFiLink.h>
+#include <BlynkSimpleWiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
 #include "consts.h"
 #include "secrets.h"
@@ -137,7 +138,7 @@ void handleSuspendAndOff() {
   }
   if (heatingPower > 0) {
     lastOn = loopStartMillis;
-  } else if (mainRelayOn) { // heatingPower == 0
+  } else if (mainRelayOn) { // && heatingPower == 0
     analogWrite(PWM_PIN, 0);
     if (bypassRelayOn) {
       digitalWrite(BYPASS_RELAY_PIN, LOW);
