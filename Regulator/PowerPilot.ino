@@ -1,9 +1,11 @@
 
-const byte MAP_POINTS_COUNT = 4;
+const byte MAP_POINTS_COUNT = 6;
 byte power2pwmPoints[MAP_POINTS_COUNT][2] = {
-  { 62, 65},
-  { 127, 105},
-  { 185, 185},
+  { 62,  65},
+  {103,  85},
+  {130, 105},
+  {166, 145},
+  {188, 185},
   { MAX_POWER / 10, 255}
 };
 const int MIN_POWER = 10 * power2pwmPoints[0][0];

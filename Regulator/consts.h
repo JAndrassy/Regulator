@@ -19,8 +19,8 @@ const byte BALBOA_RELAY_PIN = A2;
 //pin A4, A5 is I2C (on Uno Wifi ESP8266 over I2C SC)
 
 const int PUMP_POWER = 50;
-const int MAX_POWER = 1990;
-const int BYPASS_POWER = 2040;
+const int MAX_POWER = 2020;
+const int BYPASS_POWER = 2050;
 const unsigned long PUMP_STOP_MILLIS = 5 * 60000; // 5 min
 
 const IPAddress symoAddress(192,168,1,7);
