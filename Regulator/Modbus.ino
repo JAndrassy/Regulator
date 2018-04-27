@@ -1,9 +1,13 @@
 
 // Fronius Symo Hybrid SunSpec Modbus
 
-const int METER_UID = 240;
+const byte METER_UID = 240;
 const int MODBUS_CONNECT_ERROR = -10;
 const int MODBUS_NO_RESPONSE = -11;
+
+const byte FNC_READ_REGS = 0x03;
+const byte FNC_WRITE_SINGLE = 0x06;
+const byte FNC_ERR_FLAG = 0x80;
 
 enum {
   MODBUS_DELAY,
@@ -11,6 +15,8 @@ enum {
   INVERTER_DATA,
   METER_DATA
 };
+
+NetClient modbus;
 
 void modbusSetup() {
   if (!requestSymoRTC()) {
@@ -127,7 +133,7 @@ boolean requestBattery() {
 
 boolean modbusError(int err) {
 
-  static int modbusErrorCounter = 0;
+  static byte modbusErrorCounter = 0;
   static int modbusErrorCode = 0;
 
   if (modbusErrorCode != err) {
@@ -155,6 +161,7 @@ boolean modbusError(int err) {
  *   - 0 is success
  *   - negative is comm error
  *   - positive value is modbus protocol exception code
+ *   - error 4 is SLAVE_DEVICE_FAILURE. Check if 'Inverter control via Modbus' is enabled.
  */
 int modbusRequest(byte uid, unsigned int addr, byte len, int *regs) {
 
@@ -163,18 +170,11 @@ int modbusRequest(byte uid, unsigned int addr, byte len, int *regs) {
   const byte LENGTH_IX = 8;
   const byte DATA_IX = 9;
 
-  static NetClient modbus;
+  int err = modbusConnection();
+  if (err != 0)
+    return err;
 
-  if (!modbus.connected()) {
-    modbus.stop();
-    modbus.connect(symoAddress, 502);
-    if (!modbus.connected()) {
-      modbus.stop();
-      return MODBUS_CONNECT_ERROR;
-    }
-    sprintfF(msg, F("modbus reconnect"));
-  }
-  byte request[] = {0, 1, 0, 0, 0, 6, uid, 3, (byte) (addr / 256), (byte) (addr % 256), 0, len};
+  byte request[] = {0, 1, 0, 0, 0, 6, uid, FNC_READ_REGS, (byte) (addr / 256), (byte) (addr % 256), 0, len};
   modbus.write(request, sizeof(request));
 
   int respDataLen = len * 2;
@@ -185,9 +185,9 @@ int modbusRequest(byte uid, unsigned int addr, byte len, int *regs) {
     return MODBUS_NO_RESPONSE;
   }
   switch (response[CODE_IX]) {
-    case 3:
+    case FNC_READ_REGS:
       break;
-    case 0x83:
+    case (FNC_ERR_FLAG | FNC_READ_REGS):
       return response[ERR_CODE_IX]; // 0x01, 0x02, 0x03 or 0x11
     default:
       return -3;
@@ -203,13 +203,60 @@ int modbusRequest(byte uid, unsigned int addr, byte len, int *regs) {
   return 0;
 }
 
+int modbusWriteSingle(unsigned int address, int val) {
+
+  const byte CODE_IX = 7;
+  const byte ERR_CODE_IX = 8;
+  const byte RESPONSE_LENGTH = 9;
+
+  int err = modbusConnection();
+  if (err != 0)
+    return err;
+
+  byte req[] = { 0, 1, 0, 0, 0, 6, 1, FNC_WRITE_SINGLE, // header
+        (byte) (address / 256), (byte) (address % 256),
+        (byte) (val / 256), (byte) (val % 256)};
+
+  modbus.write(req, sizeof(req));
+
+  byte response[RESPONSE_LENGTH];
+  int readLen = timedRead(modbus, response, RESPONSE_LENGTH);
+  if (readLen < RESPONSE_LENGTH) {
+    modbus.stop();
+    return MODBUS_NO_RESPONSE;
+  }
+  switch (response[CODE_IX]) {
+    case FNC_WRITE_SINGLE:
+      break;
+    case (FNC_ERR_FLAG | FNC_WRITE_SINGLE):
+      return response[ERR_CODE_IX]; // 0x01, 0x02, 0x03, 0x04 or 0x11
+    default:
+      return -3;
+  }
+  while (modbus.read() != -1); // 4 more bytes address and reg value
+  return 0;
+}
+
+int modbusConnection() {
+  if (!modbus.connected()) {
+    modbus.stop();
+    modbus.connect(symoAddress, 502);
+    if (!modbus.connected()) {
+      modbus.stop();
+      return MODBUS_CONNECT_ERROR;
+    }
+    sprintfF(msg, F("modbus reconnect"));
+  }
+  return 0;
+}
+
 size_t timedRead(Stream &is, byte buffer[], size_t len) {
   if (len == 0)
     return 0;
   size_t l = 0;
   unsigned long startMillis = millis();
   do {
-    if (is.available() > 1) {
+    if (is.available() > 0) {
       l += is.readBytes(buffer + l, len - l);
       if (l == len)
         break;
