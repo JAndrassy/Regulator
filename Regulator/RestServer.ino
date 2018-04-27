@@ -13,7 +13,7 @@ void restServerLoop() {
     if (client.available()) {
       char buff[100];
       buff[client.readBytesUntil('\n', buff, 100)] = 0;
-      client.flush();
+      while (client.read() != -1);
       client.println(F("HTTP/1.1 200 OK"));
       client.println(F("Content-Type: application/json"));
       client.println(F("Connection: close"));
