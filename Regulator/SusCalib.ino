@@ -4,7 +4,7 @@ const char data[] PROGMEM = "{\"suspension_time_seconds\":10800}"; // 3 hours
 
 void susCalibLoop() {
 
-  const int SUSCALIB_HOUR = 9;
+  const byte SUSCALIB_HOUR = 9;
   static boolean done = false;
 
   if (done || hour(now()) != SUSCALIB_HOUR)
@@ -34,7 +34,7 @@ void susCalibLoop() {
     strcpy_P(buff, data);
     client.print(buff);
 
-    client.setTimeout(2000);
+    client.setTimeout(4000);
     client.readBytesUntil(' ', buff, 50); // HTTP/1.1
     client.readBytesUntil(' ', buff, 50); // status code
     st = atoi(buff);
