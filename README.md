@@ -76,8 +76,11 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * RestServer.ino - JSON data for the web pages 
 * Blynk.ino - control from everywhere with [Blynk](https://www.blynk.cc/) Android application. [more...](https://github.com/jandrassy/Regulator/wiki/Blynk)
 
+### Symo Hybrid Battery
+* BattSett.ino - SunSpec Modbus storage control
+* SusCalib.ino - at 9 am sends 'calibration disable' for 3 hours
+
 ### Special
-* SusCalib.ino - at 9 am sends 'calibration disable' to the PV system (battery calibration will not start next 3 hours)
 * Balboa.ino - defers hot tub heating if overall household consumption exceeds PV inverter's limit
 
 ### Web interface

@@ -44,6 +44,9 @@ void telnetLoop(boolean log) {
               delay(100);
             }
           break;
+          case 'B':
+            battSettRead(telnetClient);
+          break;
         }
       }
     } else {

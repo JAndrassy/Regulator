@@ -66,6 +66,7 @@ void setup() {
   modbusSetup();
   eventsSetup();
   watchdogSetup();
+  battSettSetup();
   beep();
 }
 
@@ -117,6 +118,7 @@ void loop() {
   if (!wifiConnected())
     return;
 
+  battSettLoop();
   susCalibLoop();
 
   if (modbusLoop()) { // returns true if data set is ready
