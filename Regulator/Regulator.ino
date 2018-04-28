@@ -1,10 +1,15 @@
 #include <MemoryFree.h>
 #include <TimeLib.h>
 #include <WiFiLink.h>
-#include <BlynkSimpleWiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
 #include "consts.h"
 #include "secrets.h"
+
+#ifndef __IN_ECLIPSE__
+#define BLYNK_NO_BUILTIN
+#define BLYNK_NO_INFO
+#include <BlynkSimpleWiFiLink.h>
+#endif
 
 #define NetServer WiFiServer
 #define NetClient WiFiClient

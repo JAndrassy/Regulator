@@ -1,8 +1,9 @@
 
 //#define BLYNK_PRINT Serial
+#define BLYNK_NO_BUILTIN
+#define BLYNK_NO_INFO
 
 #include <BlynkSimpleWiFiLink.h>
-#include <BlynkWidgets.h>
 
 #define GAUGE_WIDGET V0
 #define LCD_WIDGET V1
@@ -11,6 +12,10 @@
 #define VALVES_BACK_BUTTON V4
 
 WidgetLCD lcd(V1);
+
+BLYNK_CONNECTED() {
+  Blynk.virtualWrite(MANUAL_RUN_BUTTON, manualRunMinutesLeft());
+}
 
 BLYNK_READ(GAUGE_WIDGET) {
   updateWidgets();
