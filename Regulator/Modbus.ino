@@ -145,10 +145,10 @@ boolean modbusError(int err) {
   modbusErrorCounter++;
   switch (modbusErrorCounter) {
     case 1:
-      sprintfF(msg, F("modbus error %d"), err);
+      msg.printf(F("modbus error %d"), err);
     break;
     case 10:
-      sprintfF(msg, F("modbus error %d %d times"), err, modbusErrorCounter);
+      msg.printf(F("modbus error %d %d times"), err, modbusErrorCounter);
       eventsWrite(MODBUS_EVENT, err, 0);
       alarmCause = AlarmCause::MODBUS;
     break;
@@ -179,7 +179,7 @@ int modbusRequest(byte uid, unsigned int addr, byte len, int *regs) {
 
   int respDataLen = len * 2;
   byte response[max(DATA_IX, respDataLen)];
-  int readLen = timedRead(modbus, response, DATA_IX);
+  int readLen = modbus.readBytes(response, DATA_IX);
   if (readLen < DATA_IX) {
     modbus.stop();
     return MODBUS_NO_RESPONSE;
@@ -194,7 +194,7 @@ int modbusRequest(byte uid, unsigned int addr, byte len, int *regs) {
   }
   if (response[LENGTH_IX] != respDataLen)
     return -2;
-  readLen = timedRead(modbus, response, respDataLen);
+  readLen = modbus.readBytes(response, respDataLen);
   if (readLen < respDataLen)
     return -4;
   for (int i = 0, j = 0; i < len; i++, j += 2) {
@@ -220,7 +220,7 @@ int modbusWriteSingle(unsigned int address, int val) {
   modbus.write(req, sizeof(req));
 
   byte response[RESPONSE_LENGTH];
-  int readLen = timedRead(modbus, response, RESPONSE_LENGTH);
+  int readLen = modbus.readBytes(response, RESPONSE_LENGTH);
   if (readLen < RESPONSE_LENGTH) {
     modbus.stop();
     return MODBUS_NO_RESPONSE;
@@ -245,26 +245,9 @@ int modbusConnection() {
       modbus.stop();
       return MODBUS_CONNECT_ERROR;
     }
-    sprintfF(msg, F("modbus reconnect"));
+    modbus.setTimeout(4000);
+    msg.print(F("modbus reconnect"));
   }
   return 0;
-}
-
-size_t timedRead(Stream &is, byte buffer[], size_t len) {
-  if (len == 0)
-    return 0;
-  size_t l = 0;
-  unsigned long startMillis = millis();
-  do {
-    if (is.available() > 0) {
-      l += is.readBytes(buffer + l, len - l);
-      if (l == len)
-        break;
-      startMillis = millis();
-    }
-    delay(10); // to let bytes collect in comm buffer
-  } while (millis() - startMillis < is.getTimeout());
-  return l;
-
 }
 

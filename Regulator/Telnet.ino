@@ -8,14 +8,15 @@ void telnetSetup() {
 void telnetLoop(boolean log) {
 
   static NetClient telnetClient = telnetServer.available();
-  char tempBuff[100];
-
+  char buff[100];
+  CStringBuilder sb(buff, sizeof(buff));
   if (log) {
-    t2s(now(), tempBuff);
-    sprintfF(tempBuff + 8, F(";%d;%c%d%d%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"), freeMemory(), (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn,
+    unsigned long t = now();
+    sb.printf(F("%02d:%02d:%02d;%d;%c%d%d%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"), hour(t), minute(t), second(t),
+        freeMemory(), (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn,
         heatingPower, m, soc, b, availablePower, pwm, elsens, elsensPower, inverterAC);
-    Serial.print(tempBuff);
-    Serial.println(msg);
+    Serial.print(buff);
+    Serial.println(msgBuff);
   }
   if (!telnetClient) {
     telnetClient = telnetServer.available();
@@ -23,8 +24,8 @@ void telnetLoop(boolean log) {
   if (telnetClient) {
     if (telnetClient.connected()) {
       if (log) {
-        telnetClient.print(tempBuff);
-        telnetClient.println(msg);
+        telnetClient.print(buff);
+        telnetClient.println(msgBuff);
       }
       while (telnetClient.available()) {
         int c = telnetClient.read();
@@ -36,16 +37,22 @@ void telnetLoop(boolean log) {
             while (telnetClient.read() != -1);
             telnetClient.stop();
           break;
-          case 'E':
-            eventsPrint(telnetClient);
+          case 'E': {
+            BufferedPrint bp(telnetClient, buff, sizeof(buff));
+            eventsPrint(bp);
+            bp.flush();
+          }
           break;
           case 'R':
             while(telnetClient.read() != 'R') {
               delay(100);
             }
           break;
-          case 'B':
-            battSettRead(telnetClient);
+          case 'B': {
+            BufferedPrint bp(telnetClient, buff, sizeof(buff));
+            battSettRead(bp);
+            bp.flush();
+          }
           break;
         }
       }

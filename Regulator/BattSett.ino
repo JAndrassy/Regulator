@@ -32,7 +32,7 @@ void battSettLoop() {
   }
 }
 
-boolean battSettRead(Print& out) {
+boolean battSettRead(FormattedPrint& out) {
   const int REGISTER_LENGTH = REG_InWRte + 1;
   int regs[REGISTER_LENGTH];
   int res = modbusRequest(1, ADDR_STORCTL, REGISTER_LENGTH, regs);
@@ -42,13 +42,9 @@ boolean battSettRead(Print& out) {
   int reserve = regs[REG_MinRsvPct] / SCALE;
   int dischargeLimit = regs[REG_OutWRte] / SCALE;
   int chargeLimit = regs[REG_InWRte] / SCALE;
-  char buff[50];
-  sprintfF(buff, F("Charge limit %d%% is %s"), chargeLimit, bit2s(storCtrlMod, 0b01));
-  out.println(buff);
-  sprintfF(buff, F("Discharge limit %d%% is %s"), dischargeLimit, bit2s(storCtrlMod, 0b10));
-  out.println(buff);
-  sprintfF(buff, F("Reserve is %d%%"), reserve);
-  out.println(buff);
+  out.printf(F("Charge limit %d%% is %s"), chargeLimit, bit2s(storCtrlMod, 0b01));
+  out.printf(F("Discharge limit %d%% is %s"), dischargeLimit, bit2s(storCtrlMod, 0b10));
+  out.printf(F("Reserve is %d%%"), reserve);
   return true;
 }
 

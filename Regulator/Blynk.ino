@@ -13,10 +13,6 @@
 
 WidgetLCD lcd(V1);
 
-BLYNK_CONNECTED() {
-  Blynk.virtualWrite(MANUAL_RUN_BUTTON, manualRunMinutesLeft());
-}
-
 BLYNK_READ(GAUGE_WIDGET) {
   updateWidgets();
 }
@@ -42,30 +38,33 @@ void blynkLoop() {
 }
 
 void updateWidgets() {
-  sprintfF(msg, F("Blynk"));
+  msg.print(F("Blynk"));
   Blynk.virtualWrite(GAUGE_WIDGET, heatingPower);
+  Blynk.virtualWrite(MANUAL_RUN_BUTTON, (int) manualRunMinutesLeft());
   char buff[17];
-  sprintfF(buff, F("%c %d%d%d%d %c M% 5dW"), (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn, valvesRelayOn,
+  CStringBuilder sb(buff, sizeof(buff));
+  sb.printf(F("%c %d%d%d%d %c M% 5dW"), (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn, valvesRelayOn,
       valvesBackExecuted() ? 'B' : ' ', m);
   lcd.print(0, 0, buff);
+  sb.reset();
   switch (state) {
     case RegulatorState::MONITORING:
     case RegulatorState::REGULATING:
     case RegulatorState::OVERHEATED:
       if (b < -20 || b > 90) {
-        sprintfF(buff, F("BAT%3d%%   % 5dW"), soc, b);
+        sb.printf(F("BAT%3d%%   % 5dW"), soc, b);
       } else {
-        sprintfF(buff, F("I% 5dW  S% 5dW"), inverterAC, elsensPower);
+        sb.printf(F("I% 5dW  S% 5dW"), inverterAC, elsensPower);
       }
       break;
     case RegulatorState::REST:
-      sprintfF(buff, F("temp.sensor % 4d"), analogRead(TEMPSENS_PIN));
+      sb.printf(F("temp.sensor % 4d"), analogRead(TEMPSENS_PIN));
       break;
     case RegulatorState::MANUAL_RUN:
-      sprintfF(buff, F("run time % 3d min"), manualRunMinutesLeft());
+      sb.printf(F("run time % 3d min"), manualRunMinutesLeft());
       break;
     case RegulatorState::ALARM:
-      sprintfF(buff, F("ALARM! cause: %c "), alarmCause);
+      sb.printf(F("ALARM! cause: %c "), alarmCause);
       break;
   }
   lcd.print(0, 1, buff);

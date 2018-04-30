@@ -16,27 +16,27 @@ void susCalibLoop() {
   if (client.connect(symoAddress, 80)) {
     st = 0;
 
-    char buff[50];
+    char buff[64];
     strcpy_P(buff, uri);
 
-    client.print(F("POST "));
-    client.print(buff);
-    client.println(F(" HTTP/1.1"));
-    client.print(F("Host: "));
-    client.println(symoAddress);
-    client.println(F("Connection: close"));
-    client.print(F("Content-Length: "));
-    client.println(strlen_P(data));
-    client.print(F("Authorization: Digest username=\"service\",realm=\"W\",nonce=\"ffcb243c6f951a5bab771e9d3b8f81d6\",uri=\""));
-    client.print(buff);
-    client.println(F("\",response=\"" SUSCALIB_DIGEST_RESPONSE "\""));
-    client.println();
+    char printBuff[64];
+    BufferedPrint bp(client, printBuff, sizeof(printBuff));
+
+    bp.printf(F("POST %s HTTP/1.1\r\n"), buff);
+    bp.print(F("Host: "));
+    bp.println(symoAddress);
+    bp.println(F("Connection: close"));
+    bp.printf(F("Content-Length: %d\r\n"), strlen_P(data));
+    bp.printf(F("Authorization: Digest username=\"service\",realm=\"W\",nonce=\"ffcb243c6f951a5bab771e9d3b8f81d6\","
+        "uri=\"%s\",response=\"" SUSCALIB_DIGEST_RESPONSE "\"\r\n"), buff);
+    bp.println();
     strcpy_P(buff, data);
-    client.print(buff);
+    bp.print(buff);
+    bp.flush();
 
     client.setTimeout(4000);
-    client.readBytesUntil(' ', buff, 50); // HTTP/1.1
-    client.readBytesUntil(' ', buff, 50); // status code
+    client.readBytesUntil(' ', buff, sizeof(buff)); // HTTP/1.1
+    client.readBytesUntil(' ', buff, sizeof(buff)); // status code
     st = atoi(buff);
     while (client.read() != -1);
     client.stop();

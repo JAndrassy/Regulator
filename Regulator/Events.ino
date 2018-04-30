@@ -60,7 +60,7 @@ void eventsSave() {
   eventsWrite(EEPROM_EVENT, 0, 0);
   EEPROM.put(EEPROM_ADDR, events);
   eepromTimer = events[EEPROM_EVENT].timestamp;
-  sprintfF(msg, F("events saved"));
+  msg.print(F("events saved"));
 }
 
 byte eventsRealCount() {
@@ -71,7 +71,7 @@ byte eventsRealCount() {
   return ec;
 }
 
-void eventsPrint(Print& stream) {
+void eventsPrint(FormattedPrint& stream) {
   for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
     EventStruct& event = events[i];
     if (i > 0) {
@@ -83,15 +83,14 @@ void eventsPrint(Print& stream) {
   }
 }
 
-void eventsPrint(Print& s, int ix) {
-  char tempBuff[50];
-  sprintfF(tempBuff, F("%c|00:00:00|% 5d|% 5d|% 3u|"), eventLabels[ix], events[ix].value1, events[ix].value2, events[ix].count);
-  t2s(events[ix].timestamp, tempBuff+2);
-  tempBuff[10] = '|';
-  s.print(tempBuff);
+void eventsPrint(FormattedPrint& s, int ix) {
+  unsigned long t = events[ix].timestamp;
+  s.printf(F("%c|%02d:%02d:%02d|% 5d|% 5d|% 3u|"), eventLabels[ix],
+      hour(t), minute(t), second(t),
+      events[ix].value1, events[ix].value2, events[ix].count);
 }
 
-void eventsPrintJson(Print& stream) {
+void eventsPrintJson(FormattedPrint& stream) {
   stream.print(F("{\"e\":["));
   for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
     EventStruct& event = events[i];
@@ -102,13 +101,9 @@ void eventsPrintJson(Print& stream) {
     }
     eventsPrintJson(stream, i);
   }
-  stream.print(F("],\"s\":"));
-  stream.print(eventsSaved());
-  stream.print('}');
+  stream.printf(F("],\"s\":%d}"), eventsSaved());
 }
 
-void eventsPrintJson(Print& stream, int ix) {
-  char buff[50];
-  sprintfF(buff, F("{\"i\":%i,\"t\":%lu,\"v1\":%d,\"v2\":%d,\"c\":%u}"), ix, events[ix].timestamp, events[ix].value1, events[ix].value2, events[ix].count);
-  stream.print(buff);
+void eventsPrintJson(FormattedPrint& stream, int ix) {
+  stream.printf(F("{\"i\":%i,\"t\":%lu,\"v1\":%d,\"v2\":%d,\"c\":%u}"), ix, events[ix].timestamp, events[ix].value1, events[ix].value2, events[ix].count);
 }

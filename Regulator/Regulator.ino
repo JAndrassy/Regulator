@@ -1,4 +1,5 @@
 #include <MemoryFree.h>
+#include <StreamLib.h>
 #include <TimeLib.h>
 #include <WiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
@@ -42,7 +43,8 @@ int pwm;
 int elsens; // el.sensor measurement
 int elsensPower; // power calculation
 
-char msg[32];
+char msgBuff[32];
+CStringBuilder msg(msgBuff, sizeof(msgBuff));
 
 void setup() {
   beep();
@@ -106,8 +108,8 @@ void loop() {
   ledBarLoop();
   blynkLoop();
 //  restServerLoop();
-  telnetLoop(msg[0] != 0); // checks input commands and prints msg
-  msg[0] = 0;  //clear msg
+  telnetLoop(msg.length() != 0); // checks input commands and prints msg
+  msg.reset();  //clear msg
 
   if (handleAlarm())
     return;
@@ -165,7 +167,7 @@ boolean handleAlarm() {
   if (state != RegulatorState::ALARM) {
     state = RegulatorState::ALARM;
     balboaReset();
-    sprintfF(msg, F("alarm %c"), (char) alarmCause);
+    msg.printf(F("alarm %c"), (char) alarmCause);
   }
   boolean stopAlarm = false;
   switch (alarmCause) {
@@ -227,14 +229,4 @@ boolean wifiConnected() {
   return false;
 }
 
-void t2s(unsigned long t, char *buff) {
-  sprintfF(buff, F("%02d:%02d:%02d"), hour(t), minute(t), second(t));
-}
-
-void sprintfF(char* buf, const __FlashStringHelper *fmt, ... ){
-   va_list args;
-   va_start(args, fmt);
-   vsprintf_P(buf, (const char *)fmt, args); // progmem for AVR
-   va_end(args);
-}
 

@@ -17,7 +17,7 @@ boolean elsensLoop() {
   if (heatingPower > 0 && elsens < ELSENS_MIN_HEATING_VALUE) {
     overheatedStart = loopStartMillis;
     state = RegulatorState::OVERHEATED;
-    sprintfF(msg, F("overheated"));
+    msg.print(F("overheated"));
     eventsWrite(OVERHEAT_EVENT, elsens, 0);
     alarmSound();
     return false;
