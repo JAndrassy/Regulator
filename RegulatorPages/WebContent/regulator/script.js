@@ -6,9 +6,9 @@ function onLoad(cmd) {
     alert(xhr.status + " " + xhr.statusText);
   }
   xhr.onload = function(e) {
-    if (cmd == "events") {
+    if (cmd == "E") {
       showEvents(xhr.responseText);
-    } else if (cmd == "alarm") {
+    } else if (cmd == "A") {
       showAlarm(xhr.responseText);
       //{"a":2,"t":1501962011,"v1":262,"v2":200,"c":1}
     } else {
@@ -19,7 +19,7 @@ function onLoad(cmd) {
   if (host == "") {
     host = "192.168.1.6";
   }
-  xhr.open("GET", "http://" + host + ":81/" + cmd +".json", true);
+  xhr.open("GET", "http://" + host + ":81/" + cmd, true);
   xhr.send();
 }
 
@@ -67,14 +67,14 @@ function showValues(jsonData) {
   var state = data["st"];
   if (state != "A") {
     if (state != "H") {
-      contentDiv.appendChild(createCommandBox("Manual run", "Start", "manualRun"));
+      contentDiv.appendChild(createCommandBox("Manual run", "Start", "H"));
     } else {
-      contentDiv.insertBefore(createCommandBox("Manual run", "Stop", "manualRunStop"), contentDiv.firstElementChild);
+      contentDiv.insertBefore(createCommandBox("Manual run", "Stop", "H"), contentDiv.firstElementChild);
     }
   }
   var s = data["r"];
   if (s.charAt(0) == "0" && s.charAt(6) == "0") {
-    contentDiv.appendChild(createCommandBox("Valves", "Back", "valvesBack"));
+    contentDiv.appendChild(createCommandBox("Valves", "Back", "V"));
   }
 }
 
@@ -115,7 +115,7 @@ function showEvents(jsonData) {
     contentDiv.appendChild(eventDiv);
   }
   if (data["s"] == 0) {
-    contentDiv.appendChild(createButton("Save", "saveEvents"));
+    contentDiv.appendChild(createButton("Save", "S"));
   }
 }
 
@@ -129,7 +129,7 @@ function showAlarm(jsonData) {
   contentDiv.appendChild(createTextDiv("message-timestamp", t2s(data.e.t)));
   if (label == "Pump") {
     contentDiv.appendChild(createTextDiv("message-text", "Current sensor value is " + data.e.v1 + ". Expected value is " + data.e.v2 + "."));
-    contentDiv.appendChild(createButton("Reset", "pumpAlarmReset"));
+    contentDiv.appendChild(createButton("Reset", "P"));
   }
 }
 

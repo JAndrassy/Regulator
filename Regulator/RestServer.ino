@@ -1,4 +1,14 @@
 
+enum struct RestRequest {
+  INDEX = 'I',
+  EVENTS = 'E',
+  ALARM = 'A',
+  PUMP_ALARM_RESET = 'P',
+  MANUAL_RUN = 'H',
+  VALVES_BACK = 'V',
+  SAVE_EVENTS = 'S'
+};
+
 NetServer restServer(81);
 
 void restServerSetup() {
@@ -6,71 +16,60 @@ void restServerSetup() {
 }
 
 void restServerLoop() {
-  enum {
-    RS_INDEX,
-    RS_EVENTS,
-    RS_ALARM,
-    RS_ALARM_RESET,
-    RS_MANUAL_RUN,
-    RS_VALVES_BACK,
-    RS_SAVE_EVENTS
-  };
 
   NetClient client = restServer.available();
   if (!client)
     return;
   if (client.connected()) {
-    if (client.available()) {
-      char buff[150];
-      buff[client.readBytesUntil('\n', buff, 100)] = 0;
+    if (client.available() && client.find('/')) { // GET /fn HTTP/1.1
+      char fn[15];
+      int l = client.readBytesUntil(' ', fn, sizeof(fn));
+      fn[l] = 0;
       while (client.read() != -1);
-      byte request = RS_INDEX;
-      if (strstr_P(buff, (const char*) F("events.json"))) {
-        request = RS_EVENTS;
-      } else if (strstr_P(buff, (const char*) F("alarm.json"))) {
-        request = RS_ALARM;
-      } else if (strstr_P(buff, (const char*) F("pumpAlarmReset"))) {
-        request = RS_ALARM_RESET;
-      } else if (strstr_P(buff, (const char*) F("manualRun"))) {
-        request = RS_MANUAL_RUN;
-      } else if (strstr_P(buff, (const char*) F("valvesBack"))) {
-        request = RS_VALVES_BACK;
-      } else if (strstr_P(buff, (const char*) F("saveEvents"))) {
-        request = RS_SAVE_EVENTS;
+      char buff[150];
+      if (l == 1 && strchr_P((const char*) F("IEAPHVS"), fn[0])) {
+        RestRequest request = (RestRequest) fn[0];
+        ChunkedPrint chunked(client, buff, sizeof(buff));
+        chunked.println(F("HTTP/1.1 200 OK"));
+        chunked.println(F("Content-Type: application/json"));
+        chunked.println(F("Transfer-Encoding: chunked"));
+        chunked.println(F("Connection: close"));
+        chunked.println(F("Cache-Control: no-store"));
+        chunked.println(F("Access-Control-Allow-Origin: *"));
+        chunked.println();
+        chunked.begin();
+        switch (request) {
+          default:
+            printValuesJson(chunked);
+            break;
+          case RestRequest::EVENTS:
+            eventsPrintJson(chunked);
+            break;
+          case RestRequest::ALARM:
+            printAlarmJson(chunked);
+            break;
+          case RestRequest::PUMP_ALARM_RESET:
+            buttonPressed = true;
+            break;
+          case RestRequest::MANUAL_RUN:
+            manualRunRequest = true;
+            break;
+          case RestRequest::VALVES_BACK:
+            valvesBackStart(0);
+            break;
+          case RestRequest::SAVE_EVENTS:
+            eventsSave();
+            break;
+        }
+        chunked.end();
+      } else {
+        BufferedPrint bp(client, buff, sizeof(buff));
+        bp.println(F("HTTP/1.1 404 Not Found"));
+        bp.println(F("Connection: close"));
+        bp.println();
+        bp.printf(F("\"%s\" not found"), fn);
+        bp.flush();
       }
-      ChunkedPrint chunked(client, buff, sizeof(buff));
-      chunked.println(F("HTTP/1.1 200 OK"));
-      chunked.println(F("Content-Type: application/json"));
-      chunked.println(F("Transfer-Encoding: chunked"));
-      chunked.println(F("Connection: close"));
-      chunked.println(F("Cache-Control: no-store"));
-      chunked.println(F("Access-Control-Allow-Origin: *"));
-      chunked.println();
-      chunked.begin();
-      switch (request) {
-        case RS_INDEX:
-          printValuesJson(chunked);
-          break;
-        case RS_EVENTS:
-          eventsPrintJson(chunked);
-          break;
-        case RS_ALARM:
-          printAlarmJson(chunked);
-          break;
-        case RS_ALARM_RESET:
-          buttonPressed = true;
-          break;
-        case RS_MANUAL_RUN:
-          manualRunRequest = true;
-          break;
-        case RS_VALVES_BACK:
-          valvesBackStart(0);
-          break;
-        case RS_SAVE_EVENTS:
-          eventsSave();
-          break;
-      }
-      chunked.end();
     }
   }
   client.stop();
