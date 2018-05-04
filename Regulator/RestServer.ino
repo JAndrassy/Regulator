@@ -22,18 +22,22 @@ void restServerLoop() {
     return;
   if (client.connected()) {
     if (client.available() && client.find('/')) { // GET /fn HTTP/1.1
-      char fn[15];
+      char fn[20];
       int l = client.readBytesUntil(' ', fn, sizeof(fn));
       fn[l] = 0;
+      msg.print(fn);
       while (client.read() != -1);
+#ifdef ethernet_h
       char buff[150];
+#else
+      char buff[64];
+#endif
       if (l == 1 && strchr_P((const char*) F("IEAPHVS"), fn[0])) {
         RestRequest request = (RestRequest) fn[0];
         ChunkedPrint chunked(client, buff, sizeof(buff));
         chunked.println(F("HTTP/1.1 200 OK"));
         chunked.println(F("Content-Type: application/json"));
         chunked.println(F("Transfer-Encoding: chunked"));
-        chunked.println(F("Connection: close"));
         chunked.println(F("Cache-Control: no-store"));
         chunked.println(F("Access-Control-Allow-Origin: *"));
         chunked.println();
@@ -64,15 +68,50 @@ void restServerLoop() {
         chunked.end();
       } else {
         BufferedPrint bp(client, buff, sizeof(buff));
-        bp.println(F("HTTP/1.1 404 Not Found"));
-        bp.println(F("Connection: close"));
-        bp.println();
-        bp.printf(F("\"%s\" not found"), fn);
-        bp.flush();
+        boolean notFound = true;
+#ifdef __SD_H__
+        if (sdCardAvailable) {
+          if (l == 0) {
+            strcpy_P(fn, (const char*) F("index~1.htm"));
+          }
+          char* ext = strchr(fn, '.');
+          if (strlen(ext) > 4) {
+            ext[4] = 0;
+            memmove(ext + 2, ext, 5);
+            ext[0] = '~';
+            ext[1] = '1';
+            ext += 2;
+          }
+          File dataFile = SD.open(fn);
+          if (dataFile) {
+            notFound = false;
+            bp.println(F("HTTP/1.1 200 OK"));
+            bp.print(F("Content-Type: "));
+            bp.println(getContentType(ext));
+            bp.print(F("Content-Length: "));
+            bp.println(dataFile.size());
+            bp.println();
+            while (dataFile.available()) {
+              bp.write(dataFile.read());
+            }
+            dataFile.close();
+            bp.flush();
+            delay(dataFile.size() / 100);
+          }
+        }
+#endif
+        if (notFound) {
+          bp.println(F("HTTP/1.1 404 Not Found"));
+          bp.printf(F("Content-Length: "));
+          bp.println(12 + strlen(fn));
+          bp.println();
+          bp.printf(F("\"%s\" not found"), fn);
+          bp.flush();
+        }
       }
     }
+    client.stop();
   }
-  client.stop();
 }
 
 void printValuesJson(FormattedPrint& client) {
@@ -119,3 +158,22 @@ void printAlarmJson(FormattedPrint& client) {
   client.print('}');
 }
 
+const char* getContentType(const char* ext){
+  if (!strcmp_P(ext, (const char*) F( ".htm")))
+    return "text/html";
+  if (!strcmp_P(ext, (const char*) F( ".css")))
+    return "text/css";
+  if (!strcmp_P(ext, (const char*) F( ".js")))
+    return "application/javascript";
+  if (!strcmp_P(ext, (const char*) F( ".png")))
+    return "image/png";
+  if (!strcmp_P(ext, (const char*) F( ".gif")))
+    return "image/gif";
+  if (!strcmp_P(ext, (const char*) F( ".jpg")))
+    return "image/jpeg";
+  if (!strcmp_P(ext, (const char*) F( ".ico")))
+    return "image/x-icon";
+  if (!strcmp_P(ext, (const char*) F( ".xml")))
+    return "text/xml";
+  return "text/plain";
+}

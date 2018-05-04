@@ -32,6 +32,7 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 
 ### Electronics
 * [Arduino Uno WiFi](https://github.com/jandrassy/UnoWiFiDevEdSerial1/wiki) - can be replaced by any AVR 5V Arduino with some shield or module for networking
+* optional SD card reader for static web files (only with Mega)
 * [Seeed Grove Base Shield](https://www.seeedstudio.com/Base-Shield-V2-p-1378.html) - the Grove connectors ensure firm connection of wires with simple assemble and disassemble
 * [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) 2pcs - the AC current in the system is less then 10 A but it can run hours at 9+ A 
 * [Grove Electricity Sensor module](https://www.seeedstudio.com/Grove-Electricity-Sensor-p-777.html) - a module with current transformer to measure the AC current up to 10 A
@@ -89,9 +90,9 @@ The RegulatorPages folder contains static web pages of the regulator. The static
 
 I have the static pages served by the esp8266 WebServer of WiFi Link firmware in the esp8266 on-board of the Uno WiFi. I added them to the SPIFFS `data` folder of WiFi Link firmware.
 
-## Plans
+## Comments
 
-The complete project doesn't fit into the Uno flash memory. It is 1000 bytes larger. To run it, I commented out the RestServer setup and loop and the builder leaves the RestServer.ino functions and Evenst.ino json functions out. Nevertheless I want try to make a version of the Regulator with Ethernet shield for networking and SD card fro logging. I want to add WebServer.ino to serve web pages from SD card and SDLogging.ino to create csv log files and download them over WebServer. It should fit into a Mega.
+The complete project doesn't fit into the Uno flash memory. To run it, I commented out the RestServer setup and loop and the builder leaves the RestServer.ino functions and Evenst.ino json functions out. The build of the Regulator with Ethernet shield SD card to serve web pages needs a Mega.
 
-And then, I create a branch of this project to rewrite it for esp8266 using the pins of connected Uno with Firmata or some simple sketch. 
+I plan to create a branch of this project to rewrite it for esp8266 using the pins of connected Uno with Firmata or some simple sketch. 
 

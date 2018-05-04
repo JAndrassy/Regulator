@@ -3,17 +3,27 @@
 #include <TimeLib.h>
 #include <WiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
+//#include <Ethernet2.h>
+//#include <SD.h>
 #include "consts.h"
-#include "secrets.h"
 
 #ifndef __IN_ECLIPSE__
 #define BLYNK_NO_BUILTIN
 #define BLYNK_NO_INFO
+#ifdef ethernet_h
+#include <BlynkSimpleEthernet2.h>
+#else
 #include <BlynkSimpleWiFiLink.h>
 #endif
+#endif
 
+#ifdef ethernet_h
+#define NetServer EthernetServer
+#define NetClient EthernetClient
+#else
 #define NetServer WiFiServer
 #define NetClient WiFiClient
+#endif
 
 unsigned long loopStartMillis;
 
@@ -46,6 +56,8 @@ int elsensPower; // power calculation
 char msgBuff[32];
 CStringBuilder msg(msgBuff, sizeof(msgBuff));
 
+boolean sdCardAvailable = false;
+
 void setup() {
   beep();
   Serial.begin(115200);
@@ -53,11 +65,23 @@ void setup() {
   Serial.print(F("mem "));
   Serial.println(freeMemory());
 
+#ifdef ethernet_h
+  IPAddress ip(192, 168, 1, 8);
+  Ethernet.begin(mac, ip);
+#else
   Serial1.begin(115200);
   Serial1.resetESP();
   delay(3000); //ESP init
   WiFi.init(&Serial1);
   // connection is checked in loop
+#endif
+
+#ifdef __SD_H__
+  if (SD.begin(SD_SS_PIN)) {
+    sdCardAvailable = true;
+    Serial.println(F("SD card initialized"));
+  }
+#endif
 
   pinMode(MAIN_RELAY_PIN, OUTPUT);
   pinMode(BYPASS_RELAY_PIN, OUTPUT);
@@ -122,8 +146,10 @@ void loop() {
   if (restHours())
     return;
 
+#ifndef ethernet_h
   if (!wifiConnected())
     return;
+#endif
 
   battSettLoop();
   susCalibLoop();
@@ -171,9 +197,11 @@ boolean handleAlarm() {
   }
   boolean stopAlarm = false;
   switch (alarmCause) {
+#ifndef ethernet_h
     case AlarmCause::WIFI:
       stopAlarm = (WiFi.status() == WL_CONNECTED);
       break;
+#endif
     case AlarmCause::PUMP:
       stopAlarm = buttonPressed;
       break;
@@ -215,6 +243,7 @@ boolean turnMainRelayOn() {
   return elsensCheckPump();
 }
 
+#ifndef ethernet_h
 boolean wifiConnected() {
   static int tryCount = 0;
   if (WiFi.status() == WL_CONNECTED) {
@@ -228,5 +257,4 @@ boolean wifiConnected() {
   }
   return false;
 }
-
-
+#endif

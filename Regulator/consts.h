@@ -1,11 +1,13 @@
 #ifndef H_CONSTS_H
 #define H_CONSTS_H
 
+#include "secrets.h"
+
 const char version[] = "build "  __DATE__ " " __TIME__;
 
 const byte MAIN_RELAY_PIN = 2;
 const byte TONE_PIN = 3;
-const byte VALVES_RELAY_PIN = 4;
+const byte SD_SS_PIN = 4; // Ethernet shield
 const byte BYPASS_RELAY_PIN = 5;
 const byte PWM_PIN = 6;
 const byte BUTTON_PIN = 7;
@@ -15,7 +17,7 @@ const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
 const byte ELSENS_PIN = A0;
 const byte TEMPSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
-// A3 free
+const byte VALVES_RELAY_PIN = A3;
 //pin A4, A5 is I2C (on Uno Wifi ESP8266 over I2C SC)
 
 const int PUMP_POWER = 50;
