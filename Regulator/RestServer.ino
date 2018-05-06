@@ -9,15 +9,19 @@ enum struct RestRequest {
   SAVE_EVENTS = 'S'
 };
 
-NetServer restServer(81);
+NetServer webServer(81);
 
 void restServerSetup() {
-  restServer.begin();
+  webServer.begin();
 }
 
 void restServerLoop() {
 
-  NetClient client = restServer.available();
+  static NetClient client = webServer.available();
+
+  if (!client) {
+    client = webServer.available();
+  }
   if (!client)
     return;
   if (client.connected()) {
@@ -27,6 +31,9 @@ void restServerLoop() {
       fn[l] = 0;
       msg.print(fn);
       while (client.read() != -1);
+      if (l == 0) {
+        strcpy_P(fn, (const char*) F("index.html"));
+      }
 #ifdef ethernet_h
       char buff[150];
 #else
@@ -71,9 +78,6 @@ void restServerLoop() {
         boolean notFound = true;
 #ifdef __SD_H__
         if (sdCardAvailable) {
-          if (l == 0) {
-            strcpy_P(fn, (const char*) F("index~1.htm"));
-          }
           char* ext = strchr(fn, '.');
           if (strlen(ext) > 4) {
             ext[4] = 0;
@@ -90,13 +94,16 @@ void restServerLoop() {
             bp.println(getContentType(ext));
             bp.print(F("Content-Length: "));
             bp.println(dataFile.size());
+            unsigned long expires = now() + SECS_PER_YEAR;
+            bp.printf(F("Expires: %s, "), dayShortStr(weekday(expires))); // two printfs because ShortStr functions share the buffer
+            bp.printf(F("%d %s %d 00:00:00 GMT"), day(expires), monthShortStr(month(expires)), year(expires));
+            bp.println();
             bp.println();
             while (dataFile.available()) {
               bp.write(dataFile.read());
             }
             dataFile.close();
             bp.flush();
-            delay(dataFile.size() / 100);
           }
         }
 #endif
@@ -110,6 +117,7 @@ void restServerLoop() {
         }
       }
     }
+  } else {
     client.stop();
   }
 }

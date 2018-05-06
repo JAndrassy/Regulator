@@ -4,9 +4,9 @@ DIY Arduino [consumption regulator](https://github.com/jandrassy/Regulator/wiki)
 
 ## Intro
 
-I have in the basement a small wellness room with a hot tub. The room has a floor heating and in the winter there is pleasantly warm. But in summer the floor was uncomfortable cold. After I bought a Fronius Symo Hybrid PV system, I discovered that I could use the excess solar power in summer to heat with a small 2kW electric heater the water of the floor heating of that room.
+I have in the basement a small wellness room with a hot tub. The room has a floor heating and in the Winter there is pleasantly warm. But in Summer the floor was uncomfortable cold. After I bought a Fronius Symo Hybrid PV system, I discovered that I could use the excess solar power in Summer to heat with a small 2kW electric heater the water of the floor heating of that room.
 
-For the PWM regulation I discovered Arduino. I am a professional software developer so the programming was the easy and fun part. And building the box was fun too. After a year it is still work in progress with additional functions and control.
+For the PWM regulation I discovered Arduino. I am a professional software developer so the programming is the easy and fun part. And building the box was fun too. After a year it is still work in progress with additional functions and control.
 
 To regulate the water heater using excess solar power Fronius has Ohmpilot. It is still not available for hybrid PV systems and it can't do the additional control that my regulator does, like commanding valves or turning off some other deferrable consumption.
 
@@ -74,7 +74,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 
 ### Monitoring
 * Telnet.ino - logging csv lines to telnet client and reading command characters sent from telnet client
-* RestServer.ino - JSON data for the web pages 
+* WebServer.ino - JSON data for the web pages with optional serving of static web page files from SD card 
 * Blynk.ino - control from everywhere with [Blynk](https://www.blynk.cc/) Android application. [more...](https://github.com/jandrassy/Regulator/wiki/Blynk)
 
 ### Symo Hybrid Battery
@@ -87,13 +87,19 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 
 ### Web interface
 
-The RegulatorPages folder contains static web pages of the regulator. The static web pages use data in json format requested from the RestServer implemented in RestServer.ino.
+The RegulatorPages folder contains static web pages of the regulator. The static web pages use data in json format requested from the WebServer implemented in WebServer.ino.
 
 I have the static pages served by the esp8266 WebServer of WiFi Link firmware in the esp8266 on-board of the Uno WiFi. I added them to the SPIFFS `data` folder of WiFi Link firmware.
 
+If SD card is connected, the WebServer.ino can serve the pages from SD card.
+
+This static web pages can be started from a folder on a computer to show the data from Regulator. Only set the IP address of Arduino in script.js.
+
 ## Comments
 
-The complete project doesn't fit into the Uno flash memory. To run it, I commented out the RestServer setup and loop and the builder leaves the RestServer.ino functions and Evenst.ino json functions out. The build of the Regulator with Ethernet shield SD card to serve web pages needs a Mega.
+The complete project doesn't fit into the Uno flash memory. To run it, I commented out the Blynk in setup and loop and the builder leaves it out. 
+
+The build of the Regulator with Ethernet shield SD card to serve web pages needs a Mega.
 
 I plan to create a branch of this project to rewrite it for esp8266 using the pins of connected Uno with Firmata or some simple sketch. 
 
