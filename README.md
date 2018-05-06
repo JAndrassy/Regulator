@@ -82,6 +82,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * SusCalib.ino - at 9 am sends 'calibration disable' for 3 hours
 
 ### Special
+* WemoInsight.ino - web service request to Belkin WiFi switch used as system's reference Watt-meter. Value is only logged to csv for evaluation (charts in Calc)
 * Balboa.ino - defers hot tub heating if overall household consumption exceeds PV inverter's limit
 
 ### Web interface

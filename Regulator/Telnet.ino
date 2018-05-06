@@ -12,9 +12,9 @@ void telnetLoop(boolean log) {
   CStringBuilder sb(buff, sizeof(buff));
   if (log) {
     unsigned long t = now();
-    sb.printf(F("%02d:%02d:%02d;%d;%c%d%d%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"), hour(t), minute(t), second(t),
+    sb.printf(F("%02d:%02d:%02d;%d;%c%d%d%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"), hour(t), minute(t), second(t),
         freeMemory(), (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn,
-        heatingPower, m, soc, b, availablePower, pwm, elsens, elsensPower, inverterAC);
+        heatingPower, m, soc, b, availablePower, pwm, elsens, elsensPower, inverterAC, wemoPower);
     Serial.print(buff);
     Serial.println(msgBuff);
   }
@@ -48,11 +48,11 @@ void telnetLoop(boolean log) {
               delay(100);
             }
           break;
-          case 'B': {
-            BufferedPrint bp(telnetClient, buff, sizeof(buff));
-            battSettRead(bp);
-            bp.flush();
-          }
+//          case 'B': {
+//            BufferedPrint bp(telnetClient, buff, sizeof(buff));
+//            battSettRead(bp);
+//            bp.flush();
+//          }
           break;
         }
       }
