@@ -1,18 +1,21 @@
 
-const int ELSENS_MIN_ON_VALUE = 655;
-const int ELSENS_MIN_HEATING_VALUE = ELSENS_MIN_ON_VALUE + 100;
+const int ELSENS_MIN_ON_VALUE = 580;
+const int ELSENS_MIN_HEATING_VALUE = ELSENS_MIN_ON_VALUE + 200;
 const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resume 30 sec before pump stops
 
 unsigned long overheatedStart = 0;
 
-boolean elsensLoop() {
+void elsensLoop() {
 
   elsens = readElSens();
 
   // waiting for water to cooldown
-  if (overheatedStart != 0 && (loopStartMillis - overheatedStart) < OVERHEATED_COOLDOWN_TIME && !buttonPressed)
-    return false;
-  overheatedStart = 0;
+  if (overheatedStart != 0) {
+    if ((loopStartMillis - overheatedStart) < OVERHEATED_COOLDOWN_TIME && !buttonPressed)
+      return;
+    overheatedStart = 0;
+    state = RegulatorState::REGULATING;
+  }
 
   if (heatingPower > 0 && elsens < ELSENS_MIN_HEATING_VALUE) {
     overheatedStart = loopStartMillis;
@@ -20,11 +23,10 @@ boolean elsensLoop() {
     msg.print(F("overheated"));
     eventsWrite(OVERHEAT_EVENT, elsens, 0);
     alarmSound();
-    return false;
+    return;
   }
-  float ratio = (float) elsens / 11000;
-  elsensPower = (int) ((float) elsens * 0.192 * sin(ratio * PI/2)) - PUMP_POWER;
-  return true;
+  float ratio = (float) elsens / 10600;
+  elsensPower = (int) ((float) elsens * 0.2 * sin(ratio * PI/2));
 }
 
 boolean elsensCheckPump() {

@@ -20,8 +20,8 @@ const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
 //pin A4, A5 is I2C (on Uno Wifi ESP8266 over I2C SC)
 
-const int PUMP_POWER = 50;
-const int MAX_POWER = 2020;
+const int PUMP_POWER = 44;
+const int MAX_POWER = 1990;
 const int BYPASS_POWER = 2050;
 const unsigned long PUMP_STOP_MILLIS = 5 * 60000; // 5 min
 
@@ -31,9 +31,9 @@ enum struct RegulatorState {
   REST = 'N', // night
   ALARM = 'A',
   MONITORING = 'M', // SoC < xx%
-  REGULATING = 'R',
-  OVERHEATED = 'O', // heater safety thermostat triggered
-  MANUAL_RUN = 'H', // 'by hand'
+  REGULATING = 'R', // PowerPilot.ino
+  OVERHEATED = 'O', // ElSesns.ino heater safety thermostat triggered
+  MANUAL_RUN = 'H', // ManualRun.ino - H as 'by hand'
 };
 
 enum struct AlarmCause {

@@ -15,7 +15,7 @@ void balboaLoop() {
   const byte WAIT_FOR_IT_COUNT = 2;
   static byte waitForItCounter = 0; // to not react on short spikes
 
-  int hhc = inverterAC - m; // household consumption
+  int hhc = inverterAC - m - heatingPower; // household consumption without heater
   if (balboaRelayOn) { // if relay on, balboa heater is paused
     hhc += BALBOA_HEATER_POWER; // added for evaluation
   }

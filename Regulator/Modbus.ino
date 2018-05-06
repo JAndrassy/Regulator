@@ -240,12 +240,9 @@ int modbusWriteSingle(unsigned int address, int val) {
 int modbusConnection() {
   if (!modbus.connected()) {
     modbus.stop();
-    modbus.connect(symoAddress, 502);
-    if (!modbus.connected()) {
-      modbus.stop();
+    if (!modbus.connect(symoAddress, 502))
       return MODBUS_CONNECT_ERROR;
-    }
-    modbus.setTimeout(4000);
+    modbus.setTimeout(2000);
     msg.print(F("modbus reconnect"));
   }
   return 0;

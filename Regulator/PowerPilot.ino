@@ -2,11 +2,11 @@
 const byte MAP_POINTS_COUNT = 6;
 byte power2pwmPoints[MAP_POINTS_COUNT][2] = {
   { 62,  65},
-  {103,  85},
-  {130, 105},
-  {166, 145},
-  {188, 185},
-  { MAX_POWER / 10, 255}
+  {101,  85},
+  {127, 105},
+  {161, 145},
+  {183, 185},
+  {MAX_POWER / 10, 255}
 };
 const int MIN_POWER = 10 * power2pwmPoints[0][0];
 
@@ -15,9 +15,12 @@ void pilotLoop() {
   const byte MONITORING_UNTIL_SOC = 85; // %
   const int MIN_START_POWER = 1000;
   const int BYPASS_MIN_START_POWER = BYPASS_POWER + 100;
-  const byte WAIT_FOR_IT_COUNT = 3;
+  const byte WAIT_FOR_IT_COUNT = 2;
 
   static byte waitForItCounter = 0; // to not react on short spikes
+
+  if (state == RegulatorState::OVERHEATED)
+    return;
 
   // check state of charge
   if (soc < MONITORING_UNTIL_SOC) { // %
@@ -25,12 +28,13 @@ void pilotLoop() {
     return;
   }
 
-  state = RegulatorState::REGULATING;
+  state = mainRelayOn ? RegulatorState::REGULATING : RegulatorState::MONITORING;
 
   // sum available power
   availablePower = heatingPower + m + (b > 0 ? 0 : b) - (mainRelayOn ? 0 : PUMP_POWER);
   if (heatingPower == 0 && availablePower < MIN_START_POWER)
     return;
+  state = RegulatorState::REGULATING;
   if (bypassRelayOn && availablePower > BYPASS_POWER)
     return;
   if (availablePower < MIN_POWER) {

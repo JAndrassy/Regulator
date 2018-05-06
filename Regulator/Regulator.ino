@@ -27,7 +27,7 @@
 
 unsigned long loopStartMillis;
 
-RegulatorState state = RegulatorState::REST;
+RegulatorState state = RegulatorState::MONITORING;
 AlarmCause alarmCause = AlarmCause::NOT_IN_ALARM;
 
 boolean buttonPressed = false;
@@ -92,12 +92,12 @@ void setup() {
   balboaSetup();
 
   telnetSetup();
-  blynkSetup();
-//  restServerSetup();
+//  blynkSetup();
+  restServerSetup();
   modbusSetup();
   eventsSetup();
   watchdogSetup();
-  battSettSetup();
+//  battSettSetup();
   beep();
 }
 
@@ -130,8 +130,8 @@ void loop() {
   buttonLoop();
   beeperLoop(); // alarm sound
   ledBarLoop();
-  blynkLoop();
-//  restServerLoop();
+//  blynkLoop();
+  restServerLoop();
   telnetLoop(msg.length() != 0); // checks input commands and prints msg
   msg.reset();  //clear msg
 
@@ -151,17 +151,19 @@ void loop() {
     return;
 #endif
 
-  battSettLoop();
+//  battSettLoop();
   susCalibLoop();
 
-  if (modbusLoop()) { // returns true if data set is ready
-    balboaLoop();
+  if (!modbusLoop()) // returns true if data set is ready
+    return;
 
-    if (elsensLoop()) { // evaluates OVERHEATED
-      pilotLoop();
-    }
-    telnetLoop(true); // logs modbus and heating data
-  }
+  pilotLoop();
+  elsensLoop();
+  
+  balboaLoop();
+  
+  telnetLoop(true); // logs modbus and heating data
+
 }
 
 void handleSuspendAndOff() {
