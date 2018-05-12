@@ -7,7 +7,7 @@ void susCalibLoop() {
   const byte SUSCALIB_HOUR = 9;
   static boolean done = false;
 
-  if (done || hour(now()) != SUSCALIB_HOUR)
+  if (done || hourNow != SUSCALIB_HOUR)
     return;
 
   int st = -1;

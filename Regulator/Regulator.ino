@@ -26,6 +26,7 @@
 #endif
 
 unsigned long loopStartMillis;
+byte hourNow; // current hour
 
 RegulatorState state = RegulatorState::MONITORING;
 AlarmCause alarmCause = AlarmCause::NOT_IN_ALARM;
@@ -107,6 +108,7 @@ void setup() {
 void loop() {
 
   loopStartMillis = millis();
+  hourNow = hour(now());
 
   handleSuspendAndOff();
 
@@ -182,6 +184,7 @@ void handleSuspendAndOff() {
     lastOn = loopStartMillis;
   } else if (mainRelayOn) { // && heatingPower == 0
     analogWrite(PWM_PIN, 0);
+    pwm = 0;
     if (bypassRelayOn) {
       digitalWrite(BYPASS_RELAY_PIN, LOW);
       bypassRelayOn = false;
@@ -229,14 +232,13 @@ boolean restHours() {
   const int BEGIN_HOUR = 9;
   const int END_HOUR = 17;
 
-  int h = hour(now());
-  if (h >= BEGIN_HOUR && h < END_HOUR)
+  if (balboaRelayOn)
+    return false;
+
+  if (hourNow >= BEGIN_HOUR && hourNow < END_HOUR)
     return false;
   if (state != RegulatorState::REST) {
     state = RegulatorState::REST;
-    if (h == END_HOUR && minute(now()) == 0) {
-      balboaReset();
-    }
   }
   return true;
 }
