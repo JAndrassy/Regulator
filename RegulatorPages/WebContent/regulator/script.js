@@ -79,7 +79,7 @@ function showValues(jsonData) {
 }
 
 var eventHeaders = ["event", "timestamp", "value 1", "value 2", "count"];
-var eventLabels = ["EEPROM", "Restart", "Watchdog", "Wifi NC", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration"];
+var eventLabels = ["EEPROM", "Restart", "Watchdog", "Wifi NC", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett"];
 
 function showEvents(jsonData) {
   var data = JSON.parse(jsonData);

@@ -2,7 +2,7 @@
 #include <EEPROM.h>
 
 const unsigned long EEPROM_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
-const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'D', 'W', 'P', 'M', 'O', 'B', 'H', 'V', 'C'};
+const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'D', 'W', 'P', 'M', 'O', 'B', 'H', 'V', 'C', 'B'};
 const int EEPROM_ADDR = 0;
 
 struct EventStruct {

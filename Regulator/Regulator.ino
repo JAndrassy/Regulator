@@ -101,7 +101,6 @@ void setup() {
   modbusSetup();
   eventsSetup();
   watchdogSetup();
-//  battSettSetup();
   beep();
 }
 
@@ -157,7 +156,6 @@ void loop() {
     return;
 #endif
 
-//  battSettLoop();
   susCalibLoop();
 
   if (!modbusLoop()) // returns true if data set is ready
@@ -167,6 +165,7 @@ void loop() {
   elsensLoop();
   wemoLoop();
   
+  battSettLoop();
   balboaLoop();
   
   telnetLoop(true); // logs modbus and heating data
@@ -230,7 +229,7 @@ boolean handleAlarm() {
 boolean restHours() {
 
   const int BEGIN_HOUR = 9;
-  const int END_HOUR = 17;
+  const int END_HOUR = 22; // to monitor discharge
 
   if (balboaRelayOn)
     return false;
