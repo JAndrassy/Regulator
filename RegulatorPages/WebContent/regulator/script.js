@@ -1,4 +1,8 @@
 
+var host = location.hostname;
+if (host == "") {
+  host = "192.168.1.8";
+}
 
 function onLoad(cmd) {
   var xhr = new XMLHttpRequest();
@@ -8,6 +12,8 @@ function onLoad(cmd) {
   xhr.onload = function(e) {
     if (cmd == "E") {
       showEvents(xhr.responseText);
+    } else if (cmd == "L") {
+      showCsvFilesList(xhr.responseText);
     } else if (cmd == "A") {
       showAlarm(xhr.responseText);
       //{"a":2,"t":1501962011,"v1":262,"v2":200,"c":1}
@@ -15,15 +21,11 @@ function onLoad(cmd) {
       showValues(xhr.responseText);
     }
   };
-  var host = location.hostname;
-  if (host == "") {
-    host = "192.168.1.6";
-  }
   xhr.open("GET", "http://" + host + ":81/" + cmd, true);
   xhr.send();
 }
 
-var valueLabels = {"mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "a" : "Available", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "ts" : "Temp.sens.", "v" : "Version"};
+var valueLabels = {"mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "a" : "Available", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "W" : "WiFi", "P" : "Pump", "M" : "MODBUS"};
 
@@ -38,6 +40,8 @@ function showValues(jsonData) {
     if (key == "r" || key == "ec"  || key == "ts" || key == "v") {
     } else if (key == "st") {
       val = stateLabels[val];
+    } else if (key == "csv") {
+      val = "list";
     } else if (key == "soc") {
       unit = "%";
     } else if (key == "mr") {
@@ -46,7 +50,7 @@ function showValues(jsonData) {
       unit = " W";
     }
     var boxDiv = document.createElement("DIV");
-    if (key == "ec" || (key == "st" && val == "ALARM")) {
+    if (key == "ec" || key == "csv" || (key == "st" && val == "ALARM")) {
       boxDiv.className = "value-box value-box-clickable";
     } else {
       boxDiv.className = "value-box";
@@ -56,6 +60,10 @@ function showValues(jsonData) {
     if (key == 'ec') {
       boxDiv.onclick = function() {
         location = "events.html";
+      }
+    } else if (key == "csv") {
+      boxDiv.onclick = function() {
+        location = "csvlst.html";
       }
     } else if (key == "st" && val == "ALARM") {
       boxDiv.onclick = function() {
@@ -119,6 +127,27 @@ function showEvents(jsonData) {
   }
 }
 
+function showCsvFilesList(jsonData) {
+  var data = JSON.parse(jsonData);
+  var contentDiv = document.getElementById("contentDiv");
+  var eventsHeaderDiv = document.createElement("DIV");
+  eventsHeaderDiv.className = "table-header";
+  eventsHeaderDiv.appendChild(createTextDiv("table-header-cell", "File"));
+  eventsHeaderDiv.appendChild(createTextDiv("table-header-cell", "Size (kb)"));
+  contentDiv.appendChild(eventsHeaderDiv);
+  var files = data.f;
+  files.sort(function(f1, f2) { return -f1.fn.localeCompare(f2.fn); });
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    var fileDiv = document.createElement("DIV");
+    fileDiv.className = "table-row";
+    fileDiv.appendChild(createLinkDiv("table-cell", file.fn, "/" + file.fn));
+    fileDiv.appendChild(createTextDiv("table-cell table-cell-number", "" + file.size));
+    contentDiv.appendChild(fileDiv);
+  }
+}
+
+
 function showAlarm(jsonData) {
   var data = JSON.parse(jsonData);
   var contentDiv = document.getElementById("contentDiv");
@@ -140,6 +169,16 @@ function createTextDiv(className, value) {
   return div;
 }
 
+function createLinkDiv(className, value, url) {
+  var div = document.createElement("DIV");
+  div.className = className;
+  var link = document.createElement("A");
+  link.href = url;
+  link.appendChild(document.createTextNode("" + value));
+  div.appendChild(link);
+  return div;
+}
+
 function createButton(text, command) {
   var button = document.createElement("BUTTON");
   button.className = "button";
@@ -153,10 +192,6 @@ function createButton(text, command) {
     xhr.onload = function(e) {
       location.reload();
     };
-    var host = location.hostname;
-    if (host == "") {
-      host = "192.168.1.6";
-    }
     xhr.open("GET", "http://" + host + ":81/" + command, true);
     xhr.send();
   }

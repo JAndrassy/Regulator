@@ -1,10 +1,13 @@
 #include <MemoryFree.h>
 #include <StreamLib.h>
 #include <TimeLib.h>
+#ifdef ARDUINO_AVR_UNO_WIFI_DEV_ED
 #include <WiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
-//#include <Ethernet2.h>
-//#include <SD.h>
+#else
+#include <Ethernet2.h>
+#include <SD.h>
+#endif
 #include "consts.h"
 
 #ifndef __IN_ECLIPSE__
@@ -100,6 +103,7 @@ void setup() {
   restServerSetup();
   modbusSetup();
   eventsSetup();
+  csvLogSetup();
   watchdogSetup();
   beep();
 }
@@ -169,7 +173,7 @@ void loop() {
   balboaLoop();
   
   telnetLoop(true); // logs modbus and heating data
-
+  csvLogLoop();
 }
 
 void handleSuspendAndOff() {

@@ -2,6 +2,7 @@
 enum struct RestRequest {
   INDEX = 'I',
   EVENTS = 'E',
+  CSV_LIST = 'L',
   ALARM = 'A',
   PUMP_ALARM_RESET = 'P',
   MANUAL_RUN = 'H',
@@ -29,17 +30,17 @@ void restServerLoop() {
       char fn[20];
       int l = client.readBytesUntil(' ', fn, sizeof(fn));
       fn[l] = 0;
-      msg.print(fn);
       while (client.read() != -1);
       if (l == 0) {
         strcpy_P(fn, (const char*) F("index.html"));
       }
+      msg.print(fn);
 #ifdef ethernet_h
       char buff[150];
 #else
       char buff[64];
 #endif
-      if (l == 1 && strchr_P((const char*) F("IEAPHVS"), fn[0])) {
+      if (l == 1 && strchr_P((const char*) F("IELAPHVS"), fn[0])) {
         RestRequest request = (RestRequest) fn[0];
         ChunkedPrint chunked(client, buff, sizeof(buff));
         chunked.println(F("HTTP/1.1 200 OK"));
@@ -55,6 +56,9 @@ void restServerLoop() {
             break;
           case RestRequest::EVENTS:
             eventsPrintJson(chunked);
+            break;
+          case RestRequest::CSV_LIST:
+            csvLogPrintJson(chunked);
             break;
           case RestRequest::ALARM:
             printAlarmJson(chunked);
@@ -92,6 +96,9 @@ void restServerLoop() {
             bp.println(F("HTTP/1.1 200 OK"));
             bp.print(F("Content-Type: "));
             bp.println(getContentType(ext));
+            if (strcmp(ext, ".csv") == 0) {
+              bp.println(F("Content-Disposition: attachment"));
+            }
             bp.print(F("Content-Length: "));
             bp.println(dataFile.size());
             unsigned long expires = now() + SECS_PER_YEAR;
@@ -140,6 +147,9 @@ void printValuesJson(FormattedPrint& client) {
     default:
       break;
   }
+#ifdef __SD_H__
+  client.print(F(",\"csv\":1"));
+#endif
   client.print('}');
 }
 
