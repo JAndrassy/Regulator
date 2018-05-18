@@ -18,7 +18,7 @@ void valvesBackReset() {
 }
 
 void valvesBackLoop() {
-  if (state == RegulatorState::REST && !valvesBackTime) {
+  if (!mainRelayOn && !valvesBackTime) {
     int v = analogRead(TEMPSENS_PIN);
     if (v > TEMP_SENS_WARM) {
       valvesBackStart(v);

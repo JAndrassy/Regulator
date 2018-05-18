@@ -100,7 +100,7 @@ void setup() {
 
   telnetSetup();
 //  blynkSetup();
-  restServerSetup();
+  webServerSetup();
   modbusSetup();
   eventsSetup();
   csvLogSetup();
@@ -118,37 +118,20 @@ void loop() {
   watchdogLoop();
   eventsLoop();
 
-  // clear old data to not to be show in UI
-  switch (state) {
-    case RegulatorState::MONITORING:
-    case RegulatorState::REGULATING:
-    case RegulatorState::OVERHEATED:
-      // do not clear data
-    break;
-    default:
-      modbusClearData();
-      availablePower = 0;
-      pwm = 0;
-      elsens = 0;
-      elsensPower = 0;
-      wemoPower = 0;
-  }
-
   // user interface
   buttonPressed = false;
   buttonLoop();
   beeperLoop(); // alarm sound
   ledBarLoop();
 //  blynkLoop();
-  restServerLoop();
+  webServerLoop();
   telnetLoop(msg.length() != 0); // checks input commands and prints msg
   msg.reset();  //clear msg
 
   if (handleAlarm())
     return;
 
-  if (manualRunLoop())
-    return;
+  manualRunLoop();
 
   valvesBackLoop();
 
@@ -199,12 +182,22 @@ void handleSuspendAndOff() {
   }
 }
 
+void clearData() {
+  modbusClearData();
+  availablePower = 0;
+  pwm = 0;
+  elsens = 0;
+  elsensPower = 0;
+  wemoPower = 0;
+}
+
 boolean handleAlarm() {
 
   if (alarmCause == AlarmCause::NOT_IN_ALARM)
     return false;
   if (state != RegulatorState::ALARM) {
     state = RegulatorState::ALARM;
+    clearData();
     balboaReset();
     msg.printf(F("alarm %c"), (char) alarmCause);
   }
@@ -226,6 +219,7 @@ boolean handleAlarm() {
   }
   if (stopAlarm) {
     alarmCause = AlarmCause::NOT_IN_ALARM;
+    state = RegulatorState::MONITORING;
   }
   return !stopAlarm;
 }
@@ -238,10 +232,15 @@ boolean restHours() {
   if (balboaRelayOn)
     return false;
 
-  if (hourNow >= BEGIN_HOUR && hourNow < END_HOUR)
+  if (hourNow >= BEGIN_HOUR && hourNow < END_HOUR) {
+    if (state == RegulatorState::REST) {
+      state = RegulatorState::MONITORING;
+    }
     return false;
-  if (state != RegulatorState::REST) {
+  }
+  if (state == RegulatorState::MONITORING) {
     state = RegulatorState::REST;
+    clearData();
   }
   return true;
 }

@@ -145,15 +145,15 @@ void printValuesJson(FormattedPrint& client) {
       state, version, mainRelayOn, bypassRelayOn, balboaRelayOn,
       valvesRelayOn, eventsRealCount(), analogRead(TEMPSENS_PIN));
   switch (state) {
+    case RegulatorState::MANUAL_RUN:
+      client.printf(F(",\"mr\":%u"), manualRunMinutesLeft());
+      /* no break */
     case RegulatorState::REGULATING:
     case RegulatorState::OVERHEATED:
       client.printf(F(",\"h\":%d,\"a\":%d"), heatingPower, availablePower);
       /* no break */
     case RegulatorState::MONITORING:
       client.printf(F(",\"m\":%d,\"i\":%d,\"soc\":%d,\"b\":%d"), m, inverterAC, soc, b);
-      break;
-    case RegulatorState::MANUAL_RUN:
-      client.printf(F(",\"mr\":%u"), manualRunMinutesLeft());
       break;
     default:
       break;

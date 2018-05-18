@@ -19,22 +19,27 @@ void pilotLoop() {
 
   static byte waitForItCounter = 0; // to not react on short spikes
 
-  if (state == RegulatorState::OVERHEATED)
-    return;
-
-  // check state of charge
-  if (soc < MONITORING_UNTIL_SOC) { // %
-    state = RegulatorState::MONITORING;
-    return;
+  switch (state) {
+    case RegulatorState::MONITORING:
+      break;
+    case RegulatorState::REGULATING:
+      if (!mainRelayOn) {
+        state = RegulatorState::MONITORING;
+      }
+      break;
+    default:
+      return;
   }
 
-  state = mainRelayOn ? RegulatorState::REGULATING : RegulatorState::MONITORING;
+  // check state of charge
+  if (soc < MONITORING_UNTIL_SOC) {// %
+    return;
+  }
 
   // sum available power
   availablePower = heatingPower + m + (b > 0 ? 0 : b) - (mainRelayOn ? 0 : PUMP_POWER);
   if (heatingPower == 0 && availablePower < MIN_START_POWER)
     return;
-  state = RegulatorState::REGULATING;
   if (bypassRelayOn && availablePower > BYPASS_POWER)
     return;
   if (availablePower < MIN_POWER) {
@@ -50,6 +55,7 @@ void pilotLoop() {
 
   if (!turnMainRelayOn())
     return;
+  state = RegulatorState::REGULATING;
 
   // bypass the power regulator module for max power
   boolean bypass = availablePower > (bypassRelayOn ? BYPASS_POWER : BYPASS_MIN_START_POWER);
