@@ -26,34 +26,36 @@ void webServerLoop() {
   if (!client)
     return;
   if (client.connected()) {
-    if (client.available() && client.find('/')) { // GET /fn HTTP/1.1
+    if (client.available() && client.find(' ')) { // GET /fn HTTP/1.1
       char fn[20];
       int l = client.readBytesUntil(' ', fn, sizeof(fn));
       fn[l] = 0;
       while (client.read() != -1);
-      if (l == 0) {
-        strcpy_P(fn, (const char*) F("index.html"));
+      if (l == 1) {
+        strcpy_P(fn, (const char*) F("/index.html"));
+      }
+      if (msg.length() > 0) {
+        msg.print(' ');
       }
       msg.print(fn);
-#ifdef ethernet_h
-      char buff[256];
+#ifdef ARDUINO_AVR_UNO_WIFI_DEV_ED
+      char buff[64]; // some WiFi Link problem
 #else
-      char buff[64];
+      char buff[256];
 #endif
       ChunkedPrint chunked(client, buff, sizeof(buff));
-      if (l == 1 && strchr_P((const char*) F("IELAPHVS"), fn[0])) {
-        webServerRestRequest(fn, chunked);
+      if (l == 2 && strchr("IELAPHVS", fn[1])) {
+        webServerRestRequest(fn[1], chunked);
       } else {
         webServerServeFile(fn, chunked);
       }
     }
-  } else {
     client.stop();
   }
 }
 
-void webServerRestRequest(const char *fn, ChunkedPrint& chunked) {
-  RestRequest request = (RestRequest) fn[0];
+void webServerRestRequest(char cmd, ChunkedPrint& chunked) {
+  RestRequest request = (RestRequest) cmd;
   chunked.println(F("HTTP/1.1 200 OK"));
   chunked.println(F("Connection: close"));
   chunked.println(F("Content-Type: application/json"));
@@ -93,9 +95,13 @@ void webServerRestRequest(const char *fn, ChunkedPrint& chunked) {
 
 void webServerServeFile(const char *fn, BufferedPrint& bp) {
   boolean notFound = true;
-#ifdef __SD_H__
+#ifdef FS
+  char* ext = strchr(fn, '.');
+#ifdef ESP8266
+  {
+    File dataFile = SPIFFS.open(fn, "r");
+#else
   if (sdCardAvailable) {
-    char* ext = strchr(fn, '.');
     if (strlen(ext) > 4) {
       ext[4] = 0;
       memmove(ext + 2, ext, 5);
@@ -104,6 +110,7 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
       ext += 2;
     }
     File dataFile = SD.open(fn);
+#endif
     if (dataFile) {
       notFound = false;
       bp.println(F("HTTP/1.1 200 OK"));
@@ -138,8 +145,6 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
   }
 }
 
-
-
 void printValuesJson(FormattedPrint& client) {
   client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d\",\"ec\":%d,\"ts\":%d"),
       state, version, mainRelayOn, bypassRelayOn, balboaRelayOn,
@@ -158,7 +163,7 @@ void printValuesJson(FormattedPrint& client) {
     default:
       break;
   }
-#ifdef __SD_H__
+#ifdef FS
   client.print(F(",\"csv\":1"));
 #endif
   client.print('}');
@@ -188,7 +193,7 @@ void printAlarmJson(FormattedPrint& client) {
 }
 
 const char* getContentType(const char* ext){
-  if (!strcmp_P(ext, (const char*) F( ".htm")))
+  if (!strcmp_P(ext, (const char*) F( ".html")) || !strcmp_P(ext, (const char*) F( ".htm")))
     return "text/html";
   if (!strcmp_P(ext, (const char*) F( ".css")))
     return "text/css";

@@ -4,6 +4,8 @@ void csvLogSetup() {
   unsigned long t = now() - SECS_PER_WEEK;
   char fn0[15];
   sprintf_P(fn0, (const char*) F("%02d-%02d-%02d.CSV"), year(t) - 2000, month(t), day(t));
+
+#ifdef __SD_H__
   File root = SD.open("/");
   File file = root.openNextFile();
   while (file) {
@@ -17,12 +19,23 @@ void csvLogSetup() {
     file.close();
     file = root.openNextFile();
   }
-
+#else
+  Dir dir = SPIFFS.openDir("/");
+  while (dir.next()) {
+    String fn = dir.fileName();
+    const char* ext = strchr(fn.c_str(), '.');
+    if (strcmp(ext, ".CSV") == 0) {
+      if (strcmp(fn.c_str(), fn0) < 0) {
+        SPIFFS.remove(fn);
+      }
+    }
+  }
+#endif
 }
 
 void csvLogLoop() {
 
-#ifdef __SD_H__
+#ifdef FS
   static char buff[2000];
   static CStringBuilder lines(buff, sizeof(buff));
 
@@ -30,13 +43,13 @@ void csvLogLoop() {
 
   if (lines.length() > sizeof(buff) - 100 || (!mainRelayOn && lines.length())) {
     char fn[15];
-    sprintf_P(fn, (const char*) F("%02d-%02d-%02d.csv"), year(t) - 2000, month(t), day(t));
-    File file = SD.open(fn, FILE_WRITE);
+    sprintf_P(fn, (const char*) F("%02d-%02d-%02d.CSV"), year(t) - 2000, month(t), day(t));
+    File file = FS.open(fn, FILE_WRITE);
     if (file) {
       file.print(buff);
       file.close();
     } else {
-      msg.print(F(" sd error"));
+      msg.print(F(" file error"));
     }
     lines.reset();
   }
@@ -49,12 +62,18 @@ void csvLogLoop() {
 }
 
 void csvLogPrintJson(FormattedPrint& out) {
-#ifdef __SD_H__
-  out.print(F("{\"f\":["));
-  File root = SD.open("/");
-  File file = root.openNextFile();
+#ifdef FS
   boolean first = true;
-  while (file) {
+  out.print(F("{\"f\":["));
+#ifdef __SD_H__
+  File root = SD.open("/");
+  File file;
+  while (file = root.openNextFile()) { // @suppress("Assignment in condition")
+#else
+  Dir dir = SPIFFS.openDir("/");
+  while (dir.next()) {
+    File file = dir.openFile("r");
+#endif
     const char* fn = file.name();
     const char* ext = strchr(fn, '.');
     if (strcmp(ext, ".CSV") == 0) {
@@ -72,7 +91,6 @@ void csvLogPrintJson(FormattedPrint& out) {
       out.printf(F("{\"fn\":\"%s\",\"size\":%ld}"), fnlc, file.size() / 1000);
     }
     file.close();
-    file = root.openNextFile();
   }
   out.print(F("]}"));
 #endif
