@@ -1,3 +1,22 @@
+#ifdef ESP8266
+
+void watchdogSetup() {
+  uint32_t reason = ESP.getResetInfoPtr()->reason;
+  switch (reason) {
+    case REASON_EXCEPTION_RST:
+    case REASON_WDT_RST:
+    case REASON_SOFT_WDT_RST:
+      eventsWrite(WATCHDOG_EVENT, 0, reason);
+      break;
+    default:
+      break;
+  }
+}
+
+void watchdogLoop() {
+}
+
+#else
 #include <avr/wdt.h>
 
 const byte WDT_TIMER = WDTO_8S; // interrupt every 8 sec
@@ -32,4 +51,4 @@ ISR(WDT_vect) {
     wdt_enable(WDTO_15MS); // self reset
   }
 }
-
+#endif

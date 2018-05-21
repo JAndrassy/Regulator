@@ -16,6 +16,9 @@ unsigned long eepromTimer = 0;
 EventStruct events[EVENTS_SIZE];
 
 void eventsSetup() {
+#ifdef ESP8266
+  EEPROM.begin(128);
+#endif
   EEPROM.get(EEPROM_ADDR, events);
   eepromTimer = events[EEPROM_EVENT].timestamp;
   eventsWrite(RESTART_EVENT, 0, 0);
@@ -59,8 +62,11 @@ void eventsSave() {
     return;
   eventsWrite(EEPROM_EVENT, 0, 0);
   EEPROM.put(EEPROM_ADDR, events);
+#ifdef ESP8266
+  EEPROM.commit();
+#endif
   eepromTimer = events[EEPROM_EVENT].timestamp;
-  msg.print(F("events saved"));
+  msg.print(F(" events saved"));
 }
 
 byte eventsRealCount() {

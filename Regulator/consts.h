@@ -5,6 +5,22 @@
 
 const char version[] = "build "  __DATE__ " " __TIME__;
 
+#ifdef ESP8266
+#define FILE_WRITE "a"
+#define FILE_READ "r"
+
+// ELSENS would be connected over I2C ADC. I2C is D1 D2
+const byte LEDBAR_DATA_PIN = D1; // io 5
+const byte LEDBAR_CLOCK_PIN = D2;  // io 4
+const byte BUTTON_PIN = D3; // io 0 pullup
+const byte TONE_PIN = D4; // io 2 pullup
+const byte PWM_PIN = D5; // io 14
+const byte MAIN_RELAY_PIN = D6; // io 12
+const byte BYPASS_RELAY_PIN = D7;  // io 13
+const byte VALVES_RELAY_PIN = D8; // io 15 pulldown
+const byte BALBOA_RELAY_PIN = D0; // io 16
+const byte TEMPSENS_PIN = A0;
+#else
 const byte MAIN_RELAY_PIN = 2;
 const byte TONE_PIN = 3;
 const byte SD_SS_PIN = 4; // Ethernet shield
@@ -19,6 +35,7 @@ const byte TEMPSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
 //pin A4, A5 is I2C (on Uno Wifi ESP8266 over I2C SC)
+#endif
 
 const int PUMP_POWER = 44;
 const int MAX_POWER = 1990;

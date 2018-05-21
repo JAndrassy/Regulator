@@ -1,12 +1,22 @@
-#include <MemoryFree.h>
 #include <StreamLib.h>
 #include <TimeLib.h>
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#include <ArduinoOTA.h>
+#include <WiFiManager.h>
+#include <FS.h>
+#define FS SPIFFS
+#define freeMemory ESP.getFreeHeap
+#else
+#include <MemoryFree.h>
 #ifdef ARDUINO_AVR_UNO_WIFI_DEV_ED
 #include <WiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
 #else
 #include <Ethernet2.h>
 #include <SD.h>
+#define FS SD
+#endif
 #endif
 #include "consts.h"
 
@@ -72,7 +82,14 @@ void setup() {
   Serial.print(F("mem "));
   Serial.println(freeMemory());
 
-#ifdef ethernet_h
+#ifdef ESP8266
+#ifdef FS
+  SPIFFS.begin();
+#endif
+  ArduinoOTA.begin();
+  WiFiManager wifiManager;
+  wifiManager.autoConnect();
+#elif defined(ethernet_h)
   IPAddress ip(192, 168, 1, 8);
   Ethernet.begin(mac, ip);
 #else
@@ -115,6 +132,9 @@ void loop() {
 
   handleSuspendAndOff();
 
+#ifdef ESP8266
+  ArduinoOTA.handle();
+#endif
   watchdogLoop();
   eventsLoop();
 
@@ -151,10 +171,10 @@ void loop() {
   pilotLoop();
   elsensLoop();
   wemoLoop();
-  
+
   battSettLoop();
   balboaLoop();
-  
+
   telnetLoop(true); // logs modbus and heating data
   csvLogLoop();
 }
