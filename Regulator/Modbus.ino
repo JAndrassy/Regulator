@@ -27,8 +27,8 @@ void modbusSetup() {
 
 boolean modbusLoop() {
 
-  const int DELAY_MILLIS = 2000;
-  const int DATASET_MILLIS = 10000;
+  const int DELAY_MILLIS = 3000;
+  const int DATASET_MILLIS = 5000;
   const byte DATASET_FAIL_COUNT = 3;
   static byte datasetState = MODBUS_DELAY;
   static unsigned long lastAction;
@@ -85,17 +85,17 @@ boolean requestSymoRTC() {
   const unsigned long EPOCH_2000 = 946681200; // seconds from 1.1.1971 to 1.1.2000
   const unsigned long ZONE_DST = 2 * 3600; // Central Europe DST
 
-  int regs[2];
+  short regs[2];
   int res = modbusRequest(1, 40222, 2, regs);
   if (modbusError(res))
     return false;
   // SunSpec has seconds from 1.1.2000 UTC, TimeLib uses 'epoch' (seconds from 1.1.1970)
-  setTime(EPOCH_2000 + (unsigned int) regs[0] * 65536L + (unsigned int) regs[1] + ZONE_DST);
+  setTime(EPOCH_2000 + (unsigned short) regs[0] * 65536L + (unsigned short) regs[1] + ZONE_DST);
   return true;
 }
 
 boolean requestInverter() {
-  int regs[2];
+  short regs[2];
   int res = modbusRequest(1, 40083, 2, regs);
   if (modbusError(res))
     return false;
@@ -104,7 +104,7 @@ boolean requestInverter() {
 }
 
 boolean requestMeter() {
-  int regs[16];
+  short regs[16];
   int res = modbusRequest(METER_UID, 40076, 16, regs);
   if (modbusError(res))
     return false;
@@ -114,11 +114,11 @@ boolean requestMeter() {
 }
 
 boolean requestBattery() {
-  int regs[58];
+  short regs[58];
   int res = modbusRequest(1, 40257, 58, regs); //MPPT reg + SF offsset
   if (modbusError(res))
     return false;
-  b = (unsigned int) regs[37] * pow(10, regs[0]); // dc power * scale
+  b = (unsigned short) regs[37] * pow(10, regs[0]); // dc power * scale
   soc = regs[54] / 100; // storage register addr - mppt register addr + ChaSta offset
   switch (regs[57]) {  // charge status
     case 4:  // CHARGING
@@ -163,7 +163,7 @@ boolean modbusError(int err) {
  *   - positive value is modbus protocol exception code
  *   - error 4 is SLAVE_DEVICE_FAILURE. Check if 'Inverter control via Modbus' is enabled.
  */
-int modbusRequest(byte uid, unsigned int addr, byte len, int *regs) {
+int modbusRequest(byte uid, unsigned int addr, byte len, short *regs) {
 
   const byte CODE_IX = 7;
   const byte ERR_CODE_IX = 8;
@@ -178,7 +178,7 @@ int modbusRequest(byte uid, unsigned int addr, byte len, int *regs) {
   modbus.write(request, sizeof(request));
 
   int respDataLen = len * 2;
-  byte response[max(DATA_IX, respDataLen)];
+  byte response[max((int) DATA_IX, respDataLen)];
   int readLen = modbus.readBytes(response, DATA_IX);
   if (readLen < DATA_IX) {
     modbus.stop();
@@ -243,7 +243,7 @@ int modbusConnection() {
     if (!modbus.connect(symoAddress, 502))
       return MODBUS_CONNECT_ERROR;
     modbus.setTimeout(2000);
-    msg.print(F("modbus reconnect"));
+    msg.print(F(" modbus reconnect"));
   }
   return 0;
 }

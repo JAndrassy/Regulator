@@ -48,7 +48,7 @@ void battSettLoop() {
 
 boolean battSettRead(FormattedPrint& out) {
   const int REGISTER_LENGTH = REG_InWRte + 1;
-  int regs[REGISTER_LENGTH];
+  short regs[REGISTER_LENGTH];
   int res = modbusRequest(1, ADDR_STORCTL, REGISTER_LENGTH, regs);
   if (modbusError(res))
     return false;
