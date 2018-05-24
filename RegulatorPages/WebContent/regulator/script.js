@@ -141,7 +141,7 @@ function showCsvFilesList(jsonData) {
     var file = files[i];
     var fileDiv = document.createElement("DIV");
     fileDiv.className = "table-row";
-    fileDiv.appendChild(createLinkDiv("table-cell", file.fn, "/" + file.fn));
+    fileDiv.appendChild(createLinkDiv("table-cell", file.fn, "/CSV/" + file.fn));
     fileDiv.appendChild(createTextDiv("table-cell table-cell-number", "" + file.size));
     contentDiv.appendChild(fileDiv);
   }

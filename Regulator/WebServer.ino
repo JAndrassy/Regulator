@@ -115,17 +115,18 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
       notFound = false;
       bp.println(F("HTTP/1.1 200 OK"));
       bp.println(F("Connection: close"));
-      bp.print(F("Content-Type: "));
-      bp.println(getContentType(ext));
-      if (strcmp(ext, ".csv") == 0) {
-        bp.println(F("Content-Disposition: attachment"));
-      }
       bp.print(F("Content-Length: "));
       bp.println(dataFile.size());
-      unsigned long expires = now() + SECS_PER_YEAR;
-      bp.printf(F("Expires: %s, "), dayShortStr(weekday(expires))); // two printfs because ShortStr functions share the buffer
-      bp.printf(F("%d %s %d 00:00:00 GMT"), day(expires), monthShortStr(month(expires)), year(expires));
-      bp.println();
+      bp.print(F("Content-Type: "));
+      bp.println(getContentType(ext));
+      if (strcmp(ext, ".CSV") == 0) {
+        bp.println(F("Content-Disposition: attachment"));
+      } else {
+        unsigned long expires = now() + SECS_PER_YEAR;
+        bp.printf(F("Expires: %s, "), dayShortStr(weekday(expires))); // two printfs because ShortStr functions share the buffer
+        bp.printf(F("%d %s %d 00:00:00 GMT"), day(expires), monthShortStr(month(expires)), year(expires));
+        bp.println();
+      }
       bp.println();
       while (dataFile.available()) {
         bp.write(dataFile.read());

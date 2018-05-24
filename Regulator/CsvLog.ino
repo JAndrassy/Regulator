@@ -1,4 +1,6 @@
 
+const char* CSV_DIR = "/CSV/";
+
 void csvLogSetup() {
 
   unsigned long t = now() - SECS_PER_WEEK;
@@ -6,8 +8,8 @@ void csvLogSetup() {
   sprintf_P(fn0, (const char*) F("%02d-%02d-%02d.CSV"), year(t) - 2000, month(t), day(t));
 
 #ifdef __SD_H__
-  File root = SD.open("/");
-  File file = root.openNextFile();
+  File dir = SD.open(CSV_DIR);
+  File file = dir.openNextFile();
   while (file) {
     const char* fn = file.name();
     const char* ext = strchr(fn, '.');
@@ -17,12 +19,12 @@ void csvLogSetup() {
       }
     }
     file.close();
-    file = root.openNextFile();
+    file = dir.openNextFile();
   }
-#else
-  Dir dir = SPIFFS.openDir("/");
+#elif ESP8266
+  Dir dir = SPIFFS.openDir(CSV_DIR);
   while (dir.next()) {
-    String fn = dir.fileName();
+    String fn = dir.fileName().substring(sizeof(CSV_DIR) + 1);
     const char* ext = strchr(fn.c_str(), '.');
     if (strcmp(ext, ".CSV") == 0) {
       if (strcmp(fn.c_str(), fn0) < 0) {
@@ -43,7 +45,7 @@ void csvLogLoop() {
 
   if (lines.length() > sizeof(buff) - 100 || (!mainRelayOn && lines.length())) {
     char fn[15];
-    sprintf_P(fn, (const char*) F("%02d-%02d-%02d.CSV"), year(t) - 2000, month(t), day(t));
+    sprintf_P(fn, (const char*) F("%s%02d-%02d-%02d.CSV"), CSV_DIR, year(t) - 2000, month(t), day(t));
     File file = FS.open(fn, FILE_WRITE);
     if (file) {
       file.print(buff);
@@ -66,29 +68,24 @@ void csvLogPrintJson(FormattedPrint& out) {
   boolean first = true;
   out.print(F("{\"f\":["));
 #ifdef __SD_H__
-  File root = SD.open("/");
+  File dir = SD.open(CSV_DIR);
   File file;
-  while (file = root.openNextFile()) { // @suppress("Assignment in condition")
+  while (file = dir.openNextFile()) { // @suppress("Assignment in condition")
+    const char* fn = file.name();
 #else
-  Dir dir = SPIFFS.openDir("/");
+  Dir dir = SPIFFS.openDir(CSV_DIR);
   while (dir.next()) {
     File file = dir.openFile("r");
+    const char* fn = file.name() + sizeof(CSV_DIR) + 1;
 #endif
-    const char* fn = file.name();
     const char* ext = strchr(fn, '.');
     if (strcmp(ext, ".CSV") == 0) {
-      char fnlc[15];
-      int i = 0;
-      for (; fn[i]; i++) {
-        fnlc[i] = tolower(fn[i]);
-      }
-      fnlc[i] = 0;
       if (first) {
         first = false;
       } else {
         out.print(',');
       }
-      out.printf(F("{\"fn\":\"%s\",\"size\":%ld}"), fnlc, file.size() / 1000);
+      out.printf(F("{\"fn\":\"%s\",\"size\":%ld}"), fn, file.size() / 1000);
     }
     file.close();
   }
