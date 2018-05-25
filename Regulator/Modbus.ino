@@ -28,16 +28,18 @@ void modbusSetup() {
 boolean modbusLoop() {
 
   const int DELAY_MILLIS = 3000;
-  const int DATASET_MILLIS = 5000;
+  const int DATASET_MILLIS = 10000;
   const byte DATASET_FAIL_COUNT = 3;
+
   static byte datasetState = MODBUS_DELAY;
-  static unsigned long lastAction;
+  static unsigned long datasetStart;
   static byte datasetFailCounter;
 
-  if (loopStartMillis - lastAction > DATASET_MILLIS) { // problems getting complete data-set in time
+  if (datasetState != MODBUS_DELAY && loopStartMillis - datasetStart > DATASET_MILLIS) { // problems getting complete data-set in time
     modbusClearData(); // for UI
     byte failDataState = datasetState;
     datasetState = BATTERY_DATA; // start again
+    datasetStart = loopStartMillis;
     datasetFailCounter++;
     if (datasetFailCounter == DATASET_FAIL_COUNT) {
       eventsWrite(MODBUS_EVENT, 0, failDataState);
@@ -48,9 +50,10 @@ boolean modbusLoop() {
 
   switch (datasetState) {
     case MODBUS_DELAY:
-      if (loopStartMillis - lastAction < DELAY_MILLIS)
+      if (loopStartMillis - datasetStart < DELAY_MILLIS)
         return false;
       datasetState = BATTERY_DATA;
+      datasetStart = loopStartMillis;
       break;
     case BATTERY_DATA:
       if (!requestBattery())
@@ -69,7 +72,6 @@ boolean modbusLoop() {
       datasetFailCounter = 0;
       break;
   }
-  lastAction = loopStartMillis;
   return (datasetState == MODBUS_DELAY);
 }
 
@@ -78,6 +80,7 @@ void modbusClearData() {
   soc = 0;
   m = 0;
   inverterAC = 0;
+  voltage = 0;
 }
 
 boolean requestSymoRTC() {
@@ -108,7 +111,7 @@ boolean requestMeter() {
   int res = modbusRequest(METER_UID, 40076, 16, regs);
   if (modbusError(res))
     return false;
-//  voltage = regs[3] * pow(10, regs[8] + 1); // ac voltage F3 * scale
+  voltage = regs[3] * pow(10, regs[8]); // ac voltage F3 * scale
   m = -regs[11] * pow(10, regs[15]); // ac power * scale
   return true;
 }

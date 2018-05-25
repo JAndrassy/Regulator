@@ -49,8 +49,8 @@ void webServerLoop() {
       } else {
         webServerServeFile(fn, chunked);
       }
+      client.stop();
     }
-    client.stop();
   }
 }
 

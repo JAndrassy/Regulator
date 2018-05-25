@@ -1,9 +1,9 @@
 
 const byte MAP_POINTS_COUNT = 6;
 byte power2pwmPoints[MAP_POINTS_COUNT][2] = {
-  { 62,  65},
-  {101,  85},
-  {127, 105},
+  { 60,  60},
+  {102,  85},
+  {128, 105},
   {161, 145},
   {183, 185},
   {MAX_POWER / 10, 255}

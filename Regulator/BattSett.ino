@@ -33,10 +33,10 @@ void battSettLoop() {
     disableDone = false;
   }
 
-  // after 3 PM until rest, check discharging speed
+  // after 4 PM until rest, check discharging speed
   // enable discharge limit, if SoC is lower then needed
   if (hourNow >= EVAL_START_HOUR) {
-    if (!enableDone && soc > MARGINAL_SOC && (soc - MIN_SOC < PERCENT_PER_HOUR * ((24 - hourNow) + LIMIT_TARGET_HOUR))) { // %
+    if (!enableDone && soc > MARGINAL_SOC && (b < 0) && (soc - MIN_SOC < PERCENT_PER_HOUR * ((24 - hourNow) + LIMIT_TARGET_HOUR))) { // %
       int res = battSettControl(false, true);
       eventsWrite(BATTSETT_LIMIT_EVENT, soc, res);
       enableDone = true;

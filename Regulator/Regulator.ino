@@ -3,7 +3,6 @@
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
-#include <WiFiManager.h>
 #include <FS.h>
 #define FS SPIFFS
 #define freeMemory ESP.getFreeHeap
@@ -20,14 +19,15 @@
 #endif
 #include "consts.h"
 
-#ifndef __IN_ECLIPSE__
-#define BLYNK_NO_BUILTIN
-#define BLYNK_NO_INFO
-#ifdef ethernet_h
+#define BLYNK_PRINT Serial
+#define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
+#ifdef ESP8266
+#include <BlynkSimpleEsp8266.h>
+#elif defined(ethernet_h)
 #include <BlynkSimpleEthernet2.h>
 #else
+#define BLYNK_NO_INFO
 #include <BlynkSimpleWiFiLink.h>
-#endif
 #endif
 
 #ifdef ethernet_h
@@ -52,10 +52,13 @@ boolean bypassRelayOn = false;
 boolean valvesRelayOn = false;
 boolean balboaRelayOn = false;
 
+int freeMem;
+
 // SunSpec Modbus values
 int b; // battery charging power
 int soc; //state of charge
 int m; // smart meter measured power
+int voltage; // inverter measured AC voltage
 int inverterAC; // inverter AC power
 
 // PowerPilot values
@@ -87,8 +90,7 @@ void setup() {
   SPIFFS.begin();
 #endif
   ArduinoOTA.begin();
-  WiFiManager wifiManager;
-  wifiManager.autoConnect();
+  WiFi.waitForConnectResult();
 #elif defined(ethernet_h)
   IPAddress ip(192, 168, 1, 8);
   Ethernet.begin(mac, ip);
@@ -116,7 +118,7 @@ void setup() {
   balboaSetup();
 
   telnetSetup();
-//  blynkSetup();
+  blynkSetup();
   webServerSetup();
   modbusSetup();
   eventsSetup();
@@ -127,6 +129,7 @@ void setup() {
 
 void loop() {
 
+  freeMem = freeMemory();
   loopStartMillis = millis();
   hourNow = hour(now());
 
@@ -143,7 +146,7 @@ void loop() {
   buttonLoop();
   beeperLoop(); // alarm sound
   ledBarLoop();
-//  blynkLoop();
+  blynkLoop();
   webServerLoop();
   telnetLoop(msg.length() != 0); // checks input commands and prints msg
   msg.reset();  //clear msg
@@ -213,6 +216,9 @@ void clearData() {
 
 boolean handleAlarm() {
 
+  static unsigned long modbusCheckMillis;
+  const unsigned long MODBUS_CHECK_INTERVAL = 5000;
+
   if (alarmCause == AlarmCause::NOT_IN_ALARM)
     return false;
   if (state != RegulatorState::ALARM) {
@@ -232,7 +238,10 @@ boolean handleAlarm() {
       stopAlarm = buttonPressed;
       break;
     case AlarmCause::MODBUS:
-      stopAlarm = requestSymoRTC();
+      if (millis() - modbusCheckMillis > MODBUS_CHECK_INTERVAL) {
+        stopAlarm = requestSymoRTC();
+        modbusCheckMillis = millis();
+      }
       break;
     default:
       break;

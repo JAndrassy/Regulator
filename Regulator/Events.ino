@@ -31,18 +31,12 @@ void eventsLoop() {
 }
 
 void eventsWrite(int newEvent, int value1, int value2) {
-  unsigned long lastStart = events[RESTART_EVENT].timestamp;
-  if (now() > SECS_PER_DAY && lastStart > SECS_PER_DAY  // to not work with 1.1.1970
-      && (year(lastStart) != year() || month(lastStart) != month() || day(lastStart) != day())) {
-    for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
-      events[i].timestamp = 0;
-      events[i].value1 = 0;
-      events[i].value2 = 0;
-      events[i].count = 0;
-    }
-    eepromTimer = 0;
-  }
   EventStruct& e = events[newEvent];
+  unsigned long last = e.timestamp;
+  if (now() > SECS_PER_DAY && last > SECS_PER_DAY  // to not work with 1.1.1970
+      && (year(last) != year() || month(last) != month() || day(last) != day())) {
+    e.count = 0;
+  }
   e.timestamp = now();
   e.value1 = value1;
   e.value2 = value2;
@@ -91,8 +85,8 @@ void eventsPrint(FormattedPrint& stream) {
 
 void eventsPrint(FormattedPrint& s, int ix) {
   unsigned long t = events[ix].timestamp;
-  s.printf(F("%c|%02d:%02d:%02d|% 5d|% 5d|% 3u|"), eventLabels[ix],
-      hour(t), minute(t), second(t),
+  s.printf(F("%c|%d-%02d-%02d %02d:%02d:%02d|% 5d|% 5d|% 3u|"), eventLabels[ix],
+      year(t), month(t), day(t), hour(t), minute(t), second(t),
       events[ix].value1, events[ix].value2, events[ix].count);
 }
 

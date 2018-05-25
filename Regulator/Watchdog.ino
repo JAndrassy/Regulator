@@ -1,4 +1,5 @@
 #ifdef ESP8266
+#include <user_interface.h>
 
 void watchdogSetup() {
   uint32_t reason = ESP.getResetInfoPtr()->reason;

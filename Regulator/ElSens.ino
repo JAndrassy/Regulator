@@ -28,8 +28,8 @@ void elsensLoop() {
   if (heatingPower == 0 || bypassRelayOn) {
     elsensPower = 0;
   } else {
-    float ratio = (float) elsens / 2400;
-    elsensPower = (int) ((float) elsens * sin(ratio * PI/2));
+    float ratio = (float) elsens / 2300;
+    elsensPower = (int) ((float) voltage * elsens * sin(ratio * PI * 0.55) * 0.0043);
   }
 }
 

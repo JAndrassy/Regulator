@@ -86,7 +86,7 @@ function showValues(jsonData) {
   }
 }
 
-var eventHeaders = ["event", "timestamp", "value 1", "value 2", "count"];
+var eventHeaders = ["timestamp", "event", "value 1", "value 2", "count"];
 var eventLabels = ["EEPROM", "Restart", "Watchdog", "Wifi NC", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett"];
 
 function showEvents(jsonData) {
@@ -99,6 +99,7 @@ function showEvents(jsonData) {
   }
   contentDiv.appendChild(eventsHeaderDiv);
   var events = data.e;
+  events.sort(function(e1, e2) { return (e2.t - e1.t); });
   for (var i = 0; i < events.length; i++) {
     var event = events[i];
     var tmpstmp = "";
@@ -115,8 +116,8 @@ function showEvents(jsonData) {
     }
     var eventDiv = document.createElement("DIV");
     eventDiv.className = "table-row";
-    eventDiv.appendChild(createTextDiv("table-cell", eventLabels[event.i]));
     eventDiv.appendChild(createTextDiv("table-cell", tmpstmp));
+    eventDiv.appendChild(createTextDiv("table-cell", eventLabels[event.i]));
     eventDiv.appendChild(createTextDiv("table-cell table-cell-number", v1));
     eventDiv.appendChild(createTextDiv("table-cell table-cell-number", v2));
     eventDiv.appendChild(createTextDiv("table-cell table-cell-number", "" + event.c));
