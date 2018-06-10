@@ -2,7 +2,9 @@
 #include <EEPROM.h>
 
 const unsigned long EEPROM_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
-const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'D', 'W', 'P', 'M', 'O', 'B', 'H', 'V', 'C', 'B'};
+const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'D', 'W', 'P', 'M', 'O', 'B', 'H', 'V', 'C', 'L'};
+const char* eventLongLabels[EVENTS_SIZE] = {"EEPROM", "Reset", "Watchdog", "WiFi", "Pump", "Modbus",
+    "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set"};
 const int EEPROM_ADDR = 0;
 
 struct EventStruct {
@@ -17,7 +19,7 @@ EventStruct events[EVENTS_SIZE];
 
 void eventsSetup() {
 #ifdef ESP8266
-  EEPROM.begin(128);
+  EEPROM.begin(256);
 #endif
   EEPROM.get(EEPROM_ADDR, events);
   eepromTimer = events[EEPROM_EVENT].timestamp;
@@ -65,20 +67,28 @@ void eventsSave() {
 
 byte eventsRealCount() {
   byte ec = 0;
+  unsigned long midnight = previousMidnight(now());
   for (byte  i = RESTART_EVENT; i < EVENTS_SIZE; i++) {
-    ec += events[i].count;
+    if (events[i].timestamp > midnight) {
+      ec += events[i].count;
+    }
   }
   return ec;
 }
 
 void eventsPrint(FormattedPrint& stream) {
+  byte map[EVENTS_SIZE];
   for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
-    EventStruct& event = events[i];
+    map[i] = i;
+  }
+  qsort(map, EVENTS_SIZE, 1, eventsCompare);
+  for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
+    EventStruct& event = events[map[i]];
     if (i > 0) {
       if (event.timestamp == 0)
         continue;
     }
-    eventsPrint(stream, i);
+    eventsPrint(stream, map[i]);
     stream.println();
   }
 }
@@ -107,3 +117,37 @@ void eventsPrintJson(FormattedPrint& stream) {
 void eventsPrintJson(FormattedPrint& stream, int ix) {
   stream.printf(F("{\"i\":%i,\"t\":%lu,\"v1\":%d,\"v2\":%d,\"c\":%u}"), ix, events[ix].timestamp, events[ix].value1, events[ix].value2, events[ix].count);
 }
+
+void eventsBlynk() {
+  static unsigned long lastEventsUpdate = 0;
+
+  unsigned int i = 0;
+  for (; i < EVENTS_SIZE; i++) {
+    if (lastEventsUpdate < events[i].timestamp)
+      break;
+  }
+  if (i == EVENTS_SIZE)
+    return;
+
+  Blynk.virtualWrite(TABLE_WIDGET, "clr");
+  byte map[EVENTS_SIZE];
+  for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
+    map[i] = i;
+  }
+  qsort(map, EVENTS_SIZE, 1, eventsCompare);
+  for (unsigned int i = 0; i < EVENTS_SIZE - 1; i++) {
+    EventStruct& event = events[map[i]];
+    unsigned long t = event.timestamp;
+    if (t != 0) {
+      char label[32];
+      sprintf(label, "%02d. %02d:%02d:%02d %s", day(t), hour(t), minute(t), second(t), eventLongLabels[map[i]]);
+      Blynk.virtualWrite(TABLE_WIDGET, "add", i, label, event.count);
+    }
+  }
+  lastEventsUpdate = now();
+}
+
+int eventsCompare(const void * elem1, const void * elem2) {
+  return events[*((byte*) elem2)].timestamp - events[*((byte*) elem1)].timestamp;
+}
+

@@ -1,13 +1,7 @@
 
-//#define BLYNK_PRINT Serial
-#define BLYNK_NO_BUILTIN
-#define BLYNK_NO_INFO
-
-#include <BlynkSimpleWiFiLink.h>
-
 #define GAUGE_WIDGET V0
 #define LCD_WIDGET V1
-#define TERINAL_WIDGET V2
+#define TABLE_WIDGET V2
 #define MANUAL_RUN_BUTTON V3
 #define VALVES_BACK_BUTTON V4
 
@@ -68,5 +62,6 @@ void updateWidgets() {
       break;
   }
   lcd.print(0, 1, buff);
+  eventsBlynk();
 }
 
