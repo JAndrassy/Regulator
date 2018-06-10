@@ -1,11 +1,22 @@
 
 const int ELSENS_MIN_ON_VALUE = 110;
-const int ELSENS_MIN_HEATING_VALUE = 800;
 const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resume 30 sec before pump stops
 
 unsigned long overheatedStart = 0;
 
 void elsensLoop() {
+
+#ifdef ESP8266
+  const int ELSENS_MAX_VALUE = 5200;
+  const int ELSENS_VALUE_COEF = 0.00175;
+  const int ELSENS_POWER_FACTOR_COEF = 0.6;
+  const int ELSENS_MIN_HEATING_VALUE = 1000;
+#else
+  const int ELSENS_MAX_VALUE = 2300;
+  const int ELSENS_VALUE_COEF = 0.0043;
+  const int ELSENS_POWER_FACTOR_COEF = 0.55;
+  const int ELSENS_MIN_HEATING_VALUE = 800;
+#endif
 
   elsens = readElSens();
 
@@ -21,15 +32,15 @@ void elsensLoop() {
     overheatedStart = loopStartMillis;
     state = RegulatorState::OVERHEATED;
     msg.print(F("overheated"));
-    eventsWrite(OVERHEAT_EVENT, elsens, 0);
+    eventsWrite(OVERHEATED_EVENT, elsens, 0);
     alarmSound();
     return;
   }
   if (heatingPower == 0 || bypassRelayOn) {
     elsensPower = 0;
   } else {
-    float ratio = (float) elsens / 2300;
-    elsensPower = (int) ((float) voltage * elsens * sin(ratio * PI * 0.55) * 0.0043);
+    float ratio = (float) elsens / ELSENS_MAX_VALUE;
+    elsensPower = (int) ((float) voltage * elsens * sin(ratio * PI * ELSENS_POWER_FACTOR_COEF) * ELSENS_VALUE_COEF);
   }
 }
 

@@ -33,17 +33,19 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 ### Electronics
 * [Arduino Uno WiFi](https://github.com/jandrassy/UnoWiFiDevEdSerial1/wiki) - can be replaced by any AVR 5V Arduino with some shield or module for networking
 * optional SD card reader for static web files (only with Mega)
+* alternative to Arduino card is esp8266 board in Uno format like the Wemos D1 R2, which can be used with Grove Base Shield. The shield supplies 5 V VCC for the Grove modules.
 * [Seeed Grove Base Shield](https://www.seeedstudio.com/Base-Shield-V2-p-1378.html) - the Grove connectors ensure firm connection of wires with simple assemble and disassemble
 * [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) 2pcs - the AC current in the system is less then 10 A but it can run hours at 9+ A 
 * [Grove Electricity Sensor module](https://www.seeedstudio.com/Grove-Electricity-Sensor-p-777.html) - a module with current transformer to measure the AC current up to 10 A
 * [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) - for 'valves back' circuit
 * [Grove Temperature Sensor](https://www.seeedstudio.com/Grove-Temperature-Sensor-p-774.html) - to check the next heating distributor if the main heating is running
 * [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) is for Balboa hot tub heating suspend activation
-* Beeper - the Speaker module with amplifier you can see on the box photo, was a wrong choice. The amplifier was catching WiFi interference 
+* [Grove Speaker](https://www.seeedstudio.com/Grove-Speaker-p-1445.html) - Speaker module with amplifier for strong beeps
 * [Grove LED Bar](https://www.seeedstudio.com/Grove-LED-Bar-v2.0-p-2474.html) - 10 LEDs with individual dimming needing only any two digital pins 
 * Button - plain momentary push-button to be used with Atmega internal pin pull-up (do not use the Grove button module, it has a pull-down and when you disconnected it, the pin floats)
 * Kemo M028N with [Kemo M150](https://www.kemo-electronic.de/en/Transformer-Dimmer/Converter/M150-DC-pulse-converter.php) - to regulate the heating power with PWM signal. The high VA rating is necessary because the system can run hours on maximum.
 * [Grove Screw Terminal](https://www.seeedstudio.com/Grove-Screw-Terminal-p-996.html) - to connect Grove connector to M150
+* [Grove Mosfet](https://www.seeedstudio.com/Grove-MOSFET-p-1594.html) - instead of Screw Terminal for 5 V PWM with esp8266  
 * [Grove Wrapper](https://www.seeedstudio.com/Grove-Blue-Wrapper-1%2A2%284-PCS-pack%29-p-2583.html) - to fasten the Grove modules to a DIN rail mount (the Grove 30 A relays don't fit into Grove wrappers)
 
 ### Heating system
@@ -59,7 +61,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * Regulator.ino - core: global variables, setup() and loop() handling network, heating relays, main states
 * Events.ino - data saved to EEPROM for monitoring
 * Modbus.ino - reads the PV SunSpec data and time
-* Watchdog.ino - AVR watchdog
+* Watchdog.ino - watchdog handling
 
 ### Heating
 * PowerPilot.ino - heater regulation with PWM to exactly consume the excess solar electricity calculated from SunSpec data. [more...](https://github.com/jandrassy/Regulator/wiki/PowerPilot)
@@ -74,7 +76,8 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 
 ### Monitoring
 * Telnet.ino - logging csv lines to telnet client and reading command characters sent from telnet client
-* WebServer.ino - JSON data for the web pages with optional serving of static web page files from SD card 
+* CsvLog.ino - logging heating regulation to csv files on SD card or SPIFFS
+* WebServer.ino - JSON data for the web pages with optional serving of static web page files and csv files from SD card or SPIFFS
 * Blynk.ino - control from everywhere with [Blynk](https://www.blynk.cc/) Android application. [more...](https://github.com/jandrassy/Regulator/wiki/Blynk)
 
 ### Symo Hybrid Battery
@@ -89,17 +92,16 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 
 The RegulatorPages folder contains static web pages of the regulator. The static web pages use data in json format requested from the WebServer implemented in WebServer.ino.
 
-I have the static pages served by the esp8266 WebServer of WiFi Link firmware in the esp8266 on-board of the Uno WiFi. I added them to the SPIFFS `data` folder of WiFi Link firmware.
+With Uno WiFi I had the static pages served by the esp8266 WebServer of WiFi Link firmware in the esp8266 on-board of the Uno WiFi. I added them to the SPIFFS `data` folder of WiFi Link firmware.
 
-If SD card is connected, the WebServer.ino can serve the pages from SD card.
+WebServer.ino can serve the pages from SD card or SPIFFS.
 
 This static web pages can be started from a folder on a computer to show the data from Regulator. Only set the IP address of Arduino in script.js.
 
 ## Comments
 
-The complete project doesn't fit into the Uno flash memory. To run it, I commented out the Blynk in setup and loop and the builder leaves it out. 
+The complete project doesn't fit into the Uno flash memory. To run it, I comment out the Blynk in setup and loop and the builder leaves it out. 
 
 The build of the Regulator with Ethernet shield SD card to serve web pages needs a Mega.
 
-I plan to create a branch of this project to rewrite it for esp8266 using the pins of connected Uno with Firmata or some simple sketch. 
-
+The D1 R2 esp8266 version is in duty now foe evaluation. It is without ValvesBack.ino because esp8266 has only one analog pin.

@@ -6,20 +6,23 @@
 const char version[] = "build "  __DATE__ " " __TIME__;
 
 #ifdef ESP8266
+#include "gbs-d1r2.h"
 #define FILE_WRITE "a"
 #define FILE_READ "r"
 
-// ELSENS would be connected over I2C ADC. I2C is D1 D2
-const byte LEDBAR_DATA_PIN = D1; // io 5
-const byte LEDBAR_CLOCK_PIN = D2;  // io 4
-const byte BUTTON_PIN = D3; // io 0 pullup
-const byte TONE_PIN = D4; // io 2 pullup
-const byte PWM_PIN = D5; // io 14
-const byte MAIN_RELAY_PIN = D6; // io 12
-const byte BYPASS_RELAY_PIN = D7;  // io 13
-const byte VALVES_RELAY_PIN = D8; // io 15 pulldown
-const byte BALBOA_RELAY_PIN = D0; // io 16
-const byte TEMPSENS_PIN = A0;
+const byte BUTTON_PIN = GBS_RX_io1_RX0;
+const byte MAIN_RELAY_PIN = GBS_D2_io16;
+// D3
+// D4
+const byte BYPASS_RELAY_PIN = GBS_D5_io0_PULLUP;
+const byte TONE_PIN = GBS_D6_io2_PULLUP;
+const byte PWM_PIN = GBS_D7_io14;
+const byte LEDBAR_DATA_PIN = GBS_D8_io12;
+const byte LEDBAR_CLOCK_PIN = GBS_D9_io13;
+//const byte TEMPSENS_PIN = A0;
+const byte ELSENS_PIN = A0;
+const byte BALBOA_RELAY_PIN = GBS_A2_io15_PULLDOWN; // jumper wire from pin 10 to unused A2
+//const byte VALVES_RELAY_PIN = GBS_A3_io3_TX0; // with jumper wire on GBS headers TX->A3
 #else
 const byte MAIN_RELAY_PIN = 2;
 const byte TONE_PIN = 3;
@@ -68,7 +71,7 @@ enum {
   WIFI_EVENT,
   PUMP_EVENT,
   MODBUS_EVENT,
-  OVERHEAT_EVENT,
+  OVERHEATED_EVENT,
   BALBOA_PAUSE_EVENT,
   MANUAL_RUN_EVENT,
   VALVES_BACK_EVENT,
