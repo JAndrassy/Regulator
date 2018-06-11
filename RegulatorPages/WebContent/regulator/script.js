@@ -1,5 +1,6 @@
 
 var host = location.hostname;
+var restPort = 80;
 if (host == "") {
   host = "192.168.1.8";
 }
@@ -21,7 +22,7 @@ function onLoad(cmd) {
       showValues(xhr.responseText);
     }
   };
-  xhr.open("GET", "http://" + host + ":81/" + cmd, true);
+  xhr.open("GET", "http://" + host + ":" + restPort + "/" + cmd, true);
   xhr.send();
 }
 
@@ -193,7 +194,7 @@ function createButton(text, command) {
     xhr.onload = function(e) {
       location.reload();
     };
-    xhr.open("GET", "http://" + host + ":81/" + command, true);
+    xhr.open("GET", "http://" + host + ":" + restPort + "/" + command, true);
     xhr.send();
   }
   button.appendChild(document.createTextNode(text));

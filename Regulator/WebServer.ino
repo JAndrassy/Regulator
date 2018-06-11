@@ -10,7 +10,7 @@ enum struct RestRequest {
   SAVE_EVENTS = 'S'
 };
 
-NetServer webServer(81);
+NetServer webServer(80);
 
 void webServerSetup() {
   webServer.begin();

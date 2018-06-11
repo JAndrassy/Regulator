@@ -2,6 +2,7 @@
 #include <TimeLib.h>
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
 #include <ArduinoOTA.h>
 #include <FS.h>
 #define FS SPIFFS
@@ -91,6 +92,7 @@ void setup() {
 #endif
   ArduinoOTA.begin();
   WiFi.waitForConnectResult();
+  MDNS.begin("regulator");
 #elif defined(ethernet_h)
   IPAddress ip(192, 168, 1, 8);
   Ethernet.begin(mac, ip);
