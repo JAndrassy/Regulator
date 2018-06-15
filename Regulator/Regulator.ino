@@ -81,6 +81,7 @@ boolean sdCardAvailable = false;
 
 void setup() {
   beep();
+
   Serial.begin(115200);
   Serial.println(version);
   Serial.print(F("mem "));
@@ -90,9 +91,13 @@ void setup() {
 #ifdef FS
   SPIFFS.begin();
 #endif
-  ArduinoOTA.begin();
-  WiFi.waitForConnectResult();
   MDNS.begin("regulator");
+  ArduinoOTA.begin();
+  IPAddress ip(192, 168, 1, 8);
+  IPAddress gw(192, 168, 1, 1);
+  IPAddress sn(255, 255, 255, 0);
+  WiFi.config(ip, gw, sn, gw);
+  WiFi.waitForConnectResult();
 #elif defined(ethernet_h)
   IPAddress ip(192, 168, 1, 8);
   Ethernet.begin(mac, ip);
@@ -170,12 +175,13 @@ void loop() {
 
   susCalibLoop();
 
-  if (!modbusLoop()) // returns true if data set is ready
+  if (!modbusLoop()) // returns true if data-set is ready
     return;
 
-  pilotLoop();
   elsensLoop();
   wemoLoop();
+
+  pilotLoop();
 
   battSettLoop();
   balboaLoop();

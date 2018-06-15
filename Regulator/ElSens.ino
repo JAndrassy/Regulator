@@ -7,15 +7,13 @@ unsigned long overheatedStart = 0;
 void elsensLoop() {
 
 #ifdef ESP8266
-  const int ELSENS_MAX_VALUE = 5200;
-  const int ELSENS_VALUE_COEF = 0.00175;
-  const int ELSENS_POWER_FACTOR_COEF = 0.6;
-  const int ELSENS_MIN_HEATING_VALUE = 1000;
+  const int ELSENS_MAX_VALUE = 5000;
+  const float ELSENS_VALUE_COEF = 0.0016;
+  const int ELSENS_MIN_HEATING_VALUE = 800;
 #else
   const int ELSENS_MAX_VALUE = 2300;
-  const int ELSENS_VALUE_COEF = 0.0043;
-  const int ELSENS_POWER_FACTOR_COEF = 0.55;
-  const int ELSENS_MIN_HEATING_VALUE = 800;
+  const float ELSENS_VALUE_COEF = 0.0043;
+  const int ELSENS_MIN_HEATING_VALUE = 600;
 #endif
 
   elsens = readElSens();
@@ -36,11 +34,12 @@ void elsensLoop() {
     alarmSound();
     return;
   }
-  if (heatingPower == 0 || bypassRelayOn) {
+  if (!mainRelayOn) {
     elsensPower = 0;
   } else {
-    float ratio = (float) elsens / ELSENS_MAX_VALUE;
-    elsensPower = (int) ((float) voltage * elsens * sin(ratio * PI * ELSENS_POWER_FACTOR_COEF) * ELSENS_VALUE_COEF);
+    float elsens0 = elsens + (ELSENS_MAX_VALUE * 0.1); // I don't know why, but only with this the result is exact
+    float ratio = 1 - (elsens0 / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
+    elsensPower = (int) (elsens0 * voltage * ELSENS_VALUE_COEF * cos(ratio * PI/2));
   }
 }
 
@@ -72,14 +71,14 @@ int readElSens() {
   long start_time = millis();
   while (millis() - start_time < 40) {
     int v = analogRead(ELSENS_PIN);
-    if (v > 0 && countOf0 > 10)
+    if (v > 4 && countOf0 > 10)
       break;
-    if (v == 0) {
+    if (v <= 4) {
       countOf0++;
     }
   }
   if (countOf0 < 10) // sensor is not connected, pin is floating
-    return ELSENS_MIN_ON_VALUE;
+    return -1; //ELSENS_MIN_ON_VALUE;
 
   // sample AC
   long sum = 0;

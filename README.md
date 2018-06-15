@@ -28,6 +28,10 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 
 <img src="img/schemaAC.png" width="500">
 
+### AC schema without valves control
+
+<img src="img/schemaACsimple.png" width="500">
+
 ## Hardware
 
 ### Electronics

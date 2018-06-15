@@ -1,7 +1,7 @@
 
 const byte MAP_POINTS_COUNT = 6;
 unsigned short power2pwmPoints[MAP_POINTS_COUNT][2] = {
-  { 256, 203},
+  { 380, 213},
   { 585, 243},
   {1190, 383},
   {1741, 683},
@@ -36,7 +36,7 @@ void pilotLoop() {
     return;
 
   // sum available power
-  availablePower = heatingPower + m + (b > 0 ? 0 : b) - (mainRelayOn ? 0 : PUMP_POWER);
+  availablePower = heatingPower + m + ((b > 0 || soc > 97) ? 0 : b) - (mainRelayOn ? 0 : PUMP_POWER);
   if (heatingPower == 0 && availablePower < MIN_START_POWER) {
     waitForItCounter = 0;
     return;

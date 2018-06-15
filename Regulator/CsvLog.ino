@@ -44,7 +44,7 @@ void csvLogLoop() {
   unsigned long t = now();
 
   if (lines.length() > sizeof(buff) - 100 || (!mainRelayOn && lines.length())) {
-    char fn[15];
+    char fn[20];
     sprintf_P(fn, (const char*) F("%s%02d-%02d-%02d.CSV"), CSV_DIR, year(t) - 2000, month(t), day(t));
     File file = FS.open(fn, FILE_WRITE);
     if (file) {
@@ -56,9 +56,9 @@ void csvLogLoop() {
     lines.reset();
   }
 
-  if (mainRelayOn) {
-    lines.printf(F("%02d:%02d:%02d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d\r\n"), hour(t), minute(t), second(t),
-        heatingPower, m, soc, b, availablePower, pwm, elsens, elsensPower, inverterAC, wemoPower);
+  if (mainRelayOn && state != RegulatorState::MANUAL_RUN) {
+    lines.printf(F("%02d:%02d:%02d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d\r\n"), hour(t), minute(t), second(t),
+        heatingPower, m, soc, b, availablePower, pwm, elsens, elsensPower, voltage, inverterAC, wemoPower);
   }
 #endif
 }

@@ -34,7 +34,7 @@ void blynkLoop() {
 void updateWidgets() {
   msg.print(F("Blynk"));
   Blynk.virtualWrite(GAUGE_WIDGET, heatingPower);
-  Blynk.virtualWrite(MANUAL_RUN_BUTTON, (int) manualRunMinutesLeft());
+  Blynk.virtualWrite(MANUAL_RUN_BUTTON, state == RegulatorState::MANUAL_RUN);
   char buff[17];
   CStringBuilder sb(buff, sizeof(buff));
   sb.printf(F("%c %d%d%d%d %c M% 5dW"), (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn, valvesRelayOn,
