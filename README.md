@@ -46,7 +46,8 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) is for Balboa hot tub heating suspend activation
 * [Grove Speaker](https://www.seeedstudio.com/Grove-Speaker-p-1445.html) - Speaker module with amplifier for strong beeps
 * [Grove LED Bar](https://www.seeedstudio.com/Grove-LED-Bar-v2.0-p-2474.html) - 10 LEDs with individual dimming needing only any two digital pins 
-* Button - plain momentary push-button to be used with Atmega internal pin pull-up (do not use the Grove button module, it has a pull-down and when you disconnected it, the pin floats)
+* 5 mm status LED with resistor as simple alternative to LED Bar
+* Button - plain momentary push-button to be used with Atmega internal pin pull-up (do not use the Grove button module, it has a pull-down and when you disconnected it, the pin floats. or with esp8266 it can be used on io 16 with internal pull-down set)
 * Kemo M028N with [Kemo M150](https://www.kemo-electronic.de/en/Transformer-Dimmer/Converter/M150-DC-pulse-converter.php) - to regulate the heating power with PWM signal. The high VA rating is necessary because the system can run hours on maximum.
 * [Grove Screw Terminal](https://www.seeedstudio.com/Grove-Screw-Terminal-p-996.html) - to connect Grove connector to M150
 * [Grove Mosfet](https://www.seeedstudio.com/Grove-MOSFET-p-1594.html) - instead of Screw Terminal for 5 V PWM with esp8266  
@@ -77,6 +78,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * Beeper.ino - Handles the speaker using tone() function. In loop handles the alarm sound if the system is in alarm state.
 * Button.ino - handles push and long push ('manual run') of the physical button on the front panel
 * LedBar.ino - handles visualization on the front panel LED Bar: blink, alarm, power level, count-down etc.
+* StatusLed.ino - shows state with plain LED as simple alternative to LED Bar 
 
 ### Monitoring
 * Telnet.ino - logging csv lines to telnet client and reading command characters sent from telnet client
@@ -108,4 +110,4 @@ The complete project doesn't fit into the Uno flash memory. To run it, I comment
 
 The build of the Regulator with Ethernet shield SD card to serve web pages needs a Mega.
 
-The D1 R2 esp8266 version is in duty now foe evaluation. It is without ValvesBack.ino because esp8266 has only one analog pin.
+The D1 R2 esp8266 version is in duty now for evaluation. It is without temperature sensor of ValvesBack.ino, because esp8266 has only one analog pin.

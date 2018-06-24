@@ -124,6 +124,7 @@ void setup() {
   valvesBackSetup();
   balboaSetup();
 
+  statusLedSetup();
   telnetSetup();
   blynkSetup();
   webServerSetup();
@@ -152,6 +153,7 @@ void loop() {
   buttonPressed = false;
   buttonLoop();
   beeperLoop(); // alarm sound
+  statusLedLopp();
   ledBarLoop();
   blynkLoop();
   webServerLoop();
