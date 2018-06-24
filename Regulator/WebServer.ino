@@ -149,7 +149,7 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
 void printValuesJson(FormattedPrint& client) {
   client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d\",\"ec\":%d,\"ts\":%d"),
       state, version, mainRelayOn, bypassRelayOn, balboaRelayOn,
-      valvesRelayOn, eventsRealCount(), analogRead(TEMPSENS_PIN));
+      valvesRelayOn, eventsRealCount(), valvesBackTempSensRead());
   switch (state) {
     case RegulatorState::MANUAL_RUN:
       client.printf(F(",\"mr\":%u"), manualRunMinutesLeft());

@@ -6,7 +6,9 @@ unsigned long valvesBackTime = 0;
 
 void valvesBackSetup() {
   pinMode(VALVES_RELAY_PIN, OUTPUT);
+#ifdef TEMPSENS_PIN
   pinMode(TEMPSENS_PIN, INPUT);
+#endif
 }
 
 void valvesBackReset() {
@@ -19,7 +21,7 @@ void valvesBackReset() {
 
 void valvesBackLoop() {
   if (!mainRelayOn && !valvesBackTime) {
-    int v = analogRead(TEMPSENS_PIN);
+    unsigned short v = valvesBackTempSensRead();
     if (v > TEMP_SENS_WARM) {
       valvesBackStart(v);
     }
@@ -41,5 +43,13 @@ void valvesBackStart(int v) {
 
 boolean valvesBackExecuted() {
   return valvesBackTime > 0;
+}
+
+unsigned short valvesBackTempSensRead() {
+#ifdef TEMPSENS_PIN
+  return analogRead(TEMPSENS_PIN);
+#else
+  return 0;
+#endif
 }
 

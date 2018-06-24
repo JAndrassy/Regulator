@@ -52,7 +52,7 @@ void updateWidgets() {
       }
       break;
     case RegulatorState::REST:
-      sb.printf(F("temp.sensor % 4d"), analogRead(TEMPSENS_PIN));
+      sb.printf(F("temp.sensor % 4d"), valvesBackTempSensRead());
       break;
     case RegulatorState::MANUAL_RUN:
       sb.printf(F("run time % 3d min"), manualRunMinutesLeft());
