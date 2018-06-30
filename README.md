@@ -101,7 +101,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 
 ### Web interface
 
-The RegulatorPages folder contains static web pages of the regulator. The static web pages use data in json format requested from the WebServer implemented in WebServer.ino.
+The data subfolder contains static web pages of the regulator. The static web pages use data in json format requested from the WebServer implemented in WebServer.ino.
 
 With Uno WiFi I had the static pages served by the esp8266 WebServer of WiFi Link firmware in the esp8266 on-board of the Uno WiFi. I added them to the SPIFFS `data` folder of WiFi Link firmware.
 
