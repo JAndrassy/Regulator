@@ -1,20 +1,47 @@
 
-const int ELSENS_MIN_ON_VALUE = 110;
+#define I2C_ADC121         0x50
+
+#ifdef I2C_ADC121
+#include <Wire.h>
+#define REG_ADDR_RESULT         0x00
+#define REG_ADDR_CONFIG         0x02
+  const int ELSENS_MIN_ON_VALUE = 40;
+#else
+  const int ELSENS_MIN_ON_VALUE = 10;
+#endif
 const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resume 30 sec before pump stops
 
 unsigned long overheatedStart = 0;
 
+void elsensSetup() {
+#ifdef I2C_ADC121
+  Wire.begin();
+  Wire.beginTransmission(I2C_ADC121);
+  Wire.write(REG_ADDR_CONFIG);
+  Wire.write(REG_ADDR_RESULT);
+  Wire.endTransmission();
+  Wire.beginTransmission(I2C_ADC121);
+  Wire.write(REG_ADDR_RESULT);
+  Wire.endTransmission();
+#endif
+}
+
 void elsensLoop() {
 
-#ifdef ESP8266
-  const int ELSENS_MAX_VALUE = 5000;
-  const float ELSENS_VALUE_COEF = 0.0016;
-  const int ELSENS_MIN_HEATING_VALUE = 800;
+#ifdef I2C_ADC121
+  const int ELSENS_MAX_VALUE = 2000;
+  const float ELSENS_VALUE_COEF = 0.0042;
+  const int ELSENS_MIN_HEATING_VALUE = 300;
+#elif defined(ESP8266)
+  const int ELSENS_MAX_VALUE = 500;
+  const float ELSENS_VALUE_COEF = 0.016;
+  const int ELSENS_MIN_HEATING_VALUE = 80;
 #else
-  const int ELSENS_MAX_VALUE = 2300;
-  const float ELSENS_VALUE_COEF = 0.0043;
-  const int ELSENS_MIN_HEATING_VALUE = 600;
+  const int ELSENS_MAX_VALUE = 230;
+  const float ELSENS_VALUE_COEF = 0.043;
+  const int ELSENS_MIN_HEATING_VALUE = 60;
 #endif
+  const float PF_ANGLE = 0.42;
 
   elsens = readElSens();
 
@@ -39,7 +66,7 @@ void elsensLoop() {
   } else {
     float elsens0 = elsens + (ELSENS_MAX_VALUE * 0.1); // I don't know why, but only with this the result is exact
     float ratio = 1 - (elsens0 / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
-    elsensPower = (int) (elsens0 * voltage * ELSENS_VALUE_COEF * cos(ratio * PI/2));
+    elsensPower = (int) (elsens0 * voltage * ELSENS_VALUE_COEF * cos(ratio * PI * PF_ANGLE));
   }
 }
 
@@ -70,7 +97,7 @@ int readElSens() {
   byte countOf0 = 0;
   long start_time = millis();
   while (millis() - start_time < 40) {
-    int v = analogRead(ELSENS_PIN);
+    int v = elsensAnalogRead();
     if (v > 4 && countOf0 > 10)
       break;
     if (v <= 4) {
@@ -78,15 +105,26 @@ int readElSens() {
     }
   }
   if (countOf0 < 10) // sensor is not connected, pin is floating
-    return -1; //ELSENS_MIN_ON_VALUE;
+    return -1;
 
   // sample AC
   long sum = 0;
   int n = 0;
   start_time = millis();
   while(millis() - start_time < 400) { // in 400 ms measures 20 50Hz AC oscillations
-    sum += analogRead(ELSENS_PIN);
+    sum += elsensAnalogRead();
     n++;
   }
-  return sum * 10 / (n / 2); // half of the values are zeros for removed negative voltages
+  return sum / (n / 2); // half of the values are zeros for removed negative voltages
+}
+
+unsigned short elsensAnalogRead() {
+#ifdef I2C_ADC121
+  Wire.requestFrom(I2C_ADC121, 2);
+  byte buff[2];
+  Wire.readBytes(buff, 2);
+  return (buff[0] << 8) | buff[1];
+#else
+  return analogRead(ELSENS_PIN);
+#endif
 }

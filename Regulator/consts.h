@@ -12,16 +12,18 @@ const char version[] = "build "  __DATE__ " " __TIME__;
 
 const byte BUTTON_PIN = GBS_RX_io1_RX0;
 const byte MAIN_RELAY_PIN = GBS_D2_io16;
-const byte STATUS_LED_PIN = GBS_D3_io5_I2C_SCA;
-const byte VALVES_RELAY_PIN = GBS_D4_io4_I2C_SCL;
+//I2C GBS_D3_io5_I2C_SCA
+//I2C GBS_D4_io4_I2C_SCL
 const byte BYPASS_RELAY_PIN = GBS_D5_io0_PULLUP;
-const byte TONE_PIN = GBS_D6_io2_PULLUP;
+const byte TONE_PIN  = GBS_D6_io2_PULLUP; // relay or mosfet module on io2 block boot
 const byte PWM_PIN = GBS_D7_io14;
 const byte LEDBAR_DATA_PIN = GBS_D8_io12;
 const byte LEDBAR_CLOCK_PIN = GBS_D9_io13;
-//const byte TEMPSENS_PIN = A0;
-const byte ELSENS_PIN = A0;
+const byte TEMPSENS_PIN = A0;
+//const byte ELSENS_PIN = A0;
 const byte BALBOA_RELAY_PIN = GBS_A2_io15_PULLDOWN; // jumper wire from pin 10 to unused A2
+const byte VALVES_RELAY_PIN = GBS_A3_io3_TX0; // jumper wire from pin 1 to unused A3
+const byte STATUS_LED_PIN = 99; // status led not used
 #else
 const byte MAIN_RELAY_PIN = 2;
 const byte TONE_PIN = 3;
@@ -40,7 +42,7 @@ const byte VALVES_RELAY_PIN = A3;
 #endif
 
 const int PUMP_POWER = 44;
-const int MAX_POWER = 1990;
+const int MAX_POWER = 2000;
 const int BYPASS_POWER = 2050;
 const unsigned long PUMP_STOP_MILLIS = 5 * 60000; // 5 min
 

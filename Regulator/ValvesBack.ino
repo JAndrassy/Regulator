@@ -1,14 +1,16 @@
 
 const unsigned int VALVE_ROTATION_TIME = 30000; // 30 sec
+#ifdef ESP8266
+const int TEMP_SENS_WARM = 1000;
+#else
 const int TEMP_SENS_WARM = 580;
+#endif
 
 unsigned long valvesBackTime = 0;
 
 void valvesBackSetup() {
   pinMode(VALVES_RELAY_PIN, OUTPUT);
-#ifdef TEMPSENS_PIN
   pinMode(TEMPSENS_PIN, INPUT);
-#endif
 }
 
 void valvesBackReset() {
@@ -45,11 +47,17 @@ boolean valvesBackExecuted() {
   return valvesBackTime > 0;
 }
 
+// esp8266 WiFi disconnects if analogRead is used hard
 unsigned short valvesBackTempSensRead() {
-#ifdef TEMPSENS_PIN
-  return analogRead(TEMPSENS_PIN);
-#else
-  return 0;
-#endif
+
+  const unsigned long MEASURE_INTERVAL = 10 * 1000 * 60; // 10 minutes
+  static unsigned long lastMeasureMillis;
+  static unsigned short lastValue;
+
+  if (loopStartMillis - lastMeasureMillis > MEASURE_INTERVAL) {
+    lastMeasureMillis = loopStartMillis;
+    lastValue = analogRead(TEMPSENS_PIN);
+  }
+  return lastValue;
 }
 

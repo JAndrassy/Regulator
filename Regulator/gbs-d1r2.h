@@ -11,4 +11,5 @@
 #define GBS_D9_io13 D7
 #define GBS_A0_A0_3V3 A0
 #define GBS_A2_io15_PULLDOWN D8 // with jumper wire on GBS headers 10->A2
+#define GBS_A3_io3_TX0 TX // with jumper wire on GBS headers 1->A3
 

@@ -80,9 +80,21 @@ CStringBuilder msg(msgBuff, sizeof(msgBuff));
 boolean sdCardAvailable = false;
 
 void setup() {
+
+  pinMode(MAIN_RELAY_PIN, OUTPUT);
+  pinMode(BYPASS_RELAY_PIN, OUTPUT);
+  digitalWrite(BYPASS_RELAY_PIN, LOW);
+
+  valvesBackSetup();
+  elsensSetup();
+  buttonSetup();
+  ledBarSetup();
+//  statusLedSetup();
+  balboaSetup();
+
   beep();
 
-  Serial.begin(115200);
+//  Serial.begin(115200); // TX can be used if Serial is not used
   Serial.println(version);
   Serial.print(F("mem "));
   Serial.println(freeMemory());
@@ -116,15 +128,6 @@ void setup() {
   }
 #endif
 
-  pinMode(MAIN_RELAY_PIN, OUTPUT);
-  pinMode(BYPASS_RELAY_PIN, OUTPUT);
-
-  buttonSetup();
-  ledBarSetup();
-  valvesBackSetup();
-  balboaSetup();
-
-  statusLedSetup();
   telnetSetup();
   blynkSetup();
   webServerSetup();
@@ -153,7 +156,7 @@ void loop() {
   buttonPressed = false;
   buttonLoop();
   beeperLoop(); // alarm sound
-  statusLedLopp();
+//  statusLedLopp();
   ledBarLoop();
   blynkLoop();
   webServerLoop();
