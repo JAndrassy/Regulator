@@ -27,8 +27,8 @@ void modbusSetup() {
 
 boolean modbusLoop() {
 
-  const int DELAY_MILLIS = 3000;
-  const int DATASET_MILLIS = 10000;
+  const int DELAY_MILLIS = 4000;
+  const int DATASET_MILLIS = 12000;
   const byte DATASET_FAIL_COUNT = 3;
 
   static byte datasetState = MODBUS_DELAY;

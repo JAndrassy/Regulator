@@ -10,6 +10,7 @@ unsigned long valvesBackTime = 0;
 
 void valvesBackSetup() {
   pinMode(VALVES_RELAY_PIN, OUTPUT);
+  digitalWrite(VALVES_RELAY_PIN, LOW);
   pinMode(TEMPSENS_PIN, INPUT);
 }
 
@@ -57,6 +58,7 @@ unsigned short valvesBackTempSensRead() {
   if (loopStartMillis - lastMeasureMillis > MEASURE_INTERVAL) {
     lastMeasureMillis = loopStartMillis;
     lastValue = analogRead(TEMPSENS_PIN);
+    Serial.println("analogRead");
   }
   return lastValue;
 }

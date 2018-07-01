@@ -141,7 +141,7 @@ void eventsBlynk() {
     if (t != 0) {
       char label[32];
       sprintf(label, "%02d. %02d:%02d:%02d %s", day(t), hour(t), minute(t), second(t), eventLongLabels[map[i]]);
-      Blynk.virtualWrite(TABLE_WIDGET, "add", i, label, event.count == 1 ? event.value1 : event.count);
+      Blynk.virtualWrite(TABLE_WIDGET, "add", i, label, event.count == 1 ? (event.value1 + event.value2) : event.count);
     }
   }
   lastEventsUpdate = now();

@@ -2,8 +2,8 @@
 // Grove Base Shield labels mapping for Wemos D1 R2
 #define GBS_RX_io1_RX0 RX
 #define GBS_D2_io16 D0
-#define GBS_D3_io5_I2C_SCA D1
-#define GBS_D4_io4_I2C_SCL D2
+#define GBS_D3_io5_I2C_SCL D1
+#define GBS_D4_io4_I2C_SCA D2
 #define GBS_D5_io0_PULLUP D3
 #define GBS_D6_io2_PULLUP D4
 #define GBS_D7_io14 D5

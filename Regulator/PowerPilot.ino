@@ -1,11 +1,12 @@
 
-const byte MAP_POINTS_COUNT = 6;
+const byte MAP_POINTS_COUNT = 7;
 unsigned short power2pwmPoints[MAP_POINTS_COUNT][2] = {
-  { 380, 213},
-  { 585, 243},
-  {1190, 383},
-  {1741, 683},
-  {1921, 863},
+  { 500, 223},
+  { 630, 243},
+  {1140, 363},
+  {1300, 443},
+  {1740, 683},
+  {1900, 863},
   {MAX_POWER, 1023}
 };
 const int MIN_POWER = power2pwmPoints[0][0];
@@ -13,7 +14,7 @@ const int MIN_POWER = power2pwmPoints[0][0];
 void pilotLoop() {
 
   const byte MONITORING_UNTIL_SOC = 85; // %
-  const int MIN_START_POWER = MIN_POWER + 300;
+  const int MIN_START_POWER = MIN_POWER + 200;
   const int BYPASS_MIN_START_POWER = BYPASS_POWER + 100;
   const byte WAIT_FOR_IT_COUNT = 2;
 

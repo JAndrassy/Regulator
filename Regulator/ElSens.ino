@@ -29,19 +29,20 @@ void elsensSetup() {
 void elsensLoop() {
 
 #ifdef I2C_ADC121
-  const int ELSENS_MAX_VALUE = 2000;
-  const float ELSENS_VALUE_COEF = 0.0042;
+  const int ELSENS_MAX_VALUE = 1900;
+  const float ELSENS_VALUE_COEF = 1.1;
   const int ELSENS_MIN_HEATING_VALUE = 300;
 #elif defined(ESP8266)
   const int ELSENS_MAX_VALUE = 500;
-  const float ELSENS_VALUE_COEF = 0.016;
+  const float ELSENS_VALUE_COEF = 4.15;
   const int ELSENS_MIN_HEATING_VALUE = 80;
 #else
   const int ELSENS_MAX_VALUE = 230;
-  const float ELSENS_VALUE_COEF = 0.043;
+  const float ELSENS_VALUE_COEF = 11.13;
   const int ELSENS_MIN_HEATING_VALUE = 60;
 #endif
-  const float PF_ANGLE = 0.42;
+  const float PF_ANGLE_SHIFT = -0.04 * PI;
+  const float PF_ANGLE_INTERVAL = 0.33 * PI;
 
   elsens = readElSens();
 
@@ -54,19 +55,22 @@ void elsensLoop() {
   }
 
   if (heatingPower > 0 && elsens < ELSENS_MIN_HEATING_VALUE) {
-    overheatedStart = loopStartMillis;
-    state = RegulatorState::OVERHEATED;
-    msg.print(F("overheated"));
-    eventsWrite(OVERHEATED_EVENT, elsens, 0);
+    if (heatingPower < 400) { // low power fall out
+      heatingPower = 0; // heating can start again with min_start_power
+      msg.print(F("fall out"));
+    } else {
+      overheatedStart = loopStartMillis;
+      state = RegulatorState::OVERHEATED;
+      msg.print(F("overheated"));
+    }
+    eventsWrite(OVERHEATED_EVENT, elsens, heatingPower);
     alarmSound();
-    return;
   }
   if (!mainRelayOn) {
     elsensPower = 0;
   } else {
-    float elsens0 = elsens + (ELSENS_MAX_VALUE * 0.1); // I don't know why, but only with this the result is exact
-    float ratio = 1 - (elsens0 / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
-    elsensPower = (int) (elsens0 * voltage * ELSENS_VALUE_COEF * cos(ratio * PI * PF_ANGLE));
+    float ratio = 1.0 - ((float) elsens / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
+    elsensPower = (int) (elsens * ELSENS_VALUE_COEF * cos(PF_ANGLE_SHIFT + (ratio * PF_ANGLE_INTERVAL)));
   }
 }
 

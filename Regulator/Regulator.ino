@@ -100,6 +100,7 @@ void setup() {
   Serial.println(freeMemory());
 
 #ifdef ESP8266
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
 #ifdef FS
   SPIFFS.begin();
 #endif
@@ -109,6 +110,7 @@ void setup() {
   IPAddress gw(192, 168, 1, 1);
   IPAddress sn(255, 255, 255, 0);
   WiFi.config(ip, gw, sn, gw);
+  WiFi.begin();
   WiFi.waitForConnectResult();
 #elif defined(ethernet_h)
   IPAddress ip(192, 168, 1, 8);

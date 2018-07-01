@@ -3,7 +3,7 @@ const char* CSV_DIR = "/CSV/";
 
 void csvLogSetup() {
 
-  unsigned long t = now() - SECS_PER_WEEK;
+  time_t t = now() - SECS_PER_WEEK;
   char fn0[15];
   sprintf_P(fn0, (const char*) F("%02d-%02d-%02d.CSV"), year(t) - 2000, month(t), day(t));
 
@@ -24,10 +24,10 @@ void csvLogSetup() {
 #elif ESP8266
   Dir dir = SPIFFS.openDir(CSV_DIR);
   while (dir.next()) {
-    String fn = dir.fileName().substring(sizeof(CSV_DIR) + 1);
+    String fn = dir.fileName();
     const char* ext = strchr(fn.c_str(), '.');
     if (strcmp(ext, ".CSV") == 0) {
-      if (strcmp(fn.c_str(), fn0) < 0) {
+      if (strcmp(fn.substring(sizeof(CSV_DIR) + 1).c_str(), fn0) < 0) {
         SPIFFS.remove(fn);
       }
     }

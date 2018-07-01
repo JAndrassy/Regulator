@@ -41,7 +41,7 @@ void webServerLoop() {
 #ifdef ARDUINO_AVR_UNO_WIFI_DEV_ED
       char buff[64]; // some WiFi Link problem
 #else
-      char buff[256];
+      char buff[1024];
 #endif
       ChunkedPrint chunked(client, buff, sizeof(buff));
       if (l == 2 && strchr("IELAPHVS", fn[1])) {
