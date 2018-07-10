@@ -32,7 +32,7 @@ void webServerLoop() {
       fn[l] = 0;
       while (client.read() != -1);
       if (l == 1) {
-        strcpy_P(fn, (const char*) F("/index.html"));
+        strcpy(fn, "/index.html");
       }
       if (msg.length() > 0) {
         msg.print(' ');
@@ -194,21 +194,21 @@ void printAlarmJson(FormattedPrint& client) {
 }
 
 const char* getContentType(const char* ext){
-  if (!strcmp_P(ext, (const char*) F( ".html")) || !strcmp_P(ext, (const char*) F( ".htm")))
+  if (!strcmp(ext, ".html") || !strcmp(ext, ".htm"))
     return "text/html";
-  if (!strcmp_P(ext, (const char*) F( ".css")))
+  if (!strcmp(ext, ".css"))
     return "text/css";
-  if (!strcmp_P(ext, (const char*) F( ".js")))
+  if (!strcmp(ext, ".js"))
     return "application/javascript";
-  if (!strcmp_P(ext, (const char*) F( ".png")))
+  if (!strcmp(ext, ".png"))
     return "image/png";
-  if (!strcmp_P(ext, (const char*) F( ".gif")))
+  if (!strcmp(ext, ".gif"))
     return "image/gif";
-  if (!strcmp_P(ext, (const char*) F( ".jpg")))
+  if (!strcmp(ext, ".jpg"))
     return "image/jpeg";
-  if (!strcmp_P(ext, (const char*) F( ".ico")))
+  if (!strcmp(ext, ".ico"))
     return "image/x-icon";
-  if (!strcmp_P(ext, (const char*) F( ".xml")))
+  if (!strcmp(ext, ".xml"))
     return "text/xml";
   return "text/plain";
 }

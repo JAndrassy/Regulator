@@ -5,7 +5,7 @@ void csvLogSetup() {
 
   time_t t = now() - SECS_PER_WEEK;
   char fn0[15];
-  sprintf_P(fn0, (const char*) F("%02d-%02d-%02d.CSV"), year(t) - 2000, month(t), day(t));
+  sprintf(fn0, "%02d-%02d-%02d.CSV", year(t) - 2000, month(t), day(t));
 
 #ifdef __SD_H__
   File dir = SD.open(CSV_DIR);
@@ -45,7 +45,7 @@ void csvLogLoop() {
 
   if (lines.length() > sizeof(buff) - 100 || (!mainRelayOn && lines.length())) {
     char fn[20];
-    sprintf_P(fn, (const char*) F("%s%02d-%02d-%02d.CSV"), CSV_DIR, year(t) - 2000, month(t), day(t));
+    sprintf(fn, "%s%02d-%02d-%02d.CSV", CSV_DIR, year(t) - 2000, month(t), day(t));
     File file = FS.open(fn, FILE_WRITE);
     if (file) {
       file.print(buff);
