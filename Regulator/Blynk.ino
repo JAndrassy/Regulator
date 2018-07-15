@@ -38,15 +38,15 @@ void updateWidgets() {
   char buff[17];
   CStringBuilder sb(buff, sizeof(buff));
   sb.printf(F("%c %d%d%d%d %c M% 5dW"), (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn, valvesRelayOn,
-      valvesBackExecuted() ? 'B' : ' ', m);
+      valvesBackExecuted() ? 'B' : ' ', meterPower);
   lcd.print(0, 0, buff);
   sb.reset();
   switch (state) {
     case RegulatorState::MONITORING:
     case RegulatorState::REGULATING:
     case RegulatorState::OVERHEATED:
-      if (b < -20 || b > 90) {
-        sb.printf(F("BAT%3d%%   % 5dW"), soc, b);
+      if (pvChargingPower < -20 || pvChargingPower > 90) {
+        sb.printf(F("BAT%3d%%   % 5dW"), pvSOC, pvChargingPower);
       } else {
         sb.printf(F("I% 5dW  S% 5dW"), inverterAC, elsensPower);
       }

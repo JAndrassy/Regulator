@@ -76,9 +76,9 @@ boolean modbusLoop() {
 }
 
 void modbusClearData() {
-  b = 0;
-  soc = 0;
-  m = 0;
+  pvChargingPower = 0;
+  pvSOC = 0;
+  meterPower = 0;
   inverterAC = 0;
   voltage = 0;
 }
@@ -112,7 +112,7 @@ boolean requestMeter() {
   if (modbusError(res))
     return false;
   voltage = regs[3] * pow(10, regs[8]); // ac voltage F3 * scale
-  m = -regs[11] * pow(10, regs[15]); // ac power * scale
+  meterPower = -regs[11] * pow(10, regs[15]); // ac power * scale
   return true;
 }
 
@@ -121,15 +121,15 @@ boolean requestBattery() {
   int res = modbusRequest(1, 40257, 58, regs); //MPPT reg + SF offsset
   if (modbusError(res))
     return false;
-  b = (unsigned short) regs[37] * pow(10, regs[0]); // dc power * scale
-  soc = regs[54] / 100; // storage register addr - mppt register addr + ChaSta offset
+  pvChargingPower = (unsigned short) regs[37] * pow(10, regs[0]); // dc power * scale
+  pvSOC = regs[54] / 100; // storage register addr - mppt register addr + ChaSta offset
   switch (regs[57]) {  // charge status
     case 4:  // CHARGING
     case 6:  // HOLDING
     case 7:  // TESTING (CALIBRATION)
       break;
     default:
-      b = -b;
+      pvChargingPower = -pvChargingPower;
   }
   return true;
 }

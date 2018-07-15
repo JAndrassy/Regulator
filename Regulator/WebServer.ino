@@ -159,7 +159,7 @@ void printValuesJson(FormattedPrint& client) {
       client.printf(F(",\"h\":%d,\"a\":%d"), heatingPower, availablePower);
       /* no break */
     case RegulatorState::MONITORING:
-      client.printf(F(",\"m\":%d,\"i\":%d,\"soc\":%d,\"b\":%d"), m, inverterAC, soc, b);
+      client.printf(F(",\"m\":%d,\"i\":%d,\"soc\":%d,\"b\":%d"), meterPower, inverterAC, pvSOC, pvChargingPower);
       break;
     default:
       break;

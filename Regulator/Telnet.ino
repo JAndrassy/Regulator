@@ -18,7 +18,7 @@ void telnetLoop(boolean log) {
     unsigned long t = now();
     sb.printf(F("%02d:%02d:%02d;%d;%c%d%d%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"), hour(t), minute(t), second(t),
         freeMem, (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn,
-        heatingPower, m, soc, b, availablePower, pwm, elsens, elsensPower, inverterAC, voltage, wemoPower);
+        heatingPower, meterPower, pvSOC, pvChargingPower, availablePower, pwm, elsens, elsensPower, inverterAC, voltage, wemoPower);
     Serial.print(buff);
     Serial.println(msgBuff);
   }

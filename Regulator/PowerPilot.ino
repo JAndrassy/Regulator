@@ -33,11 +33,11 @@ void pilotLoop() {
   }
 
   // check state of charge
-  if (soc < MONITORING_UNTIL_SOC) // %
+  if (pvSOC < MONITORING_UNTIL_SOC) // %
     return;
 
   // sum available power
-  availablePower = heatingPower + m + (b > 0 ? 0 : b) - (mainRelayOn ? 0 : PUMP_POWER);
+  availablePower = heatingPower + meterPower + (pvChargingPower > 0 ? 0 : pvChargingPower) - (mainRelayOn ? 0 : PUMP_POWER);
   if (heatingPower == 0 && availablePower < MIN_START_POWER) {
     waitForItCounter = 0;
     return;
