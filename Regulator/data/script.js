@@ -13,6 +13,8 @@ function onLoad(cmd) {
   xhr.onload = function(e) {
     if (cmd == "E") {
       showEvents(xhr.responseText);
+    } else if (cmd == "C") {
+      showStats(xhr.responseText);
     } else if (cmd == "L") {
       showCsvFilesList(xhr.responseText);
     } else if (cmd == "A") {
@@ -26,7 +28,7 @@ function onLoad(cmd) {
   xhr.send();
 }
 
-var valueLabels = {"mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "a" : "Available", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version"};
+var valueLabels = {"mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "a" : "Available", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "W" : "WiFi", "P" : "Pump", "M" : "MODBUS"};
 
@@ -51,7 +53,7 @@ function showValues(jsonData) {
       unit = " W";
     }
     var boxDiv = document.createElement("DIV");
-    if (key == "ec" || key == "csv" || (key == "st" && val == "ALARM")) {
+    if (key == "ec" || key == "cp" || key == "csv" || (key == "st" && val == "ALARM")) {
       boxDiv.className = "value-box value-box-clickable";
     } else {
       boxDiv.className = "value-box";
@@ -62,10 +64,14 @@ function showValues(jsonData) {
       boxDiv.onclick = function() {
         location = "events.html";
       }
+    } else if (key == "cp") {
+        boxDiv.onclick = function() {
+          location = "stats.html";
+        }
     } else if (key == "csv") {
-      boxDiv.onclick = function() {
-        location = "csvlst.html";
-      }
+        boxDiv.onclick = function() {
+          location = "csvlst.html";
+        }
     } else if (key == "st" && val == "ALARM") {
       boxDiv.onclick = function() {
         location = "alarm.html";
@@ -88,7 +94,7 @@ function showValues(jsonData) {
 }
 
 var eventHeaders = ["timestamp", "event", "value 1", "value 2", "count"];
-var eventLabels = ["EEPROM", "Restart", "Watchdog", "Wifi NC", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett"];
+var eventLabels = ["EEPROM", "Restart", "Watchdog", "Wifi NC", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "Stats save"];
 
 function showEvents(jsonData) {
   var data = JSON.parse(jsonData);
@@ -127,6 +133,35 @@ function showEvents(jsonData) {
   if (data["s"] == 0) {
     contentDiv.appendChild(createButton("Save", "S"));
   }
+}
+
+function showStats(jsonData) {
+  var data = JSON.parse(jsonData);
+  var contentDiv = document.getElementById("contentDiv");
+  var statsHeaderDiv = document.createElement("DIV");
+  statsHeaderDiv.className = "table-header";
+  var date = new Date(data["timestamp"] * 1000);
+  statsHeaderDiv.appendChild(createTextDiv("table-header-cell", date.toDateString()));
+  statsHeaderDiv.appendChild(createTextDiv("table-header-cell", "time (h:mm)"));
+  statsHeaderDiv.appendChild(createTextDiv("table-header-cell", "consumed (W)"));
+  statsHeaderDiv.appendChild(createTextDiv("table-header-cell", "average (W)"));
+  contentDiv.appendChild(statsHeaderDiv);
+  contentDiv.appendChild(buildStatsRow("Day heating", data["dayHeatingTime"], data["dayConsumedPower"]));
+  contentDiv.appendChild(buildStatsRow("Month heating", data["monthHeatingTime"], data["monthConsumedPower"]));
+  contentDiv.appendChild(buildStatsRow("Day manual-run", data["dayManualRunTime"], data["dayManualRunPower"]));
+  contentDiv.appendChild(buildStatsRow("Month manual-run", data["monthManualRunTime"], data["monthManualRunPower"]));
+}
+
+function buildStatsRow(label, heatingTime, consumedPower) {
+  var div = document.createElement("DIV");
+  div.className = "table-row";
+  div.appendChild(createTextDiv("table-cell", label));
+  var h = Math.floor(heatingTime / 60);
+  var m = Math.floor(heatingTime - h * 60);
+  div.appendChild(createTextDiv("table-cell", h + ":" + ("" + m).padStart(2, "0")));
+  div.appendChild(createTextDiv("table-cell", consumedPower));
+  div.appendChild(createTextDiv("table-cell", (heatingTime) != 0 ? Math.floor(consumedPower / (heatingTime/60)) : ""));
+  return div;
 }
 
 function showCsvFilesList(jsonData) {

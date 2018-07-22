@@ -100,11 +100,15 @@ void setup() {
   Serial.println(freeMemory());
 
 #ifdef ESP8266
+  WiFi.setAutoConnect(false);
+  WiFi.setAutoReconnect(true);
+  WiFi.hostname("regulator");
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
 #ifdef FS
   SPIFFS.begin();
 #endif
   MDNS.begin("regulator");
+  ArduinoOTA.onStart(shutdown);
   ArduinoOTA.begin();
   IPAddress ip(192, 168, 1, 8);
   IPAddress gw(192, 168, 1, 1);
@@ -135,6 +139,7 @@ void setup() {
   webServerSetup();
   modbusSetup();
   eventsSetup();
+  statsSetup();
   csvLogSetup();
   watchdogSetup();
   beep();
@@ -147,6 +152,7 @@ void loop() {
   hourNow = hour(now());
 
   handleSuspendAndOff();
+  statsLoop();
 
 #ifdef ESP8266
   ArduinoOTA.handle();
@@ -197,6 +203,11 @@ void loop() {
   csvLogLoop();
 }
 
+void shutdown() {
+  eventsSave();
+  statsSave();
+}
+
 void handleSuspendAndOff() {
 
   static unsigned long lastOn = 0; // millis for the cool-down timer
@@ -213,7 +224,7 @@ void handleSuspendAndOff() {
       digitalWrite(BYPASS_RELAY_PIN, LOW);
       bypassRelayOn = false;
     }
-    if (loopStartMillis - lastOn > PUMP_STOP_MILLIS) {
+    if (loopStartMillis - lastOn > ((float) statsConsumedPowerToday() / 1000 * PUMP_STOP_MILLIS)) { // 10 min for every kW
       digitalWrite(MAIN_RELAY_PIN, LOW);
       mainRelayOn = false;
     }

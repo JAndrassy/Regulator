@@ -2,10 +2,14 @@
 #include <EEPROM.h>
 
 const unsigned long EEPROM_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
-const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'D', 'W', 'P', 'M', 'O', 'B', 'H', 'V', 'C', 'L'};
+const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'D', 'W', 'P', 'M', 'O', 'B', 'H', 'V', 'C', 'L', 'S'};
 const char* eventLongLabels[EVENTS_SIZE] = {"EEPROM", "Reset", "Watchdog", "WiFi", "Pump", "Modbus",
-    "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set"};
-const int EEPROM_ADDR = 0;
+    "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "Stat.save"};
+#ifdef ESP8266
+const int EVENTS_EEPROM_ADDR = 0;
+#else
+const int EVENTS_EEPROM_ADDR = 64; // 0-63 Ariadne bootloader
+#endif
 
 struct EventStruct {
   unsigned long timestamp;
@@ -19,9 +23,12 @@ EventStruct events[EVENTS_SIZE];
 
 void eventsSetup() {
 #ifdef ESP8266
-  EEPROM.begin(256);
+  EEPROM.begin(EEPROM_SIZE);
 #endif
-  EEPROM.get(EEPROM_ADDR, events);
+  EEPROM.get(EVENTS_EEPROM_ADDR, events);
+#ifdef ESP8266
+  EEPROM.end();
+#endif
   eepromTimer = events[EEPROM_EVENT].timestamp;
   eventsWrite(RESTART_EVENT, 0, 0);
 }
@@ -57,9 +64,12 @@ void eventsSave() {
   if (eventsSaved())
     return;
   eventsWrite(EEPROM_EVENT, 0, 0);
-  EEPROM.put(EEPROM_ADDR, events);
 #ifdef ESP8266
-  EEPROM.commit();
+  EEPROM.begin(EEPROM_SIZE);
+#endif
+  EEPROM.put(EVENTS_EEPROM_ADDR, events);
+#ifdef ESP8266
+  EEPROM.end();
 #endif
   eepromTimer = events[EEPROM_EVENT].timestamp;
   msg.print(F(" events saved"));

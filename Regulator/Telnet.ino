@@ -48,13 +48,20 @@ void telnetLoop(boolean log) {
           }
           break;
           case 'R':
+            telnetClient.stop();
+            shutdown();
             while(true); // Watchdog test / reset
           break;
-//          case 'B': {
-//            BufferedPrint bp(telnetClient, buff, sizeof(buff));
-//            battSettRead(bp);
-//            bp.flush();
-//          }
+          case 'B': {
+            BufferedPrint bp(telnetClient, buff, sizeof(buff));
+            battSettRead(bp);
+            bp.flush();
+          }
+          break;
+          case 'S':
+            BufferedPrint bp(telnetClient, buff, sizeof(buff));
+            statsPrint(bp);
+            bp.flush();
           break;
         }
       }

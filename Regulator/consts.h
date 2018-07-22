@@ -9,6 +9,7 @@ const char version[] = "build "  __DATE__ " " __TIME__;
 #include "gbs-d1r2.h"
 #define FILE_WRITE "a"
 #define FILE_READ "r"
+#define EEPROM_SIZE 512
 
 const byte BUTTON_PIN = GBS_RX_io1_RX0;
 const byte MAIN_RELAY_PIN = GBS_D2_io16;
@@ -78,7 +79,13 @@ enum {
   VALVES_BACK_EVENT,
   SUSPEND_CALIBRATION_EVENT,
   BATTSETT_LIMIT_EVENT,
+  STATS_SAVE_EVENT,
   EVENTS_SIZE
+};
+
+struct Stats {
+  int heatingTime; // minutes
+  int consumedPower; // watts
 };
 
 #endif

@@ -2,6 +2,7 @@
 enum struct RestRequest {
   INDEX = 'I',
   EVENTS = 'E',
+  STATS = 'C',
   CSV_LIST = 'L',
   ALARM = 'A',
   PUMP_ALARM_RESET = 'P',
@@ -44,7 +45,7 @@ void webServerLoop() {
       char buff[1024];
 #endif
       ChunkedPrint chunked(client, buff, sizeof(buff));
-      if (l == 2 && strchr("IELAPHVS", fn[1])) {
+      if (l == 2 && strchr("IECLAPHVS", fn[1])) {
         webServerRestRequest(fn[1], chunked);
       } else {
         webServerServeFile(fn, chunked);
@@ -70,6 +71,9 @@ void webServerRestRequest(char cmd, ChunkedPrint& chunked) {
       break;
     case RestRequest::EVENTS:
       eventsPrintJson(chunked);
+      break;
+    case RestRequest::STATS:
+      statsPrintJson(chunked);
       break;
     case RestRequest::CSV_LIST:
       csvLogPrintJson(chunked);
@@ -147,9 +151,9 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
 }
 
 void printValuesJson(FormattedPrint& client) {
-  client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d\",\"ec\":%d,\"ts\":%d"),
+  client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d\",\"ec\":%d,\"ts\":%d,\"cp\":%d"),
       state, version, mainRelayOn, bypassRelayOn, balboaRelayOn,
-      valvesRelayOn, eventsRealCount(), valvesBackTempSensRead());
+      valvesRelayOn, eventsRealCount(), valvesBackTempSensRead(), statsConsumedPowerToday());
   switch (state) {
     case RegulatorState::MANUAL_RUN:
       client.printf(F(",\"mr\":%u"), manualRunMinutesLeft());
