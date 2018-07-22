@@ -224,7 +224,7 @@ void handleSuspendAndOff() {
       digitalWrite(BYPASS_RELAY_PIN, LOW);
       bypassRelayOn = false;
     }
-    if (loopStartMillis - lastOn > ((float) statsConsumedPowerToday() / 1000 * PUMP_STOP_MILLIS)) { // 10 min for every kW
+    if (loopStartMillis - lastOn > max(60000U, (unsigned int)((float) statsConsumedPowerToday() / 1000 * PUMP_STOP_MILLIS))) { // 10 min for every kW
       digitalWrite(MAIN_RELAY_PIN, LOW);
       mainRelayOn = false;
     }

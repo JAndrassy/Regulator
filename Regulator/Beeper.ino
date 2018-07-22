@@ -34,6 +34,7 @@ void alarmSound() {
   }
   analogWrite(TONE_PIN, 0);
   analogWriteFreq(1000);
+  pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
 #else
   for (int i = 0; i < 3; i++) {
     tone(TONE_PIN, BEEP_1);
@@ -43,7 +44,6 @@ void alarmSound() {
   }
   noTone(TONE_PIN);
 #endif
-  pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
 }
 
 void beep() {
@@ -54,9 +54,9 @@ void beep() {
   delay(200);
   analogWrite(TONE_PIN, 0);
   analogWriteFreq(1000);
+  pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
 #else
   tone(TONE_PIN, BEEP_1, 200);
 #endif
-  pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
 }
 

@@ -56,9 +56,9 @@ boolean battSettRead(FormattedPrint& out) {
   int reserve = regs[REG_MinRsvPct] / SCALE;
   int dischargeLimit = regs[REG_OutWRte] / SCALE;
   int chargeLimit = regs[REG_InWRte] / SCALE;
-  out.printf(F("Charge limit %d%% is %s"), chargeLimit, bit2s(storCtrlMod, 0b01));
-  out.printf(F("Discharge limit %d%% is %s"), dischargeLimit, bit2s(storCtrlMod, 0b10));
-  out.printf(F("Reserve is %d%%"), reserve);
+  out.printf(F("Charge limit %d%% is %s\r\n"), chargeLimit, bit2s(storCtrlMod, 0b01));
+  out.printf(F("Discharge limit %d%% is %s\r\n"), dischargeLimit, bit2s(storCtrlMod, 0b10));
+  out.printf(F("Reserve is %d%%\r\n"), reserve);
   return true;
 }
 

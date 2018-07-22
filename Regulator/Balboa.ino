@@ -12,7 +12,7 @@ void balboaReset() {
 }
 
 void balboaLoop() {
-  const byte WAIT_FOR_IT_COUNT = 5;
+  const byte WAIT_FOR_IT_COUNT = 15; // more then a minute
   static byte waitForItCounter = 0; // to not react on short spikes
 
   int hhc = inverterAC - meterPower - heatingPower; // household consumption without heater

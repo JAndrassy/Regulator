@@ -15,7 +15,10 @@ void csvLogSetup() {
     const char* ext = strchr(fn, '.');
     if (strcmp(ext, ".CSV") == 0) {
       if (strcmp(fn, fn0) < 0) {
-        SD.remove(fn);
+        char path[20];
+        strcpy(path, CSV_DIR);
+        strcat(path, fn);
+        SD.remove(path);
       }
     }
     file.close();

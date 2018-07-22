@@ -78,7 +78,7 @@ void eventsSave() {
 byte eventsRealCount() {
   byte ec = 0;
   unsigned long midnight = previousMidnight(now());
-  for (byte  i = RESTART_EVENT; i < EVENTS_SIZE; i++) {
+  for (byte  i = RESTART_EVENT; i < STATS_SAVE_EVENT; i++) {
     if (events[i].timestamp > midnight) {
       ec += events[i].count;
     }

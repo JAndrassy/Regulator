@@ -76,10 +76,10 @@ void pilotLoop() {
 
 unsigned short power2pwm(int power) {
 
-  const float POWER2PWM_KOEF = 0.16;
+  const float POWER2PWM_KOEF = 0.15;
   const float PF_ANGLE_SHIFT = 0.05 * PI;
   const float PF_ANGLE_INTERVAL = 0.33 * PI;
-  const unsigned short MIN_PWM = 110;
+  const unsigned short MIN_PWM = 120;
 
   if (power < MIN_POWER)
     return 0;

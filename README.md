@@ -113,6 +113,6 @@ This static web pages can be started from a folder on a computer to show the dat
 
 The complete project doesn't fit into the Uno flash memory. To run it, I comment out the Blynk in setup and loop and the builder leaves it out. 
 
-The build of the Regulator with Ethernet shield SD card to serve web pages needs a Mega.
+The build of the Regulator with SD card to serve web pages and log CSV files needs a Mega.
 
-The D1 R2 esp8266 version is in duty now for evaluation. It is without temperature sensor of ValvesBack.ino, because esp8266 has only one analog pin.
+The D1 R2 esp8266 version is in duty now.

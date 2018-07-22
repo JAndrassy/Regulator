@@ -17,7 +17,7 @@ void watchdogSetup() {
 void watchdogLoop() {
 }
 
-#else
+#elif __AVR__
 #include <avr/wdt.h>
 
 const byte WDT_TIMER = WDTO_8S; // interrupt every 8 sec

@@ -16,6 +16,7 @@ unsigned long overheatedStart = 0;
 void elsensSetup() {
 #ifdef I2C_ADC121
   Wire.begin();
+  Wire.setClock(400000);
   Wire.beginTransmission(I2C_ADC121);
   Wire.write(REG_ADDR_CONFIG);
   Wire.write(REG_ADDR_RESULT);
@@ -29,7 +30,7 @@ void elsensSetup() {
 void elsensLoop() {
 
 #ifdef I2C_ADC121
-  const int ELSENS_MAX_VALUE = 1900;
+  const int ELSENS_MAX_VALUE = 2200;
   const float ELSENS_VALUE_COEF = 1.1;
   const int ELSENS_MIN_HEATING_VALUE = 300;
 #elif defined(ESP8266)
@@ -41,8 +42,8 @@ void elsensLoop() {
   const float ELSENS_VALUE_COEF = 11.13;
   const int ELSENS_MIN_HEATING_VALUE = 60;
 #endif
-  const float PF_ANGLE_SHIFT = -0.04 * PI;
-  const float PF_ANGLE_INTERVAL = 0.33 * PI;
+  const float PF_ANGLE_SHIFT = 0.19 * PI;
+  const float PF_ANGLE_INTERVAL = 0.3 * PI;
 
   elsens = readElSens();
 
@@ -55,16 +56,16 @@ void elsensLoop() {
   }
 
   if (heatingPower > 0 && elsens < ELSENS_MIN_HEATING_VALUE) {
-    if (heatingPower < 400) { // low power fall out
+    if (heatingPower < 600) { // low power fall out
       heatingPower = 0; // heating can start again with min_start_power
       msg.print(F("fall out"));
     } else {
       overheatedStart = loopStartMillis;
       state = RegulatorState::OVERHEATED;
       msg.print(F("overheated"));
+      eventsWrite(OVERHEATED_EVENT, elsens, heatingPower);
+      alarmSound();
     }
-    eventsWrite(OVERHEATED_EVENT, elsens, heatingPower);
-    alarmSound();
   }
   if (!mainRelayOn) {
     elsensPower = 0;
@@ -112,14 +113,15 @@ int readElSens() {
     return -1;
 
   // sample AC
-  long sum = 0;
+  unsigned long long sum = 0;
   int n = 0;
   start_time = millis();
-  while(millis() - start_time < 400) { // in 400 ms measures 20 50Hz AC oscillations
-    sum += elsensAnalogRead();
+  while(millis() - start_time < 200) { // in 200 ms measures 10 50Hz AC oscillations
+    unsigned long v = elsensAnalogRead();
+    sum += v * v;
     n++;
   }
-  return sum / (n / 2); // half of the values are zeros for removed negative voltages
+  return sqrt((double) sum / (n / 2)); // half of the values are zeros for removed negative voltages
 }
 
 unsigned short elsensAnalogRead() {

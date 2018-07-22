@@ -51,14 +51,13 @@ boolean valvesBackExecuted() {
 // esp8266 WiFi disconnects if analogRead is used hard
 unsigned short valvesBackTempSensRead() {
 
-  const unsigned long MEASURE_INTERVAL = 10 * 1000 * 60; // 10 minutes
+  const unsigned long MEASURE_INTERVAL = 10L * 1000 * 60; // 10 minutes
   static unsigned long lastMeasureMillis;
   static unsigned short lastValue;
 
   if (loopStartMillis - lastMeasureMillis > MEASURE_INTERVAL) {
     lastMeasureMillis = loopStartMillis;
     lastValue = analogRead(TEMPSENS_PIN);
-    Serial.println("analogRead");
   }
   return lastValue;
 }
