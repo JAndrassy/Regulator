@@ -27,19 +27,26 @@ const byte VALVES_RELAY_PIN = GBS_A3_io3_TX0; // jumper wire from pin 1 to unuse
 const byte STATUS_LED_PIN = 99; // status led not used
 #else
 const byte MAIN_RELAY_PIN = 2;
-const byte TONE_PIN = 3;
+const byte BUTTON_PIN = 3;
 const byte SD_SS_PIN = 4; // Ethernet shield
 const byte BYPASS_RELAY_PIN = 5;
-const byte PWM_PIN = 6;
-const byte BUTTON_PIN = 7;
+const byte TONE_PIN = 6;
+const byte PWM_PIN = 7; // OK for Mega and SAMD. change for Uno, Nano and other 328p
 const byte LEDBAR_DATA_PIN = 8;
 const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
 //pin 10-13 SPI (Ethernet shield)
-const byte ELSENS_PIN = A0;
-const byte TEMPSENS_PIN = A1;
+const byte TEMPSENS_PIN = A0;
+//const byte ELSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
 //pin A4, A5 is I2C (on Uno Wifi ESP8266 over I2C SC)
+const byte STATUS_LED_PIN = 99; // status led not used
+#define PWMRANGE 256
+
+#define NETEEPROM_IMG_STAT 2
+#define NETEEPROM_END      63
+#define NETEEPROM_IMG_BAD_VALUE (0xFF)
+
 #endif
 
 const int PUMP_POWER = 44;
@@ -60,7 +67,7 @@ enum struct RegulatorState {
 
 enum struct AlarmCause {
   NOT_IN_ALARM = '-',
-  WIFI = 'W',
+  NETWORK = 'N',
   MODBUS = 'M',
   PUMP = 'P'
 };
@@ -70,7 +77,7 @@ enum {
   EEPROM_EVENT,
   RESTART_EVENT,
   WATCHDOG_EVENT,
-  WIFI_EVENT,
+  NETWORK_EVENT,
   PUMP_EVENT,
   MODBUS_EVENT,
   OVERHEATED_EVENT,

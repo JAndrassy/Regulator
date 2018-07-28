@@ -2,13 +2,13 @@
 #include <EEPROM.h>
 
 const unsigned long EEPROM_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
-const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'D', 'W', 'P', 'M', 'O', 'B', 'H', 'V', 'C', 'L', 'S'};
-const char* eventLongLabels[EVENTS_SIZE] = {"EEPROM", "Reset", "Watchdog", "WiFi", "Pump", "Modbus",
+const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'W', 'N', 'P', 'M', 'O', 'B', 'H', 'V', 'C', 'L', 'S'};
+const char* eventLongLabels[EVENTS_SIZE] = {"EEPROM", "Reset", "Watchdog", "Network", "Pump", "Modbus",
     "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "Stat.save"};
-#ifdef ESP8266
-const int EVENTS_EEPROM_ADDR = 0;
-#else
+#ifdef __AVR__
 const int EVENTS_EEPROM_ADDR = 64; // 0-63 Ariadne bootloader
+#else
+const int EVENTS_EEPROM_ADDR = 0;
 #endif
 
 struct EventStruct {

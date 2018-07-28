@@ -22,7 +22,7 @@ void statusLedLopp() {
       case AlarmCause::MODBUS:
         statusLedShortBlink();
         /* no break */
-      case AlarmCause::WIFI:
+      case AlarmCause::NETWORK:
         statusLedShortBlink();
         /* no break */
       case AlarmCause::PUMP:

@@ -32,7 +32,7 @@ void ledBarLoop() {
         case AlarmCause::PUMP:
           level = 1;
           break;
-        case AlarmCause::WIFI:
+        case AlarmCause::NETWORK:
           level = 2;
           break;
         case AlarmCause::MODBUS:

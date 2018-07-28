@@ -180,8 +180,8 @@ void printAlarmJson(FormattedPrint& client) {
   switch (alarmCause) {
     case AlarmCause::NOT_IN_ALARM:
       break;
-    case AlarmCause::WIFI:
-      eventIndex = WIFI_EVENT;
+    case AlarmCause::NETWORK:
+      eventIndex = NETWORK_EVENT;
       break;
     case AlarmCause::PUMP:
       eventIndex = PUMP_EVENT;

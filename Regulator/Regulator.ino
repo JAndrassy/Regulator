@@ -13,7 +13,7 @@
 #include <WiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
 #else
-#include <Ethernet2.h>
+#include <Ethernet.h> //Ethernet 2.00 for all W5000
 #include <SD.h>
 #define FS SD
 #endif
@@ -24,14 +24,14 @@
 #define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
 #ifdef ESP8266
 #include <BlynkSimpleEsp8266.h>
-#elif defined(ethernet_h)
-#include <BlynkSimpleEthernet2.h>
+#elif defined(ethernet_h_)
+#include <BlynkSimpleEthernet.h>
 #else
 #define BLYNK_NO_INFO
 #include <BlynkSimpleWiFiLink.h>
 #endif
 
-#ifdef ethernet_h
+#ifdef ethernet_h_
 #define NetServer EthernetServer
 #define NetClient EthernetClient
 #else
@@ -94,7 +94,9 @@ void setup() {
 
   beep();
 
-//  Serial.begin(115200); // TX can be used if Serial is not used
+#ifndef ESP8266
+  Serial.begin(115200); // TX can be used if Serial is not used
+#endif
   Serial.println(version);
   Serial.print(F("mem "));
   Serial.println(freeMemory());
@@ -116,8 +118,8 @@ void setup() {
   WiFi.config(ip, gw, sn, gw);
   WiFi.begin();
   WiFi.waitForConnectResult();
-#elif defined(ethernet_h)
-  IPAddress ip(192, 168, 1, 8);
+#elif defined(ethernet_h_)
+  IPAddress ip(192, 168, 1, 128);
   Ethernet.begin(mac, ip);
 #else
   Serial1.begin(115200);
@@ -182,7 +184,7 @@ void loop() {
     return;
 
 #ifndef ethernet_h
-  if (!wifiConnected())
+  if (!networkConnected())
     return;
 #endif
 
@@ -255,11 +257,13 @@ boolean handleAlarm() {
   }
   boolean stopAlarm = false;
   switch (alarmCause) {
-#ifndef ethernet_h
-    case AlarmCause::WIFI:
+    case AlarmCause::NETWORK:
+#ifdef ethernet_h_
+      stopAlarm = (Ethernet.linkStatus() != LinkOFF);
+#else
       stopAlarm = (WiFi.status() == WL_CONNECTED);
-      break;
 #endif
+      break;
     case AlarmCause::PUMP:
       stopAlarm = buttonPressed;
       break;
@@ -309,18 +313,24 @@ boolean turnMainRelayOn() {
   return elsensCheckPump();
 }
 
-#ifndef ethernet_h
-boolean wifiConnected() {
+boolean networkConnected() {
   static int tryCount = 0;
+#ifdef ethernet_h_
+  if (Ethernet.linkStatus() != LinkOFF) {
+#else
   if (WiFi.status() == WL_CONNECTED) {
+#endif
     tryCount = 0;
     return true;
   }
   tryCount++;
   if (tryCount == 30) {
-    alarmCause = AlarmCause::WIFI;
-    eventsWrite(WIFI_EVENT, WiFi.status(), 0);
+    alarmCause = AlarmCause::NETWORK;
+#ifdef ethernet_h_
+    eventsWrite(NETWORK_EVENT, Ethernet.linkStatus(), 0);
+#else
+    eventsWrite(NETWORK_EVENT, WiFi.status(), 0);
+#endif
   }
   return false;
 }
-#endif

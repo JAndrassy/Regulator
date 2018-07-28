@@ -50,6 +50,11 @@ void telnetLoop(boolean log) {
           case 'R':
             telnetClient.stop();
             shutdown();
+#ifdef __AVR__
+            EEPROM.write(NETEEPROM_IMG_STAT, NETEEPROM_IMG_BAD_VALUE); // ariadne flash status set to invalid
+            wdt_disable();
+            wdt_enable(WDTO_15MS);
+#endif
             while(true); // Watchdog test / reset
           break;
           case 'B': {

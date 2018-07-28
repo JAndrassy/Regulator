@@ -30,7 +30,7 @@ function onLoad(cmd) {
 
 var valueLabels = {"mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "a" : "Available", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
-var alarmLabels = {"-" : "No alarm", "W" : "WiFi", "P" : "Pump", "M" : "MODBUS"};
+var alarmLabels = {"-" : "No alarm", "N" : "Network", "P" : "Pump", "M" : "MODBUS"};
 
 function showValues(jsonData) {
   var data = JSON.parse(jsonData);
@@ -94,7 +94,7 @@ function showValues(jsonData) {
 }
 
 var eventHeaders = ["timestamp", "event", "value 1", "value 2", "count"];
-var eventLabels = ["EEPROM", "Restart", "Watchdog", "Wifi NC", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "Stats save"];
+var eventLabels = ["EEPROM", "Restart", "Watchdog", "Network", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "Stats save"];
 
 function showEvents(jsonData) {
   var data = JSON.parse(jsonData);
