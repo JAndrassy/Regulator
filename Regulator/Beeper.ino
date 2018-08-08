@@ -24,18 +24,6 @@ void beeperLoop() {
 
 void alarmSound() {
   Serial.println("ALARM");
-#ifdef ESP8266
-  analogWrite(TONE_PIN, PWMRANGE/2);
-  for (int i = 0; i < 3; i++) {
-    analogWriteFreq(BEEP_1);
-    delay(200);
-    analogWriteFreq(BEEP_2);
-    delay(200);
-  }
-  analogWrite(TONE_PIN, 0);
-  analogWriteFreq(1000);
-  pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
-#else
   for (int i = 0; i < 3; i++) {
     tone(TONE_PIN, BEEP_1);
     delay(200);
@@ -43,20 +31,13 @@ void alarmSound() {
     delay(200);
   }
   noTone(TONE_PIN);
-#endif
+  pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
 }
 
 void beep() {
   Serial.println("beep");
-#ifdef ESP8266
-  analogWriteFreq(BEEP_1);
-  analogWrite(TONE_PIN, PWMRANGE/2);
+  tone(TONE_PIN, BEEP_1);
   delay(200);
-  analogWrite(TONE_PIN, 0);
-  analogWriteFreq(1000);
   pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
-#else
-  tone(TONE_PIN, BEEP_1, 200);
-#endif
 }
 
