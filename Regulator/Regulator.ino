@@ -18,6 +18,11 @@
 #define FS SD
 #endif
 #endif
+#ifdef ARDUINO_ARCH_SAMD
+#define Serial SerialUSB
+#include <OTEthernet.h>
+#include <SDU.h>
+#endif
 #include "consts.h"
 
 #define BLYNK_PRINT Serial
@@ -119,7 +124,7 @@ void setup() {
   WiFi.begin();
   WiFi.waitForConnectResult();
 #elif defined(ethernet_h_)
-  IPAddress ip(192, 168, 1, 128);
+  IPAddress ip(192, 168, 1, 6);
   Ethernet.begin(mac, ip);
 #else
   Serial1.begin(115200);
@@ -134,6 +139,10 @@ void setup() {
     sdCardAvailable = true;
     Serial.println(F("SD card initialized"));
   }
+#endif
+#ifdef ARDUINO_ARCH_SAMD
+  OTEthernet.begin("Arduino", "password", SDStorage);
+  analogWriteResolution(10);
 #endif
 
   telnetSetup();
@@ -158,6 +167,9 @@ void loop() {
 
 #ifdef ESP8266
   ArduinoOTA.handle();
+#endif
+#ifdef ARDUINO_ARCH_SAMD
+  OTEthernet.poll();
 #endif
   watchdogLoop();
   eventsLoop();

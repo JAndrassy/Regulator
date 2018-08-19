@@ -76,8 +76,14 @@ void pilotLoop() {
 
 unsigned short power2pwm(int power) {
 
+#ifdef ESP8266
   const float POWER2PWM_KOEF = 0.15;
   const float PF_ANGLE_SHIFT = 0.05 * PI;
+#endif
+#ifdef ARDUINO_ARCH_SAMD
+  const float POWER2PWM_KOEF = 0.18;
+  const float PF_ANGLE_SHIFT = 0.03 * PI;
+#endif
   const float PF_ANGLE_INTERVAL = 0.33 * PI;
   const unsigned short MIN_PWM = 120;
 
@@ -90,7 +96,7 @@ unsigned short power2pwm(int power) {
     float ratio = (float) power / MAX_POWER;
     res = MIN_PWM + POWER2PWM_KOEF * power / cos(PF_ANGLE_SHIFT + (ratio * PF_ANGLE_INTERVAL));
   }
-#ifndef ESP8266
+#ifdef ___AVR___
   res /= 4;
 #endif
   return res;
@@ -107,7 +113,7 @@ unsigned short power2pwm(int power) {
 //      break;
 //  }
 //  unsigned short res = map(power, power2pwmPoints[i][0], power2pwmPoints[i + 1][0], power2pwmPoints[i][1], power2pwmPoints[i+1][1]);
-//#ifndef ESP8266
+//#ifdef ___AVR___
 //  res /= 4;
 //#endif
 //  return res;

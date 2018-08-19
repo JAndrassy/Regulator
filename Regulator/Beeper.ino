@@ -24,6 +24,7 @@ void beeperLoop() {
 
 void alarmSound() {
   Serial.println("ALARM");
+  pinMode(TONE_PIN, OUTPUT);
   for (int i = 0; i < 3; i++) {
     tone(TONE_PIN, BEEP_1);
     delay(200);
@@ -36,6 +37,7 @@ void alarmSound() {
 
 void beep() {
   Serial.println("beep");
+  pinMode(TONE_PIN, OUTPUT);
   tone(TONE_PIN, BEEP_1);
   delay(200);
   pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier

@@ -1,6 +1,6 @@
 
 const unsigned int VALVE_ROTATION_TIME = 30000; // 30 sec
-#ifdef ESP8266
+#ifndef ___AVR___
 const int TEMP_SENS_WARM = 1000;
 #else
 const int TEMP_SENS_WARM = 580;

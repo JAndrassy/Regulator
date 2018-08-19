@@ -1,14 +1,18 @@
 
-#include <EEPROM.h>
-
-const unsigned long EEPROM_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
+const unsigned long EVENTS_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
 const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'W', 'N', 'P', 'M', 'O', 'B', 'H', 'V', 'C', 'L', 'S'};
-const char* eventLongLabels[EVENTS_SIZE] = {"EEPROM", "Reset", "Watchdog", "Network", "Pump", "Modbus",
+const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Network", "Pump", "Modbus",
     "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "Stat.save"};
+
+#ifdef ARDUINO_ARCH_SAMD
+#define EVENTS_FILENAME "EVENTS.DAT"
+#else
+#include <EEPROM.h>
 #ifdef __AVR__
 const int EVENTS_EEPROM_ADDR = 64; // 0-63 Ariadne bootloader
 #else
 const int EVENTS_EEPROM_ADDR = 0;
+#endif
 #endif
 
 struct EventStruct {
@@ -18,10 +22,21 @@ struct EventStruct {
   byte count;
 };
 
-unsigned long eepromTimer = 0;
+unsigned long eventsTimer = 0;
 EventStruct events[EVENTS_SIZE];
 
 void eventsSetup() {
+#ifdef ARDUINO_ARCH_SAMD
+  if (!FS.exists(EVENTS_FILENAME)) {
+    for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
+      events[i].timestamp = 0;
+    }
+  } else {
+    File file = FS.open(EVENTS_FILENAME, FILE_READ);
+    file.readBytes((char*) events, sizeof(events));
+    file.close();
+  }
+#else
 #ifdef ESP8266
   EEPROM.begin(EEPROM_SIZE);
 #endif
@@ -29,12 +44,13 @@ void eventsSetup() {
 #ifdef ESP8266
   EEPROM.end();
 #endif
-  eepromTimer = events[EEPROM_EVENT].timestamp;
+#endif
+  eventsTimer = events[EVENTS_SAVE_EVENT].timestamp;
   eventsWrite(RESTART_EVENT, 0, 0);
 }
 
 void eventsLoop() {
-  if (now() > SECS_PER_DAY && now() - eepromTimer > EEPROM_SAVE_INTERVAL_SEC) {
+  if (now() > SECS_PER_DAY && now() - eventsTimer > EVENTS_SAVE_INTERVAL_SEC) {
     eventsSave();
   }
 }
@@ -54,7 +70,7 @@ void eventsWrite(int newEvent, int value1, int value2) {
 
 boolean eventsSaved() {
   for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
-    if (events[i].timestamp > eepromTimer)
+    if (events[i].timestamp > eventsTimer)
       return false;
   }
   return true;
@@ -63,7 +79,14 @@ boolean eventsSaved() {
 void eventsSave() {
   if (eventsSaved())
     return;
-  eventsWrite(EEPROM_EVENT, 0, 0);
+  eventsWrite(EVENTS_SAVE_EVENT, 0, 0);
+#ifdef ARDUINO_ARCH_SAMD
+  File file = FS.open(EVENTS_FILENAME, FILE_NEW);
+  if (file) {
+    file.write((byte*) events, sizeof(events));
+    file.close();
+  }
+#else
 #ifdef ESP8266
   EEPROM.begin(EEPROM_SIZE);
 #endif
@@ -71,7 +94,8 @@ void eventsSave() {
 #ifdef ESP8266
   EEPROM.end();
 #endif
-  eepromTimer = events[EEPROM_EVENT].timestamp;
+#endif
+  eventsTimer = events[EVENTS_SAVE_EVENT].timestamp;
   msg.print(F(" events saved"));
 }
 

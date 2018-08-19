@@ -1,5 +1,10 @@
 
+#ifdef ARDUINO_ARCH_SAMD
+#define STATS_FILENAME "STATS.DAT"
+#else
+#include <EEPROM.h>
 const int STATS_EEPROM_ADDR = 256;
+#endif
 
 struct {
   time_t timestamp;
@@ -16,12 +21,20 @@ bool statsManualRunFlag;
 unsigned long statsSaveTimer = 0;
 
 void statsSetup() {
+#ifdef ARDUINO_ARCH_SAMD
+  File file = FS.open(STATS_FILENAME, FILE_READ);
+  if (file) {
+    file.readBytes((byte*) &statsData, sizeof(statsData));
+    file.close();
+  }
+#else
 #ifdef ESP8266
   EEPROM.begin(EEPROM_SIZE);
 #endif
   EEPROM.get(STATS_EEPROM_ADDR, statsData);
 #ifdef ESP8266
   EEPROM.end();
+#endif
 #endif
 }
 
@@ -110,12 +123,20 @@ void statsAddMilliwats() {
 
 void statsSave() {
   statsAddMilliwats();
+#ifdef ARDUINO_ARCH_SAMD
+  File file = FS.open(STATS_FILENAME, FILE_NEW);
+  if (file) {
+    file.write((byte*) &statsData, sizeof(statsData));
+    file.close();
+  }
+#else
 #ifdef ESP8266
   EEPROM.begin(EEPROM_SIZE);
 #endif
   EEPROM.put(STATS_EEPROM_ADDR, statsData);
 #ifdef ESP8266
   EEPROM.end();
+#endif
 #endif
   eventsWrite(STATS_SAVE_EVENT, (loopStartMillis - statsSaveTimer) / 60000, 0);
   statsSaveTimer = loopStartMillis;

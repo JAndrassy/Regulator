@@ -28,18 +28,19 @@ int wemoRequest(const char* service, const char* action, const char* param, cons
   NetClient client;
   if (!client.connect(wemoAddress, wemoPort))
     return -2;
-  char sbBuff[64];
-  CStringBuilder sb(sbBuff, sizeof(sbBuff));
-  sb.print(F("/upnp/control/"));
-  char* colon = strchr(service, ':');
-  colon[0] = 0;
-  sb.print(service);
-  sb.print(colon + 1);
-  colon[0] = ':';
+
+  char url[64] = "/upnp/control/";
+  for (int i = 0, j = strlen(url); ; i++) {
+    if (service[i] != ':') {
+      url[j++] = service[i];
+    }
+    if (service[i] == 0)
+      break;
+  }
 
   char printBuff[64];
   ChunkedPrint chunked(client, printBuff, sizeof(printBuff));
-  chunked.printf(F("POST %s HTTP/1.1\r\n"), sbBuff);
+  chunked.printf(F("POST %s HTTP/1.1\r\n"), url);
   chunked.print(F("Host: "));
   chunked.println(wemoAddress);
   chunked.println(F("Transfer-Encoding: chunked"));
@@ -48,7 +49,8 @@ int wemoRequest(const char* service, const char* action, const char* param, cons
   chunked.println(F("Content-Type: text/xml"));
   chunked.println();
   chunked.begin();
-  sb.reset();
+  char sbBuff[64];
+  CStringBuilder sb(sbBuff, sizeof(sbBuff));
   if (value != nullptr) {
     sb.printf(F("<%s>%s</%s>"), param, value, param);
   }

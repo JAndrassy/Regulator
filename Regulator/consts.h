@@ -9,6 +9,7 @@ const char version[] = "build "  __DATE__ " " __TIME__;
 #include "gbs-d1r2.h"
 #define FILE_WRITE "a"
 #define FILE_READ "r"
+#define FILE_NEW "w"
 #define EEPROM_SIZE 512
 
 const byte BUTTON_PIN = GBS_RX_io1_RX0;
@@ -26,27 +27,24 @@ const byte BALBOA_RELAY_PIN = GBS_A2_io15_PULLDOWN; // jumper wire from pin 10 t
 const byte VALVES_RELAY_PIN = GBS_A3_io3_TX0; // jumper wire from pin 1 to unused A3
 const byte STATUS_LED_PIN = 99; // status led not used
 #else
+#define FILE_NEW (O_READ | O_WRITE | O_CREAT)
+
 const byte MAIN_RELAY_PIN = 2;
 const byte BUTTON_PIN = 3;
-const byte SD_SS_PIN = 4; // Ethernet shield
+const byte SD_SS_PIN = 4; // SD card SS
 const byte BYPASS_RELAY_PIN = 5;
 const byte TONE_PIN = 6;
 const byte PWM_PIN = 7; // OK for Mega and SAMD. change for Uno, Nano and other 328p
 const byte LEDBAR_DATA_PIN = 8;
 const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
-//pin 10-13 SPI (Ethernet shield)
+//pin 10-13 SPI (Ethernet, SD)
 const byte TEMPSENS_PIN = A0;
 //const byte ELSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
-//pin A4, A5 is I2C (on Uno Wifi ESP8266 over I2C SC)
+//pin A4, A5 is I2C on AVR (ADC, on Uno Wifi ESP8266 over I2C SC)
 const byte STATUS_LED_PIN = 99; // status led not used
 #define PWMRANGE 256
-
-#define NETEEPROM_IMG_STAT 2
-#define NETEEPROM_END      63
-#define NETEEPROM_IMG_BAD_VALUE (0xFF)
-
 #endif
 
 const int PUMP_POWER = 44;
@@ -74,7 +72,7 @@ enum struct AlarmCause {
 
 // events array indexes (and size)
 enum {
-  EEPROM_EVENT,
+  EVENTS_SAVE_EVENT,
   RESTART_EVENT,
   WATCHDOG_EVENT,
   NETWORK_EVENT,

@@ -39,13 +39,11 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 ## Hardware
 
 ### Electronics
-* [Arduino Uno WiFi](https://github.com/jandrassy/UnoWiFiDevEdSerial1/wiki) - can be replaced by any AVR 5V Arduino with some shield or module for networking
-* optional SD card reader for static web files (only with Mega)
-* alternative to Arduino card is esp8266 board in Uno format like the Wemos D1 R2, which can be used with Grove Base Shield. The shield supplies 5 V VCC for the Grove modules.
-* [Seeed Grove Base Shield](https://www.seeedstudio.com/Base-Shield-V2-p-1378.html) - the Grove connectors ensure firm connection of wires with simple assemble and disassemble
+* Arduino with some shield or module for networking and optional SD card reader for static web files and csv logging
+* [Seeed Grove Base Shield](https://www.seeedstudio.com/Base-Shield-V2-p-1378.html) - the Grove connectors ensure firm connection of wires with simple assemble and disassemble and the shield supplies 5 V VCC for the Grove modules.
 * [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) 2pcs - the AC current in the system is less then 10 A but it can run hours at 9+ A 
 * [Grove Electricity Sensor module](https://www.seeedstudio.com/Grove-Electricity-Sensor-p-777.html) - a module with current transformer to measure the AC current up to 10 A
-* [Grove I2C ADC module](https://www.seeedstudio.com/grove-i2c-adc-p-1580.html) - to read the 5 V electricity sensor with esp8266 
+* [Grove I2C ADC module](https://www.seeedstudio.com/grove-i2c-adc-p-1580.html) - to read the 5 V electricity sensor with 3.3 V boards 
 * [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) - for 'valves back' circuit
 * [Grove Temperature Sensor](https://www.seeedstudio.com/Grove-Temperature-Sensor-p-774.html) - to check the next heating distributor if the main heating is running
 * [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) is for Balboa hot tub heating suspend activation
@@ -55,8 +53,15 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * Button - plain momentary push-button to be used with internal pin pull-up (do not use the Grove button module, it has a pull-down and when you disconnected it, the pin floats. or with esp8266 it can be used on io 16 with internal pull-down set)
 * Kemo M028N with [Kemo M150](https://www.kemo-electronic.de/en/Transformer-Dimmer/Converter/M150-DC-pulse-converter.php) - to regulate the heating power with PWM signal. The high VA rating is necessary because the system can run hours on maximum.
 * [Grove Screw Terminal](https://www.seeedstudio.com/Grove-Screw-Terminal-p-996.html) - to connect Grove connector to M150
-* [Grove Mosfet](https://www.seeedstudio.com/Grove-MOSFET-p-1594.html) - instead of Screw Terminal for 5 V PWM with esp8266  
+* [Grove Mosfet](https://www.seeedstudio.com/Grove-MOSFET-p-1594.html) - instead of Screw Terminal for 5 V PWM with 3.3 V boards  
 * [Grove Wrapper](https://www.seeedstudio.com/Grove-Blue-Wrapper-1%2A2%284-PCS-pack%29-p-2583.html) - to fasten the Grove modules to a DIN rail mount (the Grove 30 A relays don't fit into Grove wrappers)
+
+### MCU options
+* [Arduino Uno WiFi](https://github.com/jandrassy/UnoWiFiDevEdSerial1/wiki) 
+* any AVR Arduino in Uno or Mega format with some shield or module for networking
+* Arduino Zero or M0 in Uno format with some shield or module for networking and with SD card to save events (no EEPROM)
+* esp8266 board in Uno format like the Wemos D1 R2, which can be used with Grove Base Shield
+* for other board formats like the mini versions or MKR, it is important to supply 5 V to Grove modules  
 
 ### Heating system
 * [TEZA2000 heating](https://www.teza-eshop.sk/products/produkt-1/) - this small electric heating is a local 'invention'
@@ -78,6 +83,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * ManualRun.ino - unregulated timed heating, activated with a button or from a remote monitoring
 * ElSens.ino - functions around the electricity sensor: checking expected consumption of the pump and heating and detecting disconnection by the heater's thermostat
 * ValvesBack.ino - handles turning valves back to the main heating system, if temperature sensor detects warming of the second heating circuit
+* Stats.ino - count and store power consumption statistics
 
 ### Front panel
 * Beeper.ino - Handles the speaker using tone() function. In loop handles the alarm sound if the system is in alarm state.
@@ -111,8 +117,10 @@ This static web pages can be started from a folder on a computer to show the dat
 
 ## Comments
 
-The complete project doesn't fit into the Uno flash memory. To run it, I comment out the Blynk in setup and loop and the builder leaves it out. 
+The complete project doesn't fit into the Uno flash memory. To run it, comment out less important functions in setup and loop and the builder leaves the code out. 
 
-The build of the Regulator with SD card to serve web pages and log CSV files needs a Mega.
+First board used in this project was Uno WiFi. The project grow out of Uno memories.
 
-The D1 R2 esp8266 version is in duty now.
+Next board was Wemos D1 R2 esp8266. But I wanted Ethernet.
+
+Now M0 with Ethernet shield is in duty, because I wanted Ethernet, Uno form and 10 bit PWM.
