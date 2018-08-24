@@ -2,7 +2,7 @@
 var host = location.hostname;
 var restPort = 80;
 if (host == "") {
-  host = "192.168.1.8";
+  host = "192.168.1.6";
 }
 
 function onLoad(cmd) {
@@ -159,8 +159,8 @@ function buildStatsRow(label, heatingTime, consumedPower) {
   var h = Math.floor(heatingTime / 60);
   var m = Math.floor(heatingTime - h * 60);
   div.appendChild(createTextDiv("table-cell", h + ":" + ("" + m).padStart(2, "0")));
-  div.appendChild(createTextDiv("table-cell", consumedPower));
-  div.appendChild(createTextDiv("table-cell", (heatingTime) != 0 ? Math.floor(consumedPower / (heatingTime/60)) : ""));
+  div.appendChild(createTextDiv("table-cell table-cell-number", consumedPower));
+  div.appendChild(createTextDiv("table-cell table-cell-number", (heatingTime) != 0 ? Math.floor(consumedPower / (heatingTime/60)) : ""));
   return div;
 }
 

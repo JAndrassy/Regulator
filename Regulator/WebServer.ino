@@ -39,8 +39,8 @@ void webServerLoop() {
         msg.print(' ');
       }
       msg.print(fn);
-#ifdef ARDUINO_AVR_UNO_WIFI_DEV_ED
-      char buff[64]; // some WiFi Link problem
+#ifndef FS
+      char buff[64];
 #else
       char buff[1024];
 #endif

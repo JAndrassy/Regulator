@@ -106,14 +106,15 @@ void setup() {
   Serial.print(F("mem "));
   Serial.println(freeMemory());
 
-#ifdef ESP8266
+#ifdef ethernet_h_
+  IPAddress ip(192, 168, 1, 6);
+  Ethernet.begin(mac, ip);
+#elif defined(ESP8266)
   WiFi.setAutoConnect(false);
   WiFi.setAutoReconnect(true);
   WiFi.hostname("regulator");
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
-#ifdef FS
   SPIFFS.begin();
-#endif
   MDNS.begin("regulator");
   ArduinoOTA.onStart(shutdown);
   ArduinoOTA.begin();
@@ -123,9 +124,6 @@ void setup() {
   WiFi.config(ip, gw, sn, gw);
   WiFi.begin();
   WiFi.waitForConnectResult();
-#elif defined(ethernet_h_)
-  IPAddress ip(192, 168, 1, 6);
-  Ethernet.begin(mac, ip);
 #else
   Serial1.begin(115200);
   Serial1.resetESP();
@@ -195,10 +193,8 @@ void loop() {
   if (restHours())
     return;
 
-#ifndef ethernet_h
   if (!networkConnected())
     return;
-#endif
 
   susCalibLoop();
 
@@ -206,7 +202,7 @@ void loop() {
     return;
 
   elsensLoop();
-  wemoLoop();
+//  wemoLoop();
 
   pilotLoop();
 
@@ -238,7 +234,7 @@ void handleSuspendAndOff() {
       digitalWrite(BYPASS_RELAY_PIN, LOW);
       bypassRelayOn = false;
     }
-    if (loopStartMillis - lastOn > max(60000U, (unsigned int)((float) statsConsumedPowerToday() / 1000 * PUMP_STOP_MILLIS))) { // 10 min for every kW
+    if (loopStartMillis - lastOn > PUMP_STOP_MILLIS) {
       digitalWrite(MAIN_RELAY_PIN, LOW);
       mainRelayOn = false;
     }
@@ -297,7 +293,7 @@ boolean handleAlarm() {
 
 boolean restHours() {
 
-  const int BEGIN_HOUR = 9;
+  const int BEGIN_HOUR = 8;
   const int END_HOUR = 22; // to monitor discharge
 
   if (balboaRelayOn)

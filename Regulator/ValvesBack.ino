@@ -1,7 +1,7 @@
 
 const unsigned int VALVE_ROTATION_TIME = 30000; // 30 sec
 #ifndef ___AVR___
-const int TEMP_SENS_WARM = 1000;
+const int TEMP_SENS_WARM = 880;
 #else
 const int TEMP_SENS_WARM = 580;
 #endif

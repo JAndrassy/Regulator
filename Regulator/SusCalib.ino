@@ -1,5 +1,5 @@
 
-const char uri[] PROGMEM = "/servicecgi-bin/suspend_battery_calibration/?method=save";
+const char uri[] PROGMEM = "/servicecgi-bin/suspend_battery_calibration/?method=save"; // is used twice
 const char data[] PROGMEM = "{\"suspension_time_seconds\":10800}"; // 3 hours
 
 void susCalibLoop() {
@@ -23,28 +23,29 @@ void susCalibLoop() {
     st = 0;
 
     char buff[64];
-    strcpy_P(buff, uri);
+    BufferedPrint bp(client, buff, sizeof(buff));
 
-    char printBuff[64];
-    BufferedPrint bp(client, printBuff, sizeof(printBuff));
-
-    bp.printf(F("POST %s HTTP/1.1\r\n"), buff);
+    bp.print(F("POST "));
+    bp.print((__FlashStringHelper*) uri); // FlashStringHelper cast to call the PROGMEM version of print
+    bp.println(F(" HTTP/1.1"));
     bp.print(F("Host: "));
     bp.println(symoAddress);
     bp.println(F("Connection: close"));
-    bp.printf(F("Content-Length: %d\r\n"), strlen_P(data));
-    bp.printf(F("Authorization: Digest username=\"service\",realm=\"W\",nonce=\"ffcb243c6f951a5bab771e9d3b8f81d6\","
-        "uri=\"%s\",response=\"" SUSCALIB_DIGEST_RESPONSE "\"\r\n"), buff);
+    bp.print(F("Content-Length: "));
+    bp.println(strlen_P(data));
+    bp.print(F("Authorization: Digest username=\"service\",realm=\"W\",nonce=\"ffcb243c6f951a5bab771e9d3b8f81d6\",uri=\""));
+    bp.print((__FlashStringHelper*) uri);
+    bp.println(F("\",response=\"" SUSCALIB_DIGEST_RESPONSE "\"")); // SUSCALIB_DIGEST_RESPONSE is in secrets.h
     bp.println();
-    strcpy_P(buff, data);
-    bp.print(buff);
+    bp.print((__FlashStringHelper*) data);
     bp.flush();
 
-    client.setTimeout(4000);
+    client.setTimeout(5000);
     client.readBytesUntil(' ', buff, sizeof(buff)); // HTTP/1.1
     client.readBytesUntil(' ', buff, sizeof(buff)); // status code
     st = atoi(buff);
-    while (client.read() != -1);
+    client.setTimeout(10);
+    while (client.readBytes(buff, sizeof(buff)) != 0); // read the rest
     client.stop();
   }
   eventsWrite(SUSPEND_CALIBRATION_EVENT, st, 0);

@@ -25,5 +25,5 @@ void manualRunLoop() {
 }
 
 byte manualRunMinutesLeft() {
-  return (MANUAL_RUN_MILLIS - (loopStartMillis - manualRunStart)) / 60000;
+  return ((MANUAL_RUN_MILLIS - (loopStartMillis - manualRunStart)) / 60000) + 1;
 }

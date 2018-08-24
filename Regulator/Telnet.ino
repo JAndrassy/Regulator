@@ -3,9 +3,6 @@ NetServer telnetServer(2323);
 
 void telnetSetup() {
   telnetServer.begin();
-#ifdef ESP8266
-  telnetServer.setNoDelay(true);
-#endif
 }
 
 void telnetLoop(boolean log) {
@@ -18,7 +15,8 @@ void telnetLoop(boolean log) {
     unsigned long t = now();
     sb.printf(F("%02d:%02d:%02d;%d;%c%d%d%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"), hour(t), minute(t), second(t),
         freeMem, (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn,
-        heatingPower, meterPower, pvSOC, pvChargingPower, availablePower, pwm, elsens, elsensPower, inverterAC, voltage, wemoPower);
+        heatingPower, meterPower, pvSOC, pvChargingPower, availablePower,
+        pwm, elsens, elsensPower, inverterAC, voltage, wemoPower);
     Serial.print(buff);
     Serial.println(msgBuff);
   }
@@ -50,11 +48,6 @@ void telnetLoop(boolean log) {
           case 'R':
             telnetClient.stop();
             shutdown();
-#ifdef __AVR__
-            EEPROM.write(NETEEPROM_IMG_STAT, NETEEPROM_IMG_BAD_VALUE); // ariadne flash status set to invalid
-            wdt_disable();
-            wdt_enable(WDTO_15MS);
-#endif
             while(true); // Watchdog test / reset
           break;
           case 'B': {

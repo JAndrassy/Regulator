@@ -30,11 +30,11 @@ const byte STATUS_LED_PIN = 99; // status led not used
 #define FILE_NEW (O_READ | O_WRITE | O_CREAT)
 
 const byte MAIN_RELAY_PIN = 2;
-const byte BUTTON_PIN = 3;
+const byte TONE_PIN = 3;
 const byte SD_SS_PIN = 4; // SD card SS
 const byte BYPASS_RELAY_PIN = 5;
-const byte TONE_PIN = 6;
-const byte PWM_PIN = 7; // OK for Mega and SAMD. change for Uno, Nano and other 328p
+const byte PWM_PIN = 6;
+const byte BUTTON_PIN = 7;
 const byte LEDBAR_DATA_PIN = 8;
 const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
 //pin 10-13 SPI (Ethernet, SD)
@@ -44,10 +44,9 @@ const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
 //pin A4, A5 is I2C on AVR (ADC, on Uno Wifi ESP8266 over I2C SC)
 const byte STATUS_LED_PIN = 99; // status led not used
-#define PWMRANGE 256
 #endif
 
-const int PUMP_POWER = 44;
+const int PUMP_POWER = 45;
 const int MAX_POWER = 2000;
 const int BYPASS_POWER = 2050;
 const unsigned long PUMP_STOP_MILLIS = 10 * 60000; // 10 min

@@ -43,7 +43,7 @@ void elsensLoop() {
   const int ELSENS_MIN_HEATING_VALUE = 60;
 #endif
   const float PF_ANGLE_SHIFT = 0.19 * PI;
-  const float PF_ANGLE_INTERVAL = 0.3 * PI;
+  const float PF_ANGLE_INTERVAL = 0.33 * PI;
 
   elsens = readElSens();
 
@@ -56,7 +56,7 @@ void elsensLoop() {
   }
 
   if (heatingPower > 0 && elsens < ELSENS_MIN_HEATING_VALUE) {
-    if (heatingPower < 600) { // low power fall out
+    if (heatingPower < 650) { // low power fall out
       heatingPower = 0; // heating can start again with min_start_power
       msg.print(F("fall out"));
     } else {
@@ -93,8 +93,9 @@ byte overheatedSecondsLeft() {
 }
 
 /**
- * Grove Electricity Sensor module removes the negative part of the AC oscillation
- * zero crossing is where the removed part ends (sequence of zero readings)
+ * Grove Electricity Sensor module removes the negative part of the AC oscillation.
+ * Zero crossing is where the removed part ends (sequence of zero readings).
+ * return value is RMS of sampled values
  */
 int readElSens() {
 
@@ -116,7 +117,7 @@ int readElSens() {
   unsigned long long sum = 0;
   int n = 0;
   start_time = millis();
-  while(millis() - start_time < 200) { // in 200 ms measures 10 50Hz AC oscillations
+  while (millis() - start_time < 200) { // in 200 ms measures 10 50Hz AC oscillations
     unsigned long v = elsensAnalogRead();
     sum += v * v;
     n++;

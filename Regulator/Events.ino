@@ -8,11 +8,7 @@ const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Netw
 #define EVENTS_FILENAME "EVENTS.DAT"
 #else
 #include <EEPROM.h>
-#ifdef __AVR__
-const int EVENTS_EEPROM_ADDR = 64; // 0-63 Ariadne bootloader
-#else
 const int EVENTS_EEPROM_ADDR = 0;
-#endif
 #endif
 
 struct EventStruct {
@@ -60,7 +56,7 @@ void eventsWrite(int newEvent, int value1, int value2) {
   unsigned long last = e.timestamp;
   if (now() > SECS_PER_DAY && last > SECS_PER_DAY  // to not work with 1.1.1970
       && (year(last) != year() || month(last) != month() || day(last) != day())) {
-    e.count = 0;
+    e.count = 0; // start counting with first event of this type today
   }
   e.timestamp = now();
   e.value1 = value1;

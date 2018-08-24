@@ -59,7 +59,7 @@ void csvLogLoop() {
     lines.reset();
   }
 
-  if (mainRelayOn && state != RegulatorState::MANUAL_RUN) {
+  if (state == RegulatorState::REGULATING) {
     lines.printf(F("%02d:%02d:%02d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d\r\n"), hour(t), minute(t), second(t),
         heatingPower, meterPower, pvSOC, pvChargingPower, availablePower, pwm, elsens, elsensPower, voltage, inverterAC, wemoPower);
   }

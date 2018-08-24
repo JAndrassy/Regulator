@@ -1,16 +1,18 @@
 
-const IPAddress wemoAddress(192,168,1,100);
-const int wemoPort = 49153;
-
 void wemoLoop() {
+  if (state != RegulatorState::REGULATING)
+    return;
   wemoPowerUsage();
 }
 
 boolean wemoPowerUsage() {
+  wemoPower = -1;
   char response[128];
   int res = wemoRequest("insight:1", "GetInsightParams", "InsightParams", nullptr, response, sizeof(response));
-  if (res < 0)
+  if (res < 0) {
+    msg.printf("W err %d", res);
     return false;
+  }
   char *p = response;
   for (int i = 0; i < 7; i++) {
     p = strchr(p, '|');
@@ -25,6 +27,10 @@ boolean wemoPowerUsage() {
 
 
 int wemoRequest(const char* service, const char* action, const char* param, const char* value, char* response, size_t size) {
+
+  const IPAddress wemoAddress(192,168,1,100);
+  const int wemoPort = 49153;
+
   NetClient client;
   if (!client.connect(wemoAddress, wemoPort))
     return -2;
@@ -67,13 +73,15 @@ int wemoRequest(const char* service, const char* action, const char* param, cons
   sb.reset();
   sb.printf(F("<%s>"), param);
   int l = -2;
+  client.setTimeout(4000);
   if (client.find(sbBuff)) {
     l = client.readBytesUntil('<', response, size);
     if (l >= 0) {
       response[l] = 0;
     }
   }
-  while (client.read() != -1);
+  client.setTimeout(10);
+  while (client.readBytes(sbBuff, sizeof(sbBuff)) != 0); // read the rest
   client.stop();
   return l;
 }

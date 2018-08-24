@@ -48,7 +48,7 @@ void updateWidgets() {
       if (pvChargingPower < -20 || pvChargingPower > 90) {
         sb.printf(F("BAT%3d%%   % 5dW"), pvSOC, pvChargingPower);
       } else {
-        sb.printf(F("I% 5dW  S% 5dW"), inverterAC, elsensPower);
+        sb.printf(F("I% 5dW  C% 5dW"), inverterAC, statsConsumedPowerToday());
       }
       break;
     case RegulatorState::REST:

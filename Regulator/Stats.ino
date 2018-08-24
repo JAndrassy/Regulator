@@ -49,6 +49,7 @@ void statsLoop() {
     if (!mainRelayOn)
       return;
     lastPowerChangeMillis = loopStartMillis; // relay is on, start counting
+    statsSaveTimer = loopStartMillis;
     statsManualRunFlag = (state == RegulatorState::MANUAL_RUN);
   }
 

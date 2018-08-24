@@ -1,22 +1,11 @@
-//const byte MAP_POINTS_COUNT = 7;
-//unsigned short power2pwmPoints[MAP_POINTS_COUNT][2] = {
-//  { 500, 223},
-//  { 630, 243},
-//  {1140, 363},
-//  {1300, 443},
-//  {1740, 683},
-//  {1900, 863},
-//  {MAX_POWER, 1023}
-//};
-//const int MIN_POWER = power2pwmPoints[0][0];
 const int MIN_POWER = 300;
 
 void pilotLoop() {
 
   const byte MONITORING_UNTIL_SOC = 85; // %
-  const int MIN_START_POWER = 600;
+  const int MIN_START_POWER = 700;
   const int BYPASS_MIN_START_POWER = BYPASS_POWER + 100;
-  const byte WAIT_FOR_IT_COUNT = 2;
+  const byte WAIT_FOR_IT_COUNT = 3;
 
   static byte waitForItCounter = 0; // to not react on short spikes
 
@@ -62,8 +51,6 @@ void pilotLoop() {
   // bypass the power regulator module for max power
   boolean bypass = availablePower > (bypassRelayOn ? BYPASS_POWER : BYPASS_MIN_START_POWER);
   if (bypass != bypassRelayOn) {
-    analogWrite(PWM_PIN, 0); // unpower for relay flip
-    delay(100);
     digitalWrite(BYPASS_RELAY_PIN, bypass);
     bypassRelayOn = bypass;
   }
@@ -76,16 +63,11 @@ void pilotLoop() {
 
 unsigned short power2pwm(int power) {
 
-#ifdef ESP8266
-  const float POWER2PWM_KOEF = 0.15;
-  const float PF_ANGLE_SHIFT = 0.05 * PI;
-#endif
-#ifdef ARDUINO_ARCH_SAMD
-  const float POWER2PWM_KOEF = 0.18;
-  const float PF_ANGLE_SHIFT = 0.03 * PI;
-#endif
+  const float MAX_CURRENT = 8.8;
+  const float POWER2PWM_KOEF = 30.0;
+  const float PF_ANGLE_SHIFT = 0.08 * PI;
   const float PF_ANGLE_INTERVAL = 0.33 * PI;
-  const unsigned short MIN_PWM = 120;
+  const unsigned short MIN_PWM = 190;
 
   if (power < MIN_POWER)
     return 0;
@@ -93,28 +75,12 @@ unsigned short power2pwm(int power) {
   if (power >= MAX_POWER) {
     res = 1023;
   } else {
-    float ratio = (float) power / MAX_POWER;
-    res = MIN_PWM + POWER2PWM_KOEF * power / cos(PF_ANGLE_SHIFT + (ratio * PF_ANGLE_INTERVAL));
+    float current = (float) power / voltage;
+    float ratio = current / MAX_CURRENT;
+    res = MIN_PWM + POWER2PWM_KOEF * current / cos(PF_ANGLE_SHIFT + (ratio * PF_ANGLE_INTERVAL));
   }
 #ifdef ___AVR___
   res /= 4;
 #endif
   return res;
 }
-
-//unsigned short power2pwm(int power) {
-//  if (power < MIN_POWER)
-//    return 0;
-//  if (power >= MAX_POWER)
-//    return power2pwmPoints[MAP_POINTS_COUNT - 1][1];
-//  int i = 0;
-//  for (; i < MAP_POINTS_COUNT - 1; i++) {
-//    if (power >= power2pwmPoints[i][0] && power < power2pwmPoints[i + 1][0])
-//      break;
-//  }
-//  unsigned short res = map(power, power2pwmPoints[i][0], power2pwmPoints[i + 1][0], power2pwmPoints[i][1], power2pwmPoints[i+1][1]);
-//#ifdef ___AVR___
-//  res /= 4;
-//#endif
-//  return res;
-//}

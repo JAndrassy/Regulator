@@ -97,6 +97,7 @@ void watchdogLoop() {
 
 void WDT_Handler(void) {  // ISR for watchdog early warning, DO NOT RENAME!
   if (state != RegulatorState::REST) {
+    pinMode(TONE_PIN, OUTPUT);
     tone(TONE_PIN, BEEP_1, 200);
   }
   eventsWrite(WATCHDOG_EVENT, 0, 0);
