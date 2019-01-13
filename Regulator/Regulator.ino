@@ -13,15 +13,16 @@
 #include <WiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
 #else
-#include <Ethernet.h> //Ethernet 2.00 for all W5000
+//#include <Ethernet.h> //Ethernet 2.00 for all W5000
+#include <UIPEthernet.h> // for ENC28j60; my fork with merged pull-requests
+#define ETHERNET
+#include <ArduinoOTA.h> // included before SD, if SDStorage is not used
 #include <SD.h>
 #define FS SD
 #endif
 #endif
 #ifdef ARDUINO_ARCH_SAMD
 #define Serial SerialUSB
-#include <OTEthernet.h>
-#include <SDU.h>
 #endif
 #include "consts.h"
 
@@ -31,12 +32,14 @@
 #include <BlynkSimpleEsp8266.h>
 #elif defined(ethernet_h_)
 #include <BlynkSimpleEthernet.h>
-#else
+#elif defined (UIPCLIENT_H)
+#include <BlynkSimpleUIPEthernet.h>
+#elif defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
 #define BLYNK_NO_INFO
 #include <BlynkSimpleWiFiLink.h>
 #endif
 
-#ifdef ethernet_h_
+#ifdef ETHERNET
 #define NetServer EthernetServer
 #define NetClient EthernetClient
 #else
@@ -106,8 +109,16 @@ void setup() {
   Serial.print(F("mem "));
   Serial.println(freeMemory());
 
-#ifdef ethernet_h_
+#ifdef __SD_H__
+  if (SD.begin(SD_SS_PIN)) {
+    sdCardAvailable = true;
+    Serial.println(F("SD card initialized"));
+  }
+#endif
+
   IPAddress ip(192, 168, 1, 6);
+#ifdef ETHERNET
+  Ethernet.init(NET_SS_PIN);
   Ethernet.begin(mac, ip);
 #elif defined(ESP8266)
   WiFi.setAutoConnect(false);
@@ -115,10 +126,6 @@ void setup() {
   WiFi.hostname("regulator");
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
   SPIFFS.begin();
-  MDNS.begin("regulator");
-  ArduinoOTA.onStart(shutdown);
-  ArduinoOTA.begin();
-  IPAddress ip(192, 168, 1, 8);
   IPAddress gw(192, 168, 1, 1);
   IPAddress sn(255, 255, 255, 0);
   WiFi.config(ip, gw, sn, gw);
@@ -132,14 +139,16 @@ void setup() {
   // connection is checked in loop
 #endif
 
-#ifdef __SD_H__
-  if (SD.begin(SD_SS_PIN)) {
-    sdCardAvailable = true;
-    Serial.println(F("SD card initialized"));
-  }
+#if defined(ESP8266)
+  MDNS.begin("regulator");
+  ArduinoOTA.onStart(shutdown);
+  ArduinoOTA.begin();
+#else
+  ArduinoOTA.beforeApply(shutdown);
+  ArduinoOTA.begin(ip, "regulator", "password", InternalStorage);
 #endif
-#ifdef ARDUINO_ARCH_SAMD
-  OTEthernet.begin("Arduino", "password", SDStorage);
+
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
   analogWriteResolution(10);
 #endif
 
@@ -163,12 +172,7 @@ void loop() {
   handleSuspendAndOff();
   statsLoop();
 
-#ifdef ESP8266
   ArduinoOTA.handle();
-#endif
-#ifdef ARDUINO_ARCH_SAMD
-  OTEthernet.poll();
-#endif
   watchdogLoop();
   eventsLoop();
 
@@ -202,7 +206,7 @@ void loop() {
     return;
 
   elsensLoop();
-//  wemoLoop();
+  wemoLoop();
 
   pilotLoop();
 
@@ -266,7 +270,7 @@ boolean handleAlarm() {
   boolean stopAlarm = false;
   switch (alarmCause) {
     case AlarmCause::NETWORK:
-#ifdef ethernet_h_
+#ifdef ETHERNET
       stopAlarm = (Ethernet.linkStatus() != LinkOFF);
 #else
       stopAlarm = (WiFi.status() == WL_CONNECTED);
@@ -323,7 +327,7 @@ boolean turnMainRelayOn() {
 
 boolean networkConnected() {
   static int tryCount = 0;
-#ifdef ethernet_h_
+#ifdef ETHERNET
   if (Ethernet.linkStatus() != LinkOFF) {
 #else
   if (WiFi.status() == WL_CONNECTED) {
@@ -334,7 +338,7 @@ boolean networkConnected() {
   tryCount++;
   if (tryCount == 30) {
     alarmCause = AlarmCause::NETWORK;
-#ifdef ethernet_h_
+#ifdef ETHERNET
     eventsWrite(NETWORK_EVENT, Ethernet.linkStatus(), 0);
 #else
     eventsWrite(NETWORK_EVENT, WiFi.status(), 0);

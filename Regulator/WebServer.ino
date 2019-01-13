@@ -19,15 +19,11 @@ void webServerSetup() {
 
 void webServerLoop() {
 
-  static NetClient client = webServer.available();
-
-  if (!client) {
-    client = webServer.available();
-  }
+  NetClient client = webServer.available();
   if (!client)
     return;
   if (client.connected()) {
-    if (client.available() && client.find(' ')) { // GET /fn HTTP/1.1
+    if (client.find(' ')) { // GET /fn HTTP/1.1
       char fn[20];
       int l = client.readBytesUntil(' ', fn, sizeof(fn));
       fn[l] = 0;
@@ -50,8 +46,8 @@ void webServerLoop() {
       } else {
         webServerServeFile(fn, chunked);
       }
-      client.stop();
     }
+    client.stop();
   }
 }
 

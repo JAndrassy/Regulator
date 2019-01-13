@@ -123,4 +123,4 @@ First board used in this project was Uno WiFi. The project grow out of Uno memor
 
 Next board was Wemos D1 R2 esp8266. But I wanted Ethernet.
 
-Now M0 with Ethernet shield is in duty, because I wanted Ethernet, Uno form and 10 bit PWM.
+Now M0 ~~ with Ethernet shield~~ is in duty, because I wanted Ethernet, Uno form and 10 bit PWM. After some months I replaced Ethernet shield with UIPEthernet module. 
