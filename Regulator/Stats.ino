@@ -1,5 +1,5 @@
 
-#ifdef ARDUINO_ARCH_SAMD
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
 #define STATS_FILENAME "STATS.DAT"
 #else
 #include <EEPROM.h>
@@ -21,7 +21,7 @@ bool statsManualRunFlag;
 unsigned long statsSaveTimer = 0;
 
 void statsSetup() {
-#ifdef ARDUINO_ARCH_SAMD
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
   File file = FS.open(STATS_FILENAME, FILE_READ);
   if (file) {
     file.readBytes((byte*) &statsData, sizeof(statsData));
@@ -124,7 +124,7 @@ void statsAddMilliwats() {
 
 void statsSave() {
   statsAddMilliwats();
-#ifdef ARDUINO_ARCH_SAMD
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
   File file = FS.open(STATS_FILENAME, FILE_NEW);
   if (file) {
     file.write((byte*) &statsData, sizeof(statsData));

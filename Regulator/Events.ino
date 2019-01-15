@@ -4,7 +4,7 @@ const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'W', 'N', 'P', 'M', 'O', 'B', '
 const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Network", "Pump", "Modbus",
     "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "Stat.save"};
 
-#ifdef ARDUINO_ARCH_SAMD
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
 #define EVENTS_FILENAME "EVENTS.DAT"
 #else
 #include <EEPROM.h>
@@ -22,7 +22,7 @@ unsigned long eventsTimer = 0;
 EventStruct events[EVENTS_SIZE];
 
 void eventsSetup() {
-#ifdef ARDUINO_ARCH_SAMD
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
   if (!FS.exists(EVENTS_FILENAME)) {
     for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
       events[i].timestamp = 0;
@@ -76,7 +76,7 @@ void eventsSave() {
   if (eventsSaved())
     return;
   eventsWrite(EVENTS_SAVE_EVENT, 0, 0);
-#ifdef ARDUINO_ARCH_SAMD
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
   File file = FS.open(EVENTS_FILENAME, FILE_NEW);
   if (file) {
     file.write((byte*) events, sizeof(events));

@@ -3,8 +3,8 @@
 
 #ifdef I2C_ADC121
 #include <Wire.h>
-#define REG_ADDR_RESULT         0x00
-#define REG_ADDR_CONFIG         0x02
+  const byte REG_ADDR_RESULT = 0x00;
+  const byte REG_ADDR_CONFIG = 0x02;
   const int ELSENS_MIN_ON_VALUE = 40;
 #else
   const int ELSENS_MIN_ON_VALUE = 10;

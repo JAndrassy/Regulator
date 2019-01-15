@@ -107,3 +107,23 @@ void WDT_Handler(void) {  // ISR for watchdog early warning, DO NOT RENAME!
 }
 
 #endif
+
+#ifdef ARDUINO_ARCH_NRF5
+
+#define NRF_WDT_RR_VALUE       0x6E524635UL /* Fixed value, shouldn't be modified.*/
+
+void watchdogSetup() {
+
+  if (NRF_POWER->RESETREAS & POWER_RESETREAS_DOG_Msk) { // test wdt flag
+    eventsWrite(WATCHDOG_EVENT, 0, 0);
+    NRF_POWER->RESETREAS |= POWER_RESETREAS_DOG_Msk; // reset the flag (by writing 1 to the bit)
+  }
+  NRF_WDT->CRV = 10 * 32768; // 10 seconds
+  NRF_WDT->TASKS_START = 1;
+}
+
+void watchdogLoop() {
+  NRF_WDT->RR[0] = NRF_WDT_RR_VALUE; // feed the dog
+}
+
+#endif

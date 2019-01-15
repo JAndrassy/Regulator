@@ -26,20 +26,34 @@ void alarmSound() {
   Serial.println("ALARM");
   pinMode(TONE_PIN, OUTPUT);
   for (int i = 0; i < 3; i++) {
-    tone(TONE_PIN, BEEP_1);
-    delay(200);
-    tone(TONE_PIN, BEEP_2);
-    delay(200);
+    beeperTone(BEEP_1, 200);
+    beeperTone(BEEP_2, 200);
   }
-  noTone(TONE_PIN);
   pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
 }
 
 void beep() {
   Serial.println("beep");
   pinMode(TONE_PIN, OUTPUT);
-  tone(TONE_PIN, BEEP_1);
-  delay(200);
+  beeperTone(BEEP_1, 200);
   pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
+}
+
+void beeperTone(int freq, uint32_t time) {
+#ifdef ARDUINO_ARCH_NRF5
+  int d = (1000 * 1000 / 2 / freq) - 20;
+  bool s = true;
+  uint32_t t = millis();
+  while (millis() - t < time) {
+    digitalWrite(TONE_PIN, s);
+    s = !s;
+    delayMicroseconds(d);
+  }
+  digitalWrite(TONE_PIN, LOW);
+#else
+  tone(TONE_PIN, freq);
+  delay(time);
+  noTone(TONE_PIN);
+#endif
 }
 
