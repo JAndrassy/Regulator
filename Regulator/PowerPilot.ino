@@ -3,6 +3,7 @@ const int MIN_POWER = 300;
 void pilotLoop() {
 
   const byte MONITORING_UNTIL_SOC = 85; // %
+  const byte TOP_OSCILLATION_SOC = 97; // %
   const int MIN_START_POWER = 700;
   const int BYPASS_MIN_START_POWER = BYPASS_POWER + 100;
   const byte WAIT_FOR_IT_COUNT = 3;
@@ -26,7 +27,8 @@ void pilotLoop() {
     return;
 
   // sum available power
-  availablePower = heatingPower + meterPower + (pvChargingPower > 0 ? 0 : pvChargingPower) - (mainRelayOn ? 0 : PUMP_POWER);
+  int pvChP = (pvChargingPower > 0 || pvSOC > TOP_OSCILLATION_SOC) ? 0 : pvChargingPower;
+  availablePower = heatingPower + meterPower + pvChP - (mainRelayOn ? 0 : PUMP_POWER);
   if (heatingPower == 0 && availablePower < MIN_START_POWER) {
     waitForItCounter = 0;
     return;

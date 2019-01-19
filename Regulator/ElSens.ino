@@ -1,20 +1,14 @@
-
+#include <Wire.h>
 #define I2C_ADC121         0x50
 
-#ifdef I2C_ADC121
-#include <Wire.h>
-  const byte REG_ADDR_RESULT = 0x00;
-  const byte REG_ADDR_CONFIG = 0x02;
-  const int ELSENS_MIN_ON_VALUE = 40;
-#else
-  const int ELSENS_MIN_ON_VALUE = 10;
-#endif
 const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resume 30 sec before pump stops
 
 unsigned long overheatedStart = 0;
 
 void elsensSetup() {
 #ifdef I2C_ADC121
+  const byte REG_ADDR_RESULT = 0x00;
+  const byte REG_ADDR_CONFIG = 0x02;
   Wire.begin();
   Wire.setClock(400000);
   Wire.beginTransmission(I2C_ADC121);
@@ -45,8 +39,6 @@ void elsensLoop() {
   const float PF_ANGLE_SHIFT = 0.19 * PI;
   const float PF_ANGLE_INTERVAL = 0.33 * PI;
 
-  elsens = readElSens();
-
   // waiting for water to cooldown
   if (overheatedStart != 0) {
     if ((loopStartMillis - overheatedStart) < OVERHEATED_COOLDOWN_TIME && !buttonPressed)
@@ -55,6 +47,14 @@ void elsensLoop() {
     state = RegulatorState::MONITORING;
   }
 
+  if (state != RegulatorState::REGULATING)
+    return;
+
+  elsens = readElSens();
+
+  if (heatingPower > 0 && elsens < ELSENS_MIN_HEATING_VALUE) {
+    elsens = readElSens(); // measure again for sure
+  }
   if (heatingPower > 0 && elsens < ELSENS_MIN_HEATING_VALUE) {
     if (heatingPower < 650) { // low power fall out
       heatingPower = 0; // heating can start again with min_start_power
@@ -67,15 +67,16 @@ void elsensLoop() {
       alarmSound();
     }
   }
-  if (!mainRelayOn) {
-    elsensPower = 0;
-  } else {
     float ratio = 1.0 - ((float) elsens / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
     elsensPower = (int) (elsens * ELSENS_VALUE_COEF * cos(PF_ANGLE_SHIFT + (ratio * PF_ANGLE_INTERVAL)));
-  }
 }
 
 boolean elsensCheckPump() {
+#ifdef I2C_ADC121
+  const int ELSENS_MIN_ON_VALUE = 40;
+#else
+  const int ELSENS_MIN_ON_VALUE = 10;
+#endif
   delay(1000); // pump run-up
   int v = readElSens();
   if (v < ELSENS_MIN_ON_VALUE) {

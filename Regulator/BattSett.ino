@@ -13,7 +13,7 @@ void battSettLoop() {
 
   const byte EVAL_START_HOUR = 16;
   const byte LIMIT_TARGET_HOUR = 7;
-  const byte PERCENT_PER_HOUR = 6;
+  const byte PERCENT_PER_HOUR = 5;
   const byte MIN_SOC = 7;
   const byte MARGINAL_SOC = 30;
 
@@ -21,7 +21,7 @@ void battSettLoop() {
   static boolean enableDone = false;
 
   // after 7 AM disable limit
-  if (hourNow > LIMIT_TARGET_HOUR && hourNow < EVAL_START_HOUR) {
+  if (hourNow >= LIMIT_TARGET_HOUR && hourNow < EVAL_START_HOUR) {
     if (!disableDone) {
       int res = battSettControl(false, false);
       if (res != 0) {

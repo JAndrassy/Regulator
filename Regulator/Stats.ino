@@ -52,8 +52,20 @@ void statsLoop() {
     statsSaveTimer = loopStartMillis;
     statsManualRunFlag = (state == RegulatorState::MANUAL_RUN);
   }
-
-  if (day(now()) != day(statsData.timestamp)) {
+  time_t t = statsData.timestamp;
+  if (day(now()) != day(t)) {
+#ifdef FS
+    char buff[32];
+    sprintf(buff, "DATA%d.CSV", year(t));
+    File file = FS.open(buff, FILE_WRITE);
+    if (file) {
+      sprintf(buff, "%d-%02d-%02d;%d;%d;%d;%d", year(t), month(t), day(t), //
+          statsData.day.heatingTime, statsData.day.consumedPower, //
+          statsData.dayManualRun.heatingTime, statsData.dayManualRun.consumedPower);
+      file.println(buff);
+      file.close();
+    }
+#endif
     if (month(now()) != month(statsData.timestamp)) {
       memset(&statsData, 0, sizeof(statsData));
     } else {

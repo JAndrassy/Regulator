@@ -5,6 +5,7 @@ const char data[] PROGMEM = "{\"suspension_time_seconds\":10800}"; // 3 hours
 void susCalibLoop() {
 
   const byte SUSCALIB_HOUR = 9;
+  const byte SUSCALIB_SOC_LIMIT = 90;
   static boolean done = false;
 
   if (hourNow != SUSCALIB_HOUR) {
@@ -14,6 +15,8 @@ void susCalibLoop() {
     return;
   }
   if (done)
+    return;
+  if (pvSOC > SUSCALIB_SOC_LIMIT) // over night calibration in progress
     return;
 
   int st = -1;
@@ -40,10 +43,22 @@ void susCalibLoop() {
     bp.print((__FlashStringHelper*) data);
     bp.flush();
 
-    client.setTimeout(5000);
-    client.readBytesUntil(' ', buff, sizeof(buff)); // HTTP/1.1
-    client.readBytesUntil(' ', buff, sizeof(buff)); // status code
-    st = atoi(buff);
+    client.setTimeout(8000);
+    if (client.findUntil((char*) "HTTP/1.1 ", (char*) "\n")) {
+      int l = client.readBytesUntil(' ', buff, sizeof(buff)); // status code
+      if (l >= 0) {
+        buff[l] = 0;
+        if (strlen(buff) == 3) {
+          st = atoi(buff);
+        } else {
+          st = -4;
+        }
+      } else {
+        st = -3;
+      }
+    } else {
+      st = -2;
+    }
     client.setTimeout(10);
     while (client.readBytes(buff, sizeof(buff)) != 0); // read the rest
     client.stop();

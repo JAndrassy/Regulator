@@ -128,8 +128,13 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
         bp.println();
       }
       bp.println();
+      uint16_t c = 0;
       while (dataFile.available()) {
         bp.write(dataFile.read());
+        if ((c++) == 50000) {
+          watchdogLoop();
+          c = 0;
+        }
       }
       dataFile.close();
       bp.flush();

@@ -6,9 +6,9 @@ DIY Arduino [consumption regulator](https://github.com/jandrassy/Regulator/wiki)
 
 I have in the basement a small wellness room with a hot tub. The room has a floor heating and in the Winter there is pleasantly warm. But in Summer the floor was uncomfortable cold. After I bought a Fronius Symo Hybrid PV system, I discovered that I could use the excess solar power in Summer to heat with a small 2kW electric heater the water of the floor heating of that room.
 
-For the PWM regulation I discovered Arduino. I am a professional software developer so the programming is the easy and fun part. And building the box was fun too. After a year it is still work in progress with additional functions and control.
+For the PWM regulation of "PWM to 'phase cutting' adapter box" I discovered Arduino. I am a professional software developer so the programming is the easy and fun part. And building the box was fun too. And it is still work in progress with improvements, additional functions and control.
 
-To regulate the water heater using excess solar power Fronius has Ohmpilot. It is still not available for hybrid PV systems and it can't do the additional control that my regulator does, like commanding valves or turning off some other deferrable consumption.
+To regulate the water heater using excess solar power Fronius has Ohmpilot, but it can't do the additional control that my regulator does, like commanding valves or turning off some other deferrable consumption.
 
 I don't think someone could take this project and use it without changes, but the concept and many parts of the project can help to build a similar system. The source code is modular with multiple ino files. They are all like add-ons to the main Regulator.ino which handles only the core parts of the system. Most of the additional ino files can be simply removed, because they are special for my system or add only additional optional control and/or monitoring.
 
@@ -27,6 +27,10 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 ### Box with Wemos D1 R2
 
 <img src="img/regulator-d1-labeled.png" width="500">
+
+### Box with M0 and enc28j60
+
+<img src="img/regulator-m0-labeled.png" width="500">
 
 ### AC schema
 
@@ -123,4 +127,4 @@ First board used in this project was Uno WiFi. The project grow out of Uno memor
 
 Next board was Wemos D1 R2 esp8266. But I wanted Ethernet.
 
-Now M0 ~~ with Ethernet shield~~ is in duty, because I wanted Ethernet, Uno form and 10 bit PWM. After some months I replaced Ethernet shield with UIPEthernet module. 
+Now M0 with ENC28J60 Ethernet module is in duty, because I wanted Ethernet, Uno form and 10 bit PWM. After some months I replaced Ethernet shield with UIPEthernet module. 

@@ -6,6 +6,7 @@ const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Netw
 
 #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
 #define EVENTS_FILENAME "EVENTS.DAT"
+#define EVENTS_LOG_FN "EVENTS.LOG"
 #else
 #include <EEPROM.h>
 const int EVENTS_EEPROM_ADDR = 0;
@@ -32,6 +33,7 @@ void eventsSetup() {
     file.readBytes((char*) events, sizeof(events));
     file.close();
   }
+//  FS.remove(EVENTS_LOG_FN);
 #else
 #ifdef ESP8266
   EEPROM.begin(EEPROM_SIZE);
@@ -62,6 +64,17 @@ void eventsWrite(int newEvent, int value1, int value2) {
   e.value1 = value1;
   e.value2 = value2;
   e.count++;
+#ifdef EVENTS_LOG_FN
+  File file = FS.open(EVENTS_LOG_FN, FILE_WRITE);
+  if (file) {
+    char buff[64];
+    BufferedPrint bp(file, buff, sizeof(buff));
+    eventsPrint(bp, newEvent);
+    bp.println();
+    bp.flush();
+    file.close();
+  }
+#endif
 }
 
 boolean eventsSaved() {
@@ -125,7 +138,7 @@ void eventsPrint(FormattedPrint& stream) {
 
 void eventsPrint(FormattedPrint& s, int ix) {
   unsigned long t = events[ix].timestamp;
-  s.printf(F("%c|%d-%02d-%02d %02d:%02d:%02d|% 5d|% 5d|% 3u|"), eventLabels[ix],
+  s.printf(F("%-15s|%d-%02d-%02d %02d:%02d:%02d|% 5d|% 5d|% 3u|"), eventLongLabels[ix],
       year(t), month(t), day(t), hour(t), minute(t), second(t),
       events[ix].value1, events[ix].value2, events[ix].count);
 }
@@ -171,7 +184,7 @@ void eventsBlynk() {
     if (t != 0) {
       char label[32];
       sprintf(label, "%02d. %02d:%02d:%02d %s", day(t), hour(t), minute(t), second(t), eventLongLabels[map[i]]);
-      Blynk.virtualWrite(TABLE_WIDGET, "add", i, label, event.count == 1 ? (event.value1 + event.value2) : event.count);
+      Blynk.virtualWrite(TABLE_WIDGET, "add", i, label, event.count == 1 ? (event.value1 - event.value2) : event.count);
     }
   }
   lastEventsUpdate = now();

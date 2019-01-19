@@ -32,8 +32,8 @@ int wemoRequest(const char* service, const char* action, const char* param, cons
   const int wemoPort = 49153;
 
   NetClient client;
-  if (!client.connect(wemoAddress, wemoPort))
-    return -2;
+  if (!client.connect(wemoAddress, wemoPort)) 
+    return -1;
 
   char url[64] = "/upnp/control/";
   for (int i = 0, j = strlen(url); ; i++) {
@@ -73,7 +73,7 @@ int wemoRequest(const char* service, const char* action, const char* param, cons
   sb.reset();
   sb.printf(F("<%s>"), param);
   int l = -2;
-  client.setTimeout(4000);
+  client.setTimeout(1000);
   if (client.find(sbBuff)) {
     l = client.readBytesUntil('<', response, size);
     if (l >= 0) {

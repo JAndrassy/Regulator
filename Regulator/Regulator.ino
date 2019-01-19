@@ -8,7 +8,7 @@
 #define FS SPIFFS
 #define freeMemory ESP.getFreeHeap
 #else
-#include <MemoryFree.h>
+#include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
 #ifdef ARDUINO_AVR_UNO_WIFI_DEV_ED
 #include <WiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
@@ -21,7 +21,7 @@
 #define FS SD
 #endif
 #endif
-#ifdef ARDUINO_ARCH_SAMD
+#ifdef ARDUINO_SAM_ZERO
 #define Serial SerialUSB
 #endif
 #include "consts.h"
@@ -37,6 +37,11 @@
 #elif defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
 #define BLYNK_NO_INFO
 #include <BlynkSimpleWiFiLink.h>
+#endif
+
+#ifdef ARDUINO_ARCH_SAMD
+#include <RTCZero.h>
+RTCZero rtc;
 #endif
 
 #ifdef ETHERNET
@@ -87,8 +92,14 @@ CStringBuilder msg(msgBuff, sizeof(msgBuff));
 
 boolean sdCardAvailable = false;
 
-void setup() {
+#ifdef __SD_H__
+void sdTimeCallback(uint16_t* date, uint16_t* time) {
+  *date = FAT_DATE(year(), month(), day());
+  *time = FAT_TIME(hour(), minute(), second());
+}
+#endif
 
+void setup() {
   pinMode(MAIN_RELAY_PIN, OUTPUT);
   pinMode(BYPASS_RELAY_PIN, OUTPUT);
   digitalWrite(BYPASS_RELAY_PIN, LOW);
@@ -100,34 +111,38 @@ void setup() {
 //  statusLedSetup();
   balboaSetup();
 
-  beep();
-
 #ifndef ESP8266
   Serial.begin(115200); // TX can be used if Serial is not used
 #endif
+
+  beep();
+
+#ifdef ARDUINO_ARCH_SAMD
+  rtc.begin();
+  setTime(rtc.getEpoch());
+#endif
+
   Serial.println(version);
   Serial.print(F("mem "));
   Serial.println(freeMemory());
 
 #ifdef __SD_H__
   if (SD.begin(SD_SS_PIN)) {
+    SdFile::dateTimeCallback(sdTimeCallback);
     sdCardAvailable = true;
     Serial.println(F("SD card initialized"));
   }
 #endif
 
   IPAddress ip(192, 168, 1, 6);
-#ifdef ETHERNET
-  Ethernet.init(NET_SS_PIN);
-  Ethernet.begin(mac, ip);
-#elif defined(ESP8266)
-  WiFi.setAutoConnect(false);
-  WiFi.setAutoReconnect(true);
-  WiFi.hostname("regulator");
-  WiFi.setSleepMode(WIFI_NONE_SLEEP);
-  SPIFFS.begin();
   IPAddress gw(192, 168, 1, 1);
   IPAddress sn(255, 255, 255, 0);
+#ifdef ETHERNET
+  Ethernet.init(NET_SS_PIN);
+  Ethernet.begin(mac, ip, gw, gw, sn);
+#elif defined(ESP8266)
+  WiFi.hostname("regulator");
+  SPIFFS.begin();
   WiFi.config(ip, gw, sn, gw);
   WiFi.begin();
   WiFi.waitForConnectResult();
@@ -136,8 +151,9 @@ void setup() {
   Serial1.resetESP();
   delay(3000); //ESP init
   WiFi.init(&Serial1);
-  // connection is checked in loop
+  ip = WiFi.localIP();
 #endif
+  // connection is checked in loop
 
 #if defined(ESP8266)
   MDNS.begin("regulator");
@@ -160,6 +176,7 @@ void setup() {
   statsSetup();
   csvLogSetup();
   watchdogSetup();
+
   beep();
 }
 
@@ -220,6 +237,7 @@ void loop() {
 void shutdown() {
   eventsSave();
   statsSave();
+  watchdogLoop();
 }
 
 void handleSuspendAndOff() {
@@ -306,6 +324,7 @@ boolean restHours() {
   if (hourNow >= BEGIN_HOUR && hourNow < END_HOUR) {
     if (state == RegulatorState::REST) {
       state = RegulatorState::MONITORING;
+      requestSymoRTC(); // every morning sync clock
     }
     return false;
   }

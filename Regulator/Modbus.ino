@@ -98,6 +98,9 @@ boolean requestSymoRTC() {
   if (m > 10 || m < 4) {
     setTime(now() - SECS_PER_HOUR);
   }
+#ifdef ARDUINO_ARCH_SAMD
+  rtc.setEpoch(now());
+#endif
   return true;
 }
 
