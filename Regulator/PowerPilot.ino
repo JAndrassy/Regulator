@@ -2,6 +2,7 @@ const int MIN_POWER = 300;
 
 void pilotLoop() {
 
+  const int PUMP_POWER = 40;
   const byte MONITORING_UNTIL_SOC = 85; // %
   const byte TOP_OSCILLATION_SOC = 97; // %
   const int MIN_START_POWER = 700;

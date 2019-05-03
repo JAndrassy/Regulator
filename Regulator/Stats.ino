@@ -106,11 +106,8 @@ void statsLoop() {
 int statsEvalCurrentPower() {
   switch (state) {
     case RegulatorState::MANUAL_RUN:
-      return MAX_POWER;
     case RegulatorState::REGULATING:
-      if (elsensPower > PUMP_POWER)
-        return elsensPower - PUMP_POWER;
-      return 0;
+      return elsensPower;
     default:
       return 0;
   }
