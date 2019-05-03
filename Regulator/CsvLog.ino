@@ -61,7 +61,7 @@ void csvLogLoop() {
 
   if (state == RegulatorState::REGULATING) {
     lines.printf(F("%02d:%02d:%02d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d\r\n"), hour(t), minute(t), second(t),
-        heatingPower, meterPower, pvSOC, pvChargingPower, availablePower, pwm, elsens, elsensPower, voltage, inverterAC, wemoPower);
+        heatingPower, meterPower, pvSOC, pvChargingPower, availablePower, pwm, elsens, elsensPower, voltage, inverterAC, measuredPower);
   }
 #endif
 }

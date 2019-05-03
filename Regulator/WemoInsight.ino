@@ -6,7 +6,7 @@ void wemoLoop() {
 }
 
 boolean wemoPowerUsage() {
-  wemoPower = -1;
+  measuredPower = -1;
   char response[128];
   int res = wemoRequest("insight:1", "GetInsightParams", "InsightParams", nullptr, response, sizeof(response));
   if (res < 0) {
@@ -20,7 +20,7 @@ boolean wemoPowerUsage() {
       return false;
     p++;
   }
-  wemoPower = atol(p) / 1000;
+  measuredPower = atol(p) / 1000;
   return true;
 }
 

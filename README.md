@@ -106,7 +106,8 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * SusCalib.ino - at 9 am sends 'calibration disable' for 3 hours
 
 ### Special
-* WemoInsight.ino - web service request to Belkin WiFi switch used as system's reference Watt-meter. Value is only logged to csv for evaluation (charts in Calc)
+* ConsumptionMeter.ino - take data from secondary Fronius Smart Meter measuring this heaters consumption. Value is only logged to csv for evaluation (charts in Calc). It is an alternative to WemoInsight.ino.
+* WemoInsight.ino - web service request to Belkin WiFi switch used as system's reference Watt-meter. Value is only logged to csv for evaluation (charts in Calc). It is an alternative to ConsumptionMeter.ino.
 * Balboa.ino - defers hot tub heating if overall household consumption exceeds PV inverter's limit
 
 ### Web interface
@@ -123,8 +124,15 @@ This static web pages can be started from a folder on a computer to show the dat
 
 The complete project doesn't fit into the Uno flash memory. To run it, comment out less important functions in setup and loop and the builder leaves the code out. 
 
-First board used in this project was Uno WiFi. The project grow out of Uno memories.
+## Project log
 
-Next board was Wemos D1 R2 esp8266. But I wanted Ethernet.
+2017/4 First board used in this project was Uno WiFi.
 
-Now M0 with ENC28J60 Ethernet module is in duty, because I wanted Ethernet, Uno form and 10 bit PWM. After some months I replaced Ethernet shield with UIPEthernet module. 
+2018/5 Next board was Wemos D1 R2 esp8266. 
+
+2018/8 I wanted Ethernet and 32 bit MCU. I moved to Crowduino MO -SD with Ethernet Shield
+
+2019/1 ENC28J60 Ethernet module 
+
+2019/5 secondary Fronius Smart Meter measures the heater for Fronius Solarweb
+

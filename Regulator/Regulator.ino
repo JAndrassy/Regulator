@@ -84,8 +84,8 @@ int pwm;
 int elsens; // el.sensor measurement
 int elsensPower; // power calculation
 
-//Wemo Insight measurement
-int wemoPower;
+//external meter measurement
+int measuredPower;
 
 char msgBuff[32];
 CStringBuilder msg(msgBuff, sizeof(msgBuff));
@@ -223,7 +223,8 @@ void loop() {
     return;
 
   elsensLoop();
-  wemoLoop();
+//  wemoLoop();
+  consumptionMeterLoop();
 
   pilotLoop();
 
@@ -269,7 +270,7 @@ void clearData() {
   pwm = 0;
   elsens = 0;
   elsensPower = 0;
-  wemoPower = 0;
+  measuredPower = 0;
 }
 
 boolean handleAlarm() {
