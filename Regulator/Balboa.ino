@@ -1,7 +1,4 @@
 
-const int INVERTER_MAX_AC_POWER = 5000; // W
-const int BALBOA_HEATER_POWER = 3000; // W
-
 void balboaSetup() {
   pinMode(BALBOA_RELAY_PIN, OUTPUT);
 }
@@ -12,6 +9,8 @@ void balboaReset() {
 }
 
 void balboaLoop() {
+  const int CONSUMPTION_POWER_LIMIT = 5000; // W
+  const int BALBOA_HEATER_POWER = 3000; // W
   const byte WAIT_FOR_IT_COUNT = 20; // more then a minute and half
   static byte waitForItCounter = 0; // to not react on short spikes
 
@@ -24,7 +23,7 @@ void balboaLoop() {
   }
 
 
-  boolean pause = hhc >= INVERTER_MAX_AC_POWER;
+  boolean pause = hhc >= CONSUMPTION_POWER_LIMIT;
   if (balboaRelayOn != pause) {
     if (pause && (waitForItCounter < WAIT_FOR_IT_COUNT)) {
       waitForItCounter++;

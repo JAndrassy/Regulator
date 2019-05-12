@@ -130,10 +130,13 @@ boolean requestBattery() {
     return false;
   pvChargingPower = (unsigned short) regs[37] * pow(10, regs[0]); // dc power * scale
   pvSOC = regs[54] / 100; // storage register addr - mppt register addr + ChaSta offset
+  pvBattCalib = false;
   switch (regs[57]) {  // charge status
     case 4:  // CHARGING
     case 6:  // HOLDING
+      break;
     case 7:  // TESTING (CALIBRATION)
+      pvBattCalib = true;
       break;
     default:
       pvChargingPower = -pvChargingPower;
@@ -161,6 +164,7 @@ boolean modbusError(int err) {
       msg.printf(F("modbus error %d %d times"), err, modbusErrorCounter);
       eventsWrite(MODBUS_EVENT, err, 0);
       alarmCause = AlarmCause::MODBUS;
+      modbus.stop();
     break;
   }
   return true;
@@ -254,6 +258,8 @@ int modbusConnection() {
       return MODBUS_CONNECT_ERROR;
     modbus.setTimeout(2000);
     msg.print(F(" modbus reconnect"));
+  } else {
+    while (modbus.read() != -1); // clean the buffer
   }
   return 0;
 }

@@ -4,6 +4,8 @@ void pilotLoop() {
 
   const int PUMP_POWER = 40;
   const byte MONITORING_UNTIL_SOC = 85; // %
+  const byte BYPASS_BUFFER_SOC = 94; // %
+  const int CONSUMPTION_POWER_LIMIT = 4000; // W
   const byte TOP_OSCILLATION_SOC = 97; // %
   const int MIN_START_POWER = 700;
   const int BYPASS_MIN_START_POWER = BYPASS_POWER + 100;
@@ -25,6 +27,10 @@ void pilotLoop() {
 
   // check state of charge
   if (pvSOC < MONITORING_UNTIL_SOC) // %
+    return;
+
+  // in bypass mode, we can use battery as buffer to ignore short PV shadows or small concurrent consumption
+  if (bypassRelayOn && pvSOC > BYPASS_BUFFER_SOC && !pvBattCalib && inverterAC < CONSUMPTION_POWER_LIMIT)
     return;
 
   // sum available power
@@ -87,3 +93,4 @@ unsigned short power2pwm(int power) {
 #endif
   return res;
 }
+

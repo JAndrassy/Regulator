@@ -71,6 +71,7 @@ int freeMem;
 // SunSpec Modbus values
 int pvChargingPower; // battery charging power
 int pvSOC; //state of charge
+bool pvBattCalib;
 int meterPower; // smart meter measured power
 int voltage; // inverter measured AC voltage
 int inverterAC; // inverter AC power
