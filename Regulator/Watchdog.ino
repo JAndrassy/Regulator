@@ -50,7 +50,7 @@ ISR(WDT_vect) {
   if (wdt_counter < WDT_COUNT) {
     wdt_reset(); // start timer again (we are still in interrupt-only mode)
   } else {
-    eventsLoop(); // to save events
+    shutdown(); // to save events
     wdt_enable(WDTO_15MS); // self reset
   }
 }

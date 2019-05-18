@@ -104,9 +104,14 @@ void statsLoop() {
 }
 
 int statsEvalCurrentPower() {
+
+  const int PUMP_POWER = 40;
+
   switch (state) {
     case RegulatorState::MANUAL_RUN:
     case RegulatorState::REGULATING:
+      if (elsensPower < PUMP_POWER)
+        return PUMP_POWER;
       return elsensPower;
     default:
       return 0;

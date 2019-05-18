@@ -23,9 +23,12 @@ void valvesBackReset() {
 }
 
 void valvesBackLoop() {
+
+  const byte VALVES_BACK_HOUR = 5;
+
   if (!mainRelayOn && !valvesBackTime) {
     unsigned short v = valvesBackTempSensRead();
-    if (v > TEMP_SENS_WARM) {
+    if (v > TEMP_SENS_WARM || hourNow == VALVES_BACK_HOUR) {
       valvesBackStart(v);
     }
   }

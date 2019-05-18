@@ -33,7 +33,6 @@ void eventsSetup() {
     file.readBytes((char*) events, sizeof(events));
     file.close();
   }
-//  FS.remove(EVENTS_LOG_FN);
 #else
 #ifdef ESP8266
   EEPROM.begin(EEPROM_SIZE);
@@ -51,6 +50,11 @@ void eventsLoop() {
   if (now() > SECS_PER_DAY && now() - eventsTimer > EVENTS_SAVE_INTERVAL_SEC) {
     eventsSave();
   }
+#ifdef EVENTS_LOG_FN
+  if (hour(now()) == 23 && minute(now()) == 59 && FS.exists(EVENTS_LOG_FN)) {
+    FS.remove(EVENTS_LOG_FN);
+  }
+#endif
 }
 
 void eventsWrite(int newEvent, int value1, int value2) {

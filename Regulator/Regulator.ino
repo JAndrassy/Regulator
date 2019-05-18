@@ -71,9 +71,9 @@ int freeMem;
 // SunSpec Modbus values
 int pvChargingPower; // battery charging power
 int pvSOC; //state of charge
-bool pvBattCalib;
+bool pvBattCalib; // true if Symo calibrates the battery
 int meterPower; // smart meter measured power
-int voltage; // inverter measured AC voltage
+int voltage; // smart meter measured AC voltage
 int inverterAC; // inverter AC power
 
 // PowerPilot values
@@ -301,7 +301,7 @@ boolean handleAlarm() {
       break;
     case AlarmCause::MODBUS:
       if (millis() - modbusCheckMillis > MODBUS_CHECK_INTERVAL) {
-        stopAlarm = requestSymoRTC();
+        stopAlarm = requestSymoRTC() && requestMeter(); // meter is off in Symo emergency power mode
         modbusCheckMillis = millis();
       }
       break;

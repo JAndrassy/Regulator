@@ -24,8 +24,8 @@ void elsensSetup() {
 void elsensLoop() {
 
 #ifdef I2C_ADC121
-  const int ELSENS_MAX_VALUE = 2200;
-  const float ELSENS_VALUE_COEF = 1.1;
+  const int ELSENS_MAX_VALUE = 2300;
+  const float ELSENS_VALUE_COEF = 1.08;
   const int ELSENS_MIN_HEATING_VALUE = 300;
 #elif defined(ESP8266)
   const int ELSENS_MAX_VALUE = 500;
@@ -36,12 +36,11 @@ void elsensLoop() {
   const float ELSENS_VALUE_COEF = 11.13;
   const int ELSENS_MIN_HEATING_VALUE = 60;
 #endif
-  const float PF_ANGLE_SHIFT = 0.19 * PI;
-  const float PF_ANGLE_INTERVAL = 0.33 * PI;
+  const float PF_ANGLE_SHIFT = 0.16 * PI;
 
   // waiting for water to cooldown
   if (overheatedStart != 0) {
-    if ((loopStartMillis - overheatedStart) < OVERHEATED_COOLDOWN_TIME && !buttonPressed)
+    if (state == RegulatorState::OVERHEATED && (loopStartMillis - overheatedStart) < OVERHEATED_COOLDOWN_TIME && !buttonPressed)
       return;
     overheatedStart = 0;
     state = RegulatorState::MONITORING;
@@ -67,8 +66,9 @@ void elsensLoop() {
       alarmSound();
     }
   }
-    float ratio = 1.0 - ((float) elsens / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
-    elsensPower = (int) (elsens * ELSENS_VALUE_COEF * cos(PF_ANGLE_SHIFT + (ratio * PF_ANGLE_INTERVAL)));
+
+  float ratio = 1.0 - ((float) elsens / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
+  elsensPower = (int) (elsens * ELSENS_VALUE_COEF * cos(PF_ANGLE_SHIFT + ratio));
 }
 
 boolean elsensCheckPump() {
@@ -95,29 +95,12 @@ byte overheatedSecondsLeft() {
 
 /**
  * Grove Electricity Sensor module removes the negative part of the AC oscillation.
- * Zero crossing is where the removed part ends (sequence of zero readings).
  * return value is RMS of sampled values
  */
 int readElSens() {
-
-  // wait for zero crossing
-  byte countOf0 = 0;
-  long start_time = millis();
-  while (millis() - start_time < 40) {
-    int v = elsensAnalogRead();
-    if (v > 4 && countOf0 > 10)
-      break;
-    if (v <= 4) {
-      countOf0++;
-    }
-  }
-  if (countOf0 < 10) // sensor is not connected, pin is floating
-    return -1;
-
-  // sample AC
   unsigned long long sum = 0;
   int n = 0;
-  start_time = millis();
+  unsigned long start_time = millis();
   while (millis() - start_time < 200) { // in 200 ms measures 10 50Hz AC oscillations
     unsigned long v = elsensAnalogRead();
     sum += v * v;

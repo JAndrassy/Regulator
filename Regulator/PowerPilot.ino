@@ -5,9 +5,11 @@ void pilotLoop() {
   const int PUMP_POWER = 40;
   const byte MONITORING_UNTIL_SOC = 85; // %
   const byte BYPASS_BUFFER_SOC = 94; // %
-  const int CONSUMPTION_POWER_LIMIT = 4000; // W
+  const int CONSUMPTION_POWER_LIMIT = 3900; // W
   const byte TOP_OSCILLATION_SOC = 97; // %
-  const int MIN_START_POWER = 700;
+  const int TOP_OSCILLATION_DISCHARGE_LIMIT = -600; // W
+  const int TOP_OSCILLATION_COUNTERMEASURE = -20; // W
+  const int MIN_START_POWER = 500; // W
   const int BYPASS_MIN_START_POWER = BYPASS_POWER + 100;
   const byte WAIT_FOR_IT_COUNT = 3;
 
@@ -33,8 +35,16 @@ void pilotLoop() {
   if (bypassRelayOn && pvSOC > BYPASS_BUFFER_SOC && !pvBattCalib && inverterAC < CONSUMPTION_POWER_LIMIT)
     return;
 
+  // battery charge/discharge control
+  int pvChP = (pvChargingPower > 0) ? 0 : pvChargingPower; // as default take only negative charge (discharge)
+  if (pvSOC > BYPASS_BUFFER_SOC && pvChargingPower > BYPASS_MIN_START_POWER && !pvBattCalib) {
+    pvChP = pvChargingPower; // take this big charging as available (not everything will be used and/or the battery can charge later)
+  } else if (pvSOC > TOP_OSCILLATION_SOC && pvChP < TOP_OSCILLATION_COUNTERMEASURE
+      && (pvChP + meterPower) > TOP_OSCILLATION_DISCHARGE_LIMIT) { // tolerated discharge
+    pvChP = TOP_OSCILLATION_COUNTERMEASURE; // almost ignore discharge. full battery can do a little discharging
+  }
+
   // sum available power
-  int pvChP = (pvChargingPower > 0 || pvSOC > TOP_OSCILLATION_SOC) ? 0 : pvChargingPower;
   availablePower = heatingPower + meterPower + pvChP - (mainRelayOn ? 0 : PUMP_POWER);
   if (heatingPower == 0 && availablePower < MIN_START_POWER) {
     waitForItCounter = 0;
@@ -59,14 +69,15 @@ void pilotLoop() {
 
   // bypass the power regulator module for max power
   boolean bypass = availablePower > (bypassRelayOn ? BYPASS_POWER : BYPASS_MIN_START_POWER);
+ 
+  // set heating power
+  pwm = bypass ? 0 : power2pwm(availablePower);
+  analogWrite(PWM_PIN, pwm);
+
   if (bypass != bypassRelayOn) {
     digitalWrite(BYPASS_RELAY_PIN, bypass);
     bypassRelayOn = bypass;
   }
-
-  // set heating power
-  pwm = bypass ? 0 : power2pwm(availablePower);
-  analogWrite(PWM_PIN, pwm);
   heatingPower = bypass ? BYPASS_POWER : (availablePower > MAX_POWER) ? MAX_POWER : availablePower;
 }
 
@@ -93,4 +104,3 @@ unsigned short power2pwm(int power) {
 #endif
   return res;
 }
-

@@ -162,8 +162,10 @@ boolean modbusError(int err) {
     break;
     case 10:
       msg.printf(F("modbus error %d %d times"), err, modbusErrorCounter);
-      eventsWrite(MODBUS_EVENT, err, 0);
-      alarmCause = AlarmCause::MODBUS;
+      if (state != RegulatorState::ALARM) {
+        eventsWrite(MODBUS_EVENT, err, 0);
+        alarmCause = AlarmCause::MODBUS;
+      }
       modbus.stop();
     break;
   }
