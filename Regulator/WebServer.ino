@@ -121,6 +121,8 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
       bp.println(getContentType(ext));
       if (strcmp(ext, ".CSV") == 0) {
         bp.println(F("Content-Disposition: attachment"));
+      } else if (strcmp(ext, ".LOG") == 0) {
+        bp.println(F("Cache-Control: no-store"));
       } else {
         unsigned long expires = now() + SECS_PER_YEAR;
         bp.printf(F("Expires: %s, "), dayShortStr(weekday(expires))); // two printfs because ShortStr functions share the buffer
@@ -161,7 +163,7 @@ void printValuesJson(FormattedPrint& client) {
       /* no break */
     case RegulatorState::REGULATING:
     case RegulatorState::OVERHEATED:
-      client.printf(F(",\"h\":%d,\"a\":%d"), heatingPower, availablePower);
+      client.printf(F(",\"h\":%d"), heatingPower);
       /* no break */
     case RegulatorState::MONITORING:
       client.printf(F(",\"m\":%d,\"i\":%d,\"soc\":%d,\"b\":%d"), meterPower, inverterAC, pvSOC, pvChargingPower);

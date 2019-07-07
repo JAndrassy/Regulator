@@ -18,7 +18,7 @@ body {
 
 .value-box {
   display: inline-block;
-  min-width: 100px;
+  min-width: 110px;
   background-color: #f5f6f6;
   border: 1px solid;
   border-color: #e9eaed #dfe0e4 #d0d1d5;
@@ -28,6 +28,10 @@ body {
 
 .value-box-clickable {
   text-decoration: underline;
+}
+
+.value-box-double {
+  min-width: 227px;
 }
 
 .value-label {

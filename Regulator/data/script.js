@@ -28,13 +28,17 @@ function onLoad(cmd) {
   xhr.send();
 }
 
-var valueLabels = {"mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "a" : "Available", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version"};
+var valueLabels = {"mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "N" : "Network", "P" : "Pump", "M" : "MODBUS"};
 
 function showValues(jsonData) {
   var data = JSON.parse(jsonData);
   var contentDiv = document.getElementById("contentDiv");
+  while(contentDiv.firstChild){
+    contentDiv.removeChild(contentDiv.firstChild);
+  } 
+  contentDiv.appendChild(createCommandBox("Data", "Refresh", "I"));
   for (var key in valueLabels) {
     var val = data[key];
     if (val == null)
@@ -55,6 +59,8 @@ function showValues(jsonData) {
     var boxDiv = document.createElement("DIV");
     if (key == "ec" || key == "cp" || key == "csv" || (key == "st" && val == "ALARM")) {
       boxDiv.className = "value-box value-box-clickable";
+    } else if (key == "v") {
+      boxDiv.className = "value-box value-box-double";
     } else {
       boxDiv.className = "value-box";
     }
@@ -130,6 +136,7 @@ function showEvents(jsonData) {
     eventDiv.appendChild(createTextDiv("table-cell table-cell-number", "" + event.c));
     contentDiv.appendChild(eventDiv);
   }
+  contentDiv.appendChild(createButton("Log", "EVENTS.LOG"));
   if (data["s"] == 0) {
     contentDiv.appendChild(createButton("Save", "S"));
   }
@@ -220,17 +227,23 @@ function createButton(text, command) {
   var button = document.createElement("BUTTON");
   button.className = "button";
   button.onclick = function() {
-    if (!confirm("Are you sure?"))
-      return;
-    var xhr = new XMLHttpRequest();
-    xhr.onerror = function(e) {
-      alert(xhr.status + " " + xhr.statusText);
+    if (command.length > 1) {
+      location = command;
+    } else if (command == 'I') {
+      onLoad(command); 
+    } else {
+      if (!confirm("Are you sure?"))
+        return;
+      var xhr = new XMLHttpRequest();
+      xhr.onerror = function(e) {
+        alert(xhr.status + " " + xhr.statusText);
+      }
+      xhr.onload = function(e) {
+        location.reload();
+      };
+      xhr.open("GET", "http://" + host + ":" + restPort + "/" + command, true);
+      xhr.send();
     }
-    xhr.onload = function(e) {
-      location.reload();
-    };
-    xhr.open("GET", "http://" + host + ":" + restPort + "/" + command, true);
-    xhr.send();
   }
   button.appendChild(document.createTextNode(text));
   return button;
