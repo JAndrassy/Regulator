@@ -1,5 +1,5 @@
 
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
+#ifdef NO_EEPROM
 #define STATS_FILENAME "STATS.DAT"
 #else
 #include <EEPROM.h>
@@ -21,7 +21,7 @@ bool statsManualRunFlag;
 unsigned long statsSaveTimer = 0;
 
 void statsSetup() {
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
+#ifdef NO_EEPROM
   File file = FS.open(STATS_FILENAME, FILE_READ);
   if (file) {
     file.readBytes((byte*) &statsData, sizeof(statsData));
@@ -105,13 +105,9 @@ void statsLoop() {
 
 int statsEvalCurrentPower() {
 
-  const int PUMP_POWER = 40;
-
   switch (state) {
     case RegulatorState::MANUAL_RUN:
     case RegulatorState::REGULATING:
-      if (elsensPower < PUMP_POWER)
-        return PUMP_POWER;
       return elsensPower;
     default:
       return 0;
@@ -138,7 +134,7 @@ void statsAddMilliwats() {
 
 void statsSave() {
   statsAddMilliwats();
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
+#ifdef NO_EEPROM
   File file = FS.open(STATS_FILENAME, FILE_NEW);
   if (file) {
     file.write((byte*) &statsData, sizeof(statsData));

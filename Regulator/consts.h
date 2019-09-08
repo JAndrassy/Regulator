@@ -5,6 +5,11 @@
 
 const char version[] = "build "  __DATE__ " " __TIME__;
 
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
+#define NO_EEPROM
+#endif
+
+
 #ifdef ESP8266
 #include "gbs-d1r2.h"
 #define FILE_WRITE "a"

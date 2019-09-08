@@ -23,6 +23,8 @@ void elsensSetup() {
 
 void elsensLoop() {
 
+  const int PUMP_POWER = 40;
+
 #ifdef I2C_ADC121
   const int ELSENS_MAX_VALUE = 2300;
   const float ELSENS_VALUE_COEF = 1.08;
@@ -46,29 +48,21 @@ void elsensLoop() {
     state = RegulatorState::MONITORING;
   }
 
-  if (state != RegulatorState::REGULATING)
-    return;
-
   elsens = readElSens();
 
   if (heatingPower > 0 && elsens < ELSENS_MIN_HEATING_VALUE) {
-    elsens = readElSens(); // measure again for sure
-  }
-  if (heatingPower > 0 && elsens < ELSENS_MIN_HEATING_VALUE) {
-    if (heatingPower < 650) { // low power fall out
-      heatingPower = 0; // heating can start again with min_start_power
-      msg.print(F("fall out"));
-    } else {
-      overheatedStart = loopStartMillis;
-      state = RegulatorState::OVERHEATED;
-      msg.print(F("overheated"));
-      eventsWrite(OVERHEATED_EVENT, elsens, heatingPower);
-      alarmSound();
-    }
+    overheatedStart = loopStartMillis;
+    state = RegulatorState::OVERHEATED;
+    msg.print(F("overheated"));
+    eventsWrite(OVERHEATED_EVENT, elsens, heatingPower);
+    alarmSound();
   }
 
   float ratio = 1.0 - ((float) elsens / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
   elsensPower = (int) (elsens * ELSENS_VALUE_COEF * cos(PF_ANGLE_SHIFT + ratio));
+  if (elsensPower < PUMP_POWER) { // the function doesn't work ideal
+    elsensPower = mainRelayOn ? PUMP_POWER : 0;
+  }
 }
 
 boolean elsensCheckPump() {

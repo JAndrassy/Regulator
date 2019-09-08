@@ -4,7 +4,7 @@ const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'W', 'N', 'P', 'M', 'O', 'B', '
 const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Network", "Pump", "Modbus",
     "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "Stat.save"};
 
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
+#ifdef NO_EEPROM
 #define EVENTS_FILENAME "EVENTS.DAT"
 #define EVENTS_LOG_FN "EVENTS.LOG"
 #else
@@ -23,7 +23,7 @@ unsigned long eventsTimer = 0;
 EventStruct events[EVENTS_SIZE];
 
 void eventsSetup() {
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
+#ifdef NO_EEPROM
   if (!FS.exists(EVENTS_FILENAME)) {
     for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
       events[i].timestamp = 0;
@@ -69,14 +69,16 @@ void eventsWrite(int newEvent, int value1, int value2) {
   e.value2 = value2;
   e.count++;
 #ifdef EVENTS_LOG_FN
-  File file = FS.open(EVENTS_LOG_FN, FILE_WRITE);
-  if (file) {
-    char buff[64];
-    BufferedPrint bp(file, buff, sizeof(buff));
-    eventsPrint(bp, newEvent);
-    bp.println();
-    bp.flush();
-    file.close();
+  if (newEvent != EVENTS_SAVE_EVENT) {
+    File file = FS.open(EVENTS_LOG_FN, FILE_WRITE);
+    if (file) {
+      char buff[64];
+      BufferedPrint bp(file, buff, sizeof(buff));
+      eventsPrint(bp, newEvent);
+      bp.println();
+      bp.flush();
+      file.close();
+    }
   }
 #endif
 }
@@ -93,7 +95,7 @@ void eventsSave() {
   if (eventsSaved())
     return;
   eventsWrite(EVENTS_SAVE_EVENT, 0, 0);
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
+#ifdef NO_EEPROM
   File file = FS.open(EVENTS_FILENAME, FILE_NEW);
   if (file) {
     file.write((byte*) events, sizeof(events));
