@@ -7,18 +7,19 @@
 #include <FS.h>
 #define FS SPIFFS
 #define freeMemory ESP.getFreeHeap
+#define beforeApply onStart
 #else
 #include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
 #ifdef ARDUINO_AVR_UNO_WIFI_DEV_ED
 #include <WiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
 #else
-//#include <Ethernet.h> //Ethernet 2.00 for all W5000
-#include <UIPEthernet.h> // for ENC28j60; my fork with merged pull-requests
+#include <Ethernet.h> //Ethernet 2.00 for all W5000
+//#include <UIPEthernet.h> // for ENC28j60
 #define ETHERNET
-#include <ArduinoOTA.h> // included before SD, if SDStorage is not used
 #include <SD.h>
 #define FS SD
+#include <ArduinoOTA.h>
 #endif
 #endif
 #ifdef ARDUINO_SAM_ZERO
@@ -77,9 +78,8 @@ int voltage; // smart meter measured AC voltage
 int inverterAC; // inverter AC power
 
 // PowerPilot values
-int availablePower;
 int heatingPower;
-int pwm;
+int powerPilotRaw;
 
 //ElSens values (for logging and UI)
 int elsens; // el.sensor measurement
@@ -91,7 +91,7 @@ int measuredPower;
 char msgBuff[32];
 CStringBuilder msg(msgBuff, sizeof(msgBuff));
 
-boolean sdCardAvailable = false;
+bool sdCardAvailable = false;
 
 #ifdef __SD_H__
 void sdTimeCallback(uint16_t* date, uint16_t* time) {
@@ -105,6 +105,7 @@ void setup() {
   pinMode(BYPASS_RELAY_PIN, OUTPUT);
   digitalWrite(BYPASS_RELAY_PIN, LOW);
 
+  pilotSetup();
   valvesBackSetup();
   elsensSetup();
   buttonSetup();
@@ -128,6 +129,8 @@ void setup() {
   Serial.println(freeMemory());
 
 #ifdef __SD_H__
+  pinMode(NET_SS_PIN, OUTPUT);
+  digitalWrite(NET_SS_PIN, HIGH); // unselect network device on SPI bus
   if (SD.begin(SD_SS_PIN)) {
     SdFile::dateTimeCallback(sdTimeCallback);
     sdCardAvailable = true;
@@ -156,12 +159,15 @@ void setup() {
 #endif
   // connection is checked in loop
 
+  ArduinoOTA.beforeApply(shutdown);
 #if defined(ESP8266)
   MDNS.begin("regulator");
-  ArduinoOTA.onStart(shutdown);
   ArduinoOTA.begin();
+#elif defined(ARDUINO_AVR_ATMEGA1284) // app binary is larger then half of the flash
+  SDStorage.setUpdateFileName("FIRMWARE.BIN");
+  SDStorage.clear(); // AVR SD bootloaders don't delete the update file
+  ArduinoOTA.begin(ip, "regulator", "password", SDStorage);
 #else
-  ArduinoOTA.beforeApply(shutdown);
   ArduinoOTA.begin(ip, "regulator", "password", InternalStorage);
 #endif
 
@@ -252,8 +258,7 @@ void handleSuspendAndOff() {
   if (heatingPower > 0) {
     lastOn = loopStartMillis;
   } else if (mainRelayOn) { // && heatingPower == 0
-    analogWrite(PWM_PIN, 0);
-    pwm = 0;
+    powerPilotStop();
     if (bypassRelayOn) {
       digitalWrite(BYPASS_RELAY_PIN, LOW);
       bypassRelayOn = false;
@@ -267,8 +272,7 @@ void handleSuspendAndOff() {
 
 void clearData() {
   modbusClearData();
-  availablePower = 0;
-  pwm = 0;
+  powerPilotRaw = 0;
   elsens = 0;
   elsensPower = 0;
   measuredPower = 0;

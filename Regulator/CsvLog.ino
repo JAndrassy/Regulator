@@ -59,9 +59,9 @@ void csvLogLoop() {
     lines.reset();
   }
 
-  if (state == RegulatorState::REGULATING) {
-    lines.printf(F("%02d:%02d:%02d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d\r\n"), hour(t), minute(t), second(t),
-        heatingPower, meterPower, pvSOC, pvChargingPower, availablePower, pwm, elsens, elsensPower, voltage, inverterAC, measuredPower);
+  if (state == RegulatorState::REGULATING || state == RegulatorState::OVERHEATED) {
+    lines.printf(F("%02d:%02d:%02d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d\r\n"), hour(t), minute(t), second(t),
+        heatingPower, meterPower, pvSOC, pvChargingPower, powerPilotRaw, elsens, elsensPower, voltage, inverterAC, measuredPower);
   }
 #endif
 }

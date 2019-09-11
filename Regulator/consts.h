@@ -34,12 +34,28 @@ const byte STATUS_LED_PIN = 99; // status led not used
 #else
 #define FILE_NEW (O_READ | O_WRITE | O_CREAT)
 
+#define TRIAC
+
 const byte MAIN_RELAY_PIN = 2;
 const byte TONE_PIN = 3;
 const byte SD_SS_PIN = 4; // SD card SS
+#ifdef TRIAC
+#ifdef ARDUINO_ARCH_SAMD
+const byte BYPASS_RELAY_PIN = 5;
+const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
+// pin 7 zero-crossing external interrupt for TriacLib
+#elif defined(PROBADIO)
+const byte TRIAC_PIN = 5; // TIMER1 OC1A for TriacDimmer library
+// pin 6 TIMER1 ICP1 for TriacDimmer library
+const byte BYPASS_RELAY_PIN = 7;
+#endif
+const byte ZC_EI_PIN = TRIAC_PIN + 1; // it is the second pin on the Grove connector to Dimmer
+const byte BUTTON_PIN = 11;
+#else
 const byte BYPASS_RELAY_PIN = 5;
 const byte PWM_PIN = 6;
 const byte BUTTON_PIN = 7;
+#endif
 const byte LEDBAR_DATA_PIN = 8;
 const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
 const byte NET_SS_PIN = 10;
@@ -52,7 +68,7 @@ const byte VALVES_RELAY_PIN = A3;
 const byte STATUS_LED_PIN = 99; // status led not used
 #endif
 
-const int MAX_POWER = 2000;
+const int MAX_POWER = 2050;
 const int BYPASS_POWER = 2050;
 const unsigned long PUMP_STOP_MILLIS = 10 * 60000; // 10 min
 

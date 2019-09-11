@@ -1,3 +1,30 @@
+#ifdef TRIAC
+#ifdef ARDUINO_ARCH_SAMD
+#include <TriacLib.h>
+#elif defined(ARDUINO_ARCH_AVR)
+#include <TriacDimmer.h>
+#endif
+
+void pilotTriacPeriod(float p) {
+#ifdef ARDUINO_ARCH_SAMD
+  Triac::setPeriod(p);
+#elif defined(ARDUINO_ARCH_AVR)
+  TriacDimmer::setBrightness(TRIAC_PIN, p);
+#endif
+}
+
+void pilotSetup() {
+#ifdef ARDUINO_ARCH_SAMD
+  Triac::setup(ZC_EI_PIN, TRIAC_PIN);
+#elif defined(ARDUINO_ARCH_AVR)
+  TriacDimmer::begin();
+#endif
+}
+#else
+void pilotSetup() {
+}
+#endif
+
 const int MIN_POWER = 300;
 
 void pilotLoop() {
@@ -45,7 +72,7 @@ void pilotLoop() {
   }
 
   // sum available power
-  availablePower = heatingPower + meterPower + pvChP - (mainRelayOn ? 0 : PUMP_POWER);
+  short availablePower = heatingPower + meterPower + pvChP - (mainRelayOn ? 0 : PUMP_POWER);
   if (heatingPower == 0 && availablePower < MIN_START_POWER) {
     waitForItCounter = 0;
     return;
@@ -54,6 +81,7 @@ void pilotLoop() {
     return;
   if (availablePower < MIN_POWER) {
     heatingPower = 0;
+    powerPilotRaw = 0;
     waitForItCounter = 0;
     return;
   }
@@ -69,16 +97,46 @@ void pilotLoop() {
 
   // bypass the power regulator module for max power
   boolean bypass = availablePower > (bypassRelayOn ? BYPASS_POWER : BYPASS_MIN_START_POWER);
- 
+
   // set heating power
-  pwm = bypass ? 0 : power2pwm(availablePower);
-  analogWrite(PWM_PIN, pwm);
+#ifdef TRIAC
+  float r = bypass ? 0 : power2TriacPeriod(availablePower);
+  pilotTriacPeriod(r);
+  powerPilotRaw = r * 1000; // to log
+#else
+  powerPilotRaw = bypass ? 0 : power2pwm(availablePower);
+  analogWrite(PWM_PIN, powerPilotRaw);
+#endif
 
   if (bypass != bypassRelayOn) {
+    if (bypass) {
+      delay(20); // to be sure triac is off
+    }
     digitalWrite(BYPASS_RELAY_PIN, bypass);
     bypassRelayOn = bypass;
   }
   heatingPower = bypass ? BYPASS_POWER : (availablePower > MAX_POWER) ? MAX_POWER : availablePower;
+}
+
+void powerPilotStop() {
+#ifdef TRIAC
+  pilotTriacPeriod(0);
+#else
+  analogWrite(PWM_PIN, 0);
+#endif
+  powerPilotRaw = 0;
+}
+
+float power2TriacPeriod(int power) {
+  const float POWER2PERIOD_SHIFT = 0.08;
+  const float POWER2PERIOD_KOEF = 0.5;
+
+  if (power < MIN_POWER)
+    return 0.0;
+  if (power >= MAX_POWER)
+    return 1.0;
+  float ratio = (float) power / MAX_POWER;
+  return POWER2PERIOD_SHIFT + POWER2PERIOD_KOEF * asin(sqrt(ratio));
 }
 
 unsigned short power2pwm(int power) {
