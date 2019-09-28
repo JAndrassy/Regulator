@@ -8,7 +8,7 @@ void statusLedLopp() {
   static unsigned long previousMillis = 0;
   static boolean blinkLedState = false;
 
-#ifdef ___AVR___
+#ifdef __AVR__
 #define PWMRANGE 256
 #else
 #define PWMRANGE 1024

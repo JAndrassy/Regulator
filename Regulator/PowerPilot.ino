@@ -134,7 +134,7 @@ float power2TriacPeriod(int power) {
   if (power < MIN_POWER)
     return 0.0;
   if (power >= MAX_POWER)
-    return 1.0;
+    return 0.95;
   float ratio = (float) power / MAX_POWER;
   return POWER2PERIOD_SHIFT + POWER2PERIOD_KOEF * asin(sqrt(ratio));
 }
@@ -157,7 +157,7 @@ unsigned short power2pwm(int power) {
     float ratio = current / MAX_CURRENT;
     res = MIN_PWM + POWER2PWM_KOEF * current / cos(PF_ANGLE_SHIFT + (ratio * PF_ANGLE_INTERVAL));
   }
-#ifdef ___AVR___
+#ifdef __AVR__
   res /= 4;
 #endif
   return res;

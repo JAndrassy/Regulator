@@ -41,15 +41,15 @@ void watchdogLoop() {
 }
 
 ISR(WDT_vect) {
-  if (state != RegulatorState::REST) {
-    pinMode(TONE_PIN, OUTPUT);
-    tone(TONE_PIN, BEEP_2, 400);
-  }
   wdt_counter++;
-  eventsWrite(WATCHDOG_EVENT, wdt_counter, 0);
   if (wdt_counter < WDT_COUNT) {
     wdt_reset(); // start timer again (we are still in interrupt-only mode)
   } else {
+    if (state != RegulatorState::REST) {
+      pinMode(TONE_PIN, OUTPUT);
+      tone(TONE_PIN, BEEP_2, 400);
+    }
+    eventsWrite(WATCHDOG_EVENT, 0, 0);
     shutdown(); // to save events
     wdt_enable(WDTO_15MS); // self reset
   }

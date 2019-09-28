@@ -142,6 +142,6 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 
 2019/6 I replaced the Kemo modules with the AC 'dimmer' module
 
-2019/9 again Ethernet Shield with W5500 (Seeed version with low profile RJ-45 connector) 
+2019/9 AVR ATmega1284p board and Ethernet Shield with W5500 (Seeed version with low profile RJ-45 connector) 
 
  

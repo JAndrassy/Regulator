@@ -7,7 +7,7 @@ const int STATS_EEPROM_ADDR = 256;
 #endif
 
 struct {
-  time_t timestamp;
+  time_t timestamp = 0;
 
   Stats day;
   Stats month;
@@ -59,7 +59,7 @@ void statsLoop() {
     sprintf(buff, "DATA%d.CSV", year(t));
     File file = FS.open(buff, FILE_WRITE);
     if (file) {
-      sprintf(buff, "%d-%02d-%02d;%d;%d;%d;%d", year(t), month(t), day(t), //
+      sprintf(buff, "%d-%02d-%02d;%ld;%ld;%ld;%ld", year(t), month(t), day(t), //
           statsData.day.heatingTime, statsData.day.consumedPower, //
           statsData.dayManualRun.heatingTime, statsData.dayManualRun.consumedPower);
       file.println(buff);
@@ -171,15 +171,15 @@ void statsPrint(FormattedPrint& out, const char *label, Stats &stats) {
   int h = stats.heatingTime / 60;
   int m = stats.heatingTime - h * 60;
   out.printf(F("%s time: %d:%02d\r\n"), label, h, m);
-  out.printf(F("%s power: %d W\r\n"), label, stats.consumedPower);
+  out.printf(F("%s power: %ld W\r\n"), label, stats.consumedPower);
 }
 
 void statsPrintJson(FormattedPrint& out) {
   out.printf(F("{\"timestamp\":%lu,"
-      "\"dayHeatingTime\":%d,\"dayConsumedPower\":%d,"
-      "\"monthHeatingTime\":%d,\"monthConsumedPower\":%d,"
-      "\"dayManualRunTime\":%d,\"dayManualRunPower\":%d,"
-      "\"monthManualRunTime\":%d,\"monthManualRunPower\":%d}"),
+      "\"dayHeatingTime\":%ld,\"dayConsumedPower\":%ld,"
+      "\"monthHeatingTime\":%ld,\"monthConsumedPower\":%ld,"
+      "\"dayManualRunTime\":%ld,\"dayManualRunPower\":%ld,"
+      "\"monthManualRunTime\":%ld,\"monthManualRunPower\":%ld}"),
       statsData.timestamp,
       statsData.day.heatingTime, statsData.day.consumedPower,
       statsData.month.heatingTime, statsData.month.consumedPower,

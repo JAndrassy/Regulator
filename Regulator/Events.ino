@@ -197,6 +197,6 @@ void eventsBlynk() {
 }
 
 int eventsCompare(const void * elem1, const void * elem2) {
-  return events[*((byte*) elem2)].timestamp - events[*((byte*) elem1)].timestamp;
+  return (events[*((byte*) elem2)].timestamp < events[*((byte*) elem1)].timestamp) ? -1 : 1;
 }
 

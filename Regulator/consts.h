@@ -36,8 +36,8 @@ const byte STATUS_LED_PIN = 99; // status led not used
 
 #define TRIAC
 
-const byte MAIN_RELAY_PIN = 2;
-const byte TONE_PIN = 3;
+const byte TONE_PIN = 2;
+const byte MAIN_RELAY_PIN = 3;
 const byte SD_SS_PIN = 4; // SD card SS
 #ifdef TRIAC
 #ifdef ARDUINO_ARCH_SAMD
@@ -109,8 +109,8 @@ enum {
 };
 
 struct Stats {
-  int heatingTime; // minutes
-  int consumedPower; // watts
+  long heatingTime = 0; // minutes
+  long consumedPower = 0; // watts
 };
 
 #endif
