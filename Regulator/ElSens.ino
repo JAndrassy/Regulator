@@ -1,5 +1,5 @@
 #include <Wire.h>
-#define I2C_ADC121         0x50
+//#define I2C_ADC121         0x50
 
 const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resume 30 sec before pump stops
 
@@ -25,20 +25,21 @@ void elsensLoop() {
 
   const int PUMP_POWER = 40;
 
-#ifdef I2C_ADC121
-  const int ELSENS_MAX_VALUE = 2300;
-  const float ELSENS_VALUE_COEF = 1.08;
-  const int ELSENS_MIN_HEATING_VALUE = 300;
-#elif defined(ESP8266)
-  const int ELSENS_MAX_VALUE = 500;
-  const float ELSENS_VALUE_COEF = 4.15;
-  const int ELSENS_MIN_HEATING_VALUE = 80;
-#else
-  const int ELSENS_MAX_VALUE = 230;
-  const float ELSENS_VALUE_COEF = 11.13;
-  const int ELSENS_MIN_HEATING_VALUE = 60;
-#endif
-  const float PF_ANGLE_SHIFT = 0.16 * PI;
+   // Grove I2C ADC and Grove Electricity Sensor CT
+//  const int ELSENS_MAX_VALUE = 2300;
+//  const float PF_ANGLE_INTERVAL = PI * 0.33;
+//  const float PF_ANGLE_SHIFT = PI * 0.22;
+//  const float ELSENS_VALUE_COEF = 1.12;
+//  const int ELSENS_VALUE_SHIFT = 200;
+//  const int ELSENS_MIN_HEATING_VALUE = 300;
+
+  // 5 V ATmega 'analog' pin and ACS712 sensor 30A version
+  const int ELSENS_MAX_VALUE = 12300;
+  const float PF_ANGLE_INTERVAL = PI * 0.33;
+  const float PF_ANGLE_SHIFT = PI * 0.19;
+  const float ELSENS_VALUE_COEF = 0.2;
+  const int ELSENS_VALUE_SHIFT = 50;
+  const int ELSENS_MIN_HEATING_VALUE = 2500;
 
   // waiting for water to cooldown
   if (overheatedStart != 0) {
@@ -59,18 +60,16 @@ void elsensLoop() {
   }
 
   float ratio = 1.0 - ((float) elsens / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
-  elsensPower = (int) (elsens * ELSENS_VALUE_COEF * cos(PF_ANGLE_SHIFT + ratio));
+  elsensPower = (int) (elsens * ELSENS_VALUE_COEF * cos(PF_ANGLE_SHIFT + ratio * PF_ANGLE_INTERVAL)) + ELSENS_VALUE_SHIFT;
   if (elsensPower < PUMP_POWER) { // the function doesn't work ideal
     elsensPower = mainRelayOn ? PUMP_POWER : 0;
   }
 }
 
 boolean elsensCheckPump() {
-#ifdef I2C_ADC121
-  const int ELSENS_MIN_ON_VALUE = 40;
-#else
-  const int ELSENS_MIN_ON_VALUE = 10;
-#endif
+
+  const int ELSENS_MIN_ON_VALUE = 150;
+
   delay(1000); // pump run-up
   int v = readElSens();
   if (v < ELSENS_MIN_ON_VALUE) {
@@ -88,19 +87,27 @@ byte overheatedSecondsLeft() {
 }
 
 /**
- * Grove Electricity Sensor module removes the negative part of the AC oscillation.
  * return value is RMS of sampled values
  */
 int readElSens() {
+
+//  const int ELSENS_ANALOG_MIDDLE_VALUE = 0;  // Grove El. sensor CT
+//  const int RMS_INT_SCALE = 1;
+  const int ELSENS_ANALOG_MIDDLE_VALUE = 511;
+  const int RMS_INT_SCALE = 100;
+
   unsigned long long sum = 0;
   int n = 0;
   unsigned long start_time = millis();
   while (millis() - start_time < 200) { // in 200 ms measures 10 50Hz AC oscillations
-    unsigned long v = elsensAnalogRead();
+    long v = (short) elsensAnalogRead() - ELSENS_ANALOG_MIDDLE_VALUE;
     sum += v * v;
     n++;
   }
-  return sqrt((double) sum / (n / 2)); // half of the values are zeros for removed negative voltages
+  if (ELSENS_ANALOG_MIDDLE_VALUE == 0) {
+    n = n / 2; // half of the values are zeros for removed negative voltages
+  }
+  return sqrt((double) sum / n) * RMS_INT_SCALE;
 }
 
 unsigned short elsensAnalogRead() {

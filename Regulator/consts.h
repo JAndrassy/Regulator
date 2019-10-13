@@ -50,7 +50,7 @@ const byte TRIAC_PIN = 5; // TIMER1 OC1A for TriacDimmer library
 const byte BYPASS_RELAY_PIN = 7;
 #endif
 const byte ZC_EI_PIN = TRIAC_PIN + 1; // it is the second pin on the Grove connector to Dimmer
-const byte BUTTON_PIN = 11;
+const byte BUTTON_PIN = 14;
 #else
 const byte BYPASS_RELAY_PIN = 5;
 const byte PWM_PIN = 6;
@@ -61,10 +61,10 @@ const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
 const byte NET_SS_PIN = 10;
 //pin 10-13 SPI (Ethernet, SD)
 const byte TEMPSENS_PIN = A0;
-//const byte ELSENS_PIN = A1;
+const byte ELSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
-//pin A4, A5 is I2C on AVR (ADC, on Uno Wifi ESP8266 over I2C SC)
+//pin A4, A5 is I2C on Uno (on Uno Wifi ESP8266 over I2C SC)
 const byte STATUS_LED_PIN = 99; // status led not used
 #endif
 

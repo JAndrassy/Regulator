@@ -1,7 +1,6 @@
 
 #ifdef ARDUINO_SAM_ZERO
 #define Serial SerialUSB
-//#include <SAMD_AnalogCorrection.h>
 #endif
 
 #define TRIAC
@@ -60,7 +59,7 @@ const byte TRIAC_PIN = 5; // TIMER1 OC1A for TriacDimmer library
 const byte BYPASS_RELAY_PIN = 7;
 #endif
 const byte ZC_EI_PIN = TRIAC_PIN + 1; // it is the second pin on the Grove connector to Dimmer
-const byte BUTTON_PIN = 11;
+const byte BUTTON_PIN = 14;
 #else
 const byte BYPASS_RELAY_PIN = 5;
 const byte PWM_PIN = 6;
@@ -83,7 +82,7 @@ const int BEEP_2 = 4699;
 
 NetServer telnetServer(2323);
 
-#define I2C_ADDR_ADC121         0x50
+//#define I2C_ADDR_ADC121         0x50
 #ifdef I2C_ADDR_ADC121
 #include <Wire.h>
 const byte REG_ADDR_RESULT = 0x00;
@@ -299,12 +298,12 @@ int readElSens() {
   unsigned long long sum = 0;
   int n = 0;
   unsigned long start_time = millis();
-  while (millis() - start_time < 100) { // in 200 ms measures 10 50Hz AC oscillations
-    unsigned long v = elsensAnalogRead();
+  while (millis() - start_time < 200) { // in 200 ms measures 10 50Hz AC oscillations
+    long v = (short) elsensAnalogRead() - 511;
     sum += v * v;
     n++;
   }
-  return sqrt((double) sum / (n / 2)); // RMS, but half of the values are zeros for removed negative voltages
+  return sqrt((double) sum / n) * 100;
 }
 
 unsigned short elsensAnalogRead() {
@@ -313,8 +312,6 @@ unsigned short elsensAnalogRead() {
   byte buff[2];
   Wire.readBytes(buff, 2);
   return (buff[0] << 8) | buff[1];
-#elif defined(analogReadFast_H)
-  return analogReadFast(ELSENS_PIN);
 #else
   return analogRead(ELSENS_PIN);
 #endif
