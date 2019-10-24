@@ -6,11 +6,7 @@
 #define TRIAC
 
 #ifdef TRIAC
-#ifdef ARDUINO_ARCH_SAMD
 #include <TriacLib.h>
-#elif defined(ARDUINO_ARCH_AVR)
-#include <TriacDimmer.h>
-#endif
 #endif
 
 #ifdef ESP8266
@@ -45,28 +41,23 @@ const byte BALBOA_RELAY_PIN = 10; // GBS_A2_io15_PULLDOWN; // jumper wire from p
 const byte VALVES_RELAY_PIN = 3; // GBS_A3_io3_TX0; // jumper wire from pin TX to unused A3
 #else
 
-const byte MAIN_RELAY_PIN = 2;
-const byte TONE_PIN = 3;
+const byte TONE_PIN = 2;
 const byte SD_SS_PIN = 4; // SD card SS
 #ifdef TRIAC
 #ifdef ARDUINO_ARCH_SAMD
-const byte BYPASS_RELAY_PIN = 5;
+const byte MAIN_RELAY_PIN = 3;
+const byte ZC_EI_PIN = 5;
 const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
-// pin 7 zero-crossing external interrupt for TriacLib
 #elif defined(PROBADIO)
-const byte TRIAC_PIN = 5; // TIMER1 OC1A for TriacDimmer library
-// pin 6 TIMER1 ICP1 for TriacDimmer library
-const byte BYPASS_RELAY_PIN = 7;
+const byte ZC_EI_PIN = 3; // INT1 pin
+const byte TRIAC_PIN = 5; // TIMER1 OC1A
+const byte MAIN_RELAY_PIN = 6;
 #endif
-const byte ZC_EI_PIN = TRIAC_PIN + 1; // it is the second pin on the Grove connector to Dimmer
-const byte BUTTON_PIN = 14;
 #else
-const byte BYPASS_RELAY_PIN = 5;
+const byte MAIN_RELAY_PIN = 3;
 const byte PWM_PIN = 6;
-const byte BUTTON_PIN = 7;
 #endif
-const byte LEDBAR_DATA_PIN = 8;
-const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
+const byte BYPASS_RELAY_PIN = 7;
 const byte NET_SS_PIN = 10;
 //pin 10-13 SPI (Ethernet, SD)
 const byte TEMPSENS_PIN = A0;
@@ -103,11 +94,7 @@ void setup() {
 #endif
 
 #ifdef TRIAC
-#ifdef ARDUINO_ARCH_SAMD
   Triac::setup(ZC_EI_PIN, TRIAC_PIN);
-#elif defined(ARDUINO_ARCH_AVR)
-  TriacDimmer::begin();
-#endif
 #endif
 
   pinMode(BYPASS_RELAY_PIN, OUTPUT);
@@ -285,11 +272,7 @@ void loop() {
 }
 
 void pilotTriacPeriod(float p) {
-#ifdef ARDUINO_ARCH_SAMD
   Triac::setPeriod(p);
-#elif defined(ARDUINO_ARCH_AVR)
-  TriacDimmer::setBrightness(TRIAC_PIN, p);
-#endif
 }
 
 int readElSens() {

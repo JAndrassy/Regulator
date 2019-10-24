@@ -43,10 +43,10 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 ### Electronics
 * Arduino with some shield or module for networking and optional SD card reader for static web files and csv logging
 * [Seeed Grove Base Shield](https://www.seeedstudio.com/Base-Shield-V2-p-1378.html) - the Grove connectors ensure firm connection of wires with simple assemble and disassemble and the shield supplies 5 V VCC for the Grove modules.
-* [Robotdyn AC Light Dimmer Module](https://robotdyn.com/catalog/new-products/ac-light-dimmer-module-2-channel-3-3v-5v-logic-ac-50-60hz-220v-110v.html) - Triac and zero crossing detector for direct AC phase cutting without the Kemo modules. I use the double dimmer for larger cooler. For 2 kW the single dimmer overheated. First I added a fan. It helped but it was noisy. For 1.5 kW or less it should be good.
-* [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) 2pcs - the AC current in the system is less then 10 A but it can run hours at 9+ A 
+* [Robotdyn AC Light Dimmer Module](https://robotdyn.com/catalog/new-products/ac-light-dimmer-module-2-channel-3-3v-5v-logic-ac-50-60hz-220v-110v.html) - Triac and zero crossing detector for direct AC phase cutting. I use the double dimmer for larger cooler. For 2 kW the single dimmer overheated. First I added a fan. It helped but it was noisy. For 1.5 kW or less it should be good.
+* [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) 2pcs
 * ACS712 current sensor module
-* [Grove I2C ADC module](https://www.seeedstudio.com/grove-i2c-adc-p-1580.html) - to read the 5 V electricity sensor with 3.3 V boards 
+* [Grove I2C ADC module](https://www.seeedstudio.com/grove-i2c-adc-p-1580.html) - to read the electricity sensor with esp8266
 * [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) - for 'valves back' circuit
 * [Grove Temperature Sensor](https://www.seeedstudio.com/Grove-Temperature-Sensor-p-774.html) - to check the next heating distributor if the main heating is running
 * [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) is for Balboa hot tub heating suspend activation
@@ -77,21 +77,20 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 
 ## Sketch
 
-Copy the folder `Regulator`from this GitHub repository into your sketch folder of Arduino IDE and if you use a SAMD MCU, then the TriacLib folder goes into your libraries folder.
+Copy the folder `Regulator`from this GitHub repository into your sketch folder of Arduino IDE and the TriacLib folder goes into your libraries folder.
 
 ### System
 * Regulator.ino - core: global variables, setup() and loop() handling network, heating relays, main states
-* Events.ino - data saved to EEPROM for monitoring
+* Events.ino - data saved to EEPROM or SD for monitoring
 * Modbus.ino - reads the PV SunSpec data and time
 * Watchdog.ino - watchdog handling
 
 ### Heating
-* PowerPilot.ino - heater regulation with PWM to exactly consume the excess solar electricity calculated from SunSpec data. 
+* PowerPilot.ino - heater regulation with AC phase cutting to exactly consume the excess solar electricity calculated from SunSpec data. 
 * ManualRun.ino - unregulated timed heating, activated with a button or from a remote monitoring
 * ElSens.ino - functions around the electricity sensor: checking expected consumption of the pump and heating and detecting disconnection by the heater's thermostat
 * ValvesBack.ino - handles turning valves back to the main heating system, if temperature sensor detects warming of the second heating circuit
-* Stats.ino - count and store power consumption statistics
-* TriacLib.h - AC dimmer module control with SAMD21 peripherals
+* TriacLib.h - AC dimmer module control
 
 ### Front panel
 * Beeper.ino - Handles the speaker using tone() function. In loop handles the alarm sound if the system is in alarm state.
@@ -102,6 +101,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 ### Monitoring
 * Telnet.ino - logging csv lines to telnet client and reading command characters sent from telnet client
 * CsvLog.ino - logging heating regulation to csv files on SD card or SPIFFS
+* Stats.ino - count and store power consumption statistics
 * WebServer.ino - JSON data for the web pages with optional serving of static web page files and csv files from SD card or SPIFFS
 * Blynk.ino - control from everywhere with [Blynk](https://www.blynk.cc/) Android application. [more...](https://github.com/jandrassy/Regulator/wiki/Blynk)
 

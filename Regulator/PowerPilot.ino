@@ -1,26 +1,16 @@
 #ifdef TRIAC
-#ifdef ARDUINO_ARCH_SAMD
 #include <TriacLib.h>
-#elif defined(ARDUINO_ARCH_AVR)
-#include <TriacDimmer.h>
-#endif
 
 void pilotTriacPeriod(float p) {
-#ifdef ARDUINO_ARCH_SAMD
   Triac::setPeriod(p);
-#elif defined(ARDUINO_ARCH_AVR)
-  TriacDimmer::setBrightness(TRIAC_PIN, p);
-#endif
 }
 
 void pilotSetup() {
-#ifdef ARDUINO_ARCH_SAMD
   Triac::setup(ZC_EI_PIN, TRIAC_PIN);
-#elif defined(ARDUINO_ARCH_AVR)
-  TriacDimmer::begin();
-#endif
 }
+
 #else
+
 void pilotSetup() {
 }
 #endif
