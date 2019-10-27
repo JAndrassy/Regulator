@@ -85,18 +85,25 @@ void modbusClearData() {
 
 boolean requestSymoRTC() {
 
-  const unsigned long EPOCH_2000 = 946681200; // seconds from 1.1.1971 to 1.1.2000
-  const unsigned long ZONE_DST = 2 * 3600; // Central Europe DST
-
   short regs[2];
   int res = modbusRequest(1, 40222, 2, regs);
   if (modbusError(res))
     return false;
   // SunSpec has seconds from 1.1.2000 UTC, TimeLib uses 'epoch' (seconds from 1.1.1970)
-  setTime(EPOCH_2000 + (unsigned short) regs[0] * 65536L + (unsigned short) regs[1] + ZONE_DST);
+  setTime(SECS_YR_2000 + (unsigned short) regs[0] * 65536L + (unsigned short) regs[1]); // Europe DST
   int m = month();
-  if (m > 10 || m < 4) {
+  if (m > 10 || m < 3) {
     setTime(now() - SECS_PER_HOUR);
+  } else if (m == 3) {
+    int d = 31 - ((((5 * year()) / 4) + 1) % 7);
+    if (day() < d) {
+      setTime(now() - SECS_PER_HOUR);
+    }
+  } else if (m == 10) {
+    int d = 31 - ((((5 * year()) / 4) + 4) % 7);
+    if (day() >= d) {
+      setTime(now() - SECS_PER_HOUR);
+    }
   }
 #ifdef ARDUINO_ARCH_SAMD
   rtc.setEpoch(now());

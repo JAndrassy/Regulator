@@ -224,10 +224,10 @@ void loop() {
   if (!networkConnected())
     return;
 
-  susCalibLoop();
-
   if (!modbusLoop()) // returns true if data-set is ready
     return;
+
+  susCalibLoop();
 
   elsensLoop();
 //  wemoLoop();

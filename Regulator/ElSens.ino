@@ -1,4 +1,4 @@
-#include <Wire.h>
+//#include <Wire.h>
 //#define I2C_ADC121         0x50
 
 const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resume 30 sec before pump stops

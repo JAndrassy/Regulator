@@ -23,7 +23,7 @@ void susCalibLoop() {
   }
   if (done)
     return;
-  if (pvSOC > SUSCALIB_SOC_LIMIT) // over night calibration in progress
+  if (pvBattCalib || pvSOC > SUSCALIB_SOC_LIMIT) // over night calibration in progress
     return;
 
   char buff[128];

@@ -19,6 +19,8 @@ struct EventStruct {
   byte count;
 };
 
+const unsigned long MIN_VALID_TIME = SECS_YR_2000 + SECS_PER_YEAR;
+
 unsigned long eventsTimer = 0;
 EventStruct events[EVENTS_SIZE];
 
@@ -47,8 +49,17 @@ void eventsSetup() {
 }
 
 void eventsLoop() {
-  if (now() > SECS_PER_DAY && now() - eventsTimer > EVENTS_SAVE_INTERVAL_SEC) {
-    eventsSave();
+  if (now() > MIN_VALID_TIME) {
+    if (events[RESTART_EVENT].timestamp < MIN_VALID_TIME) { // time was not set in setup()
+      unsigned long t = now() - (millis() / 1000);
+      events[RESTART_EVENT].timestamp = t;
+      if (eventsTimer > t || eventsTimer < MIN_VALID_TIME) {
+        eventsTimer = t;
+      }
+    }
+    if (now() - eventsTimer > EVENTS_SAVE_INTERVAL_SEC) {
+      eventsSave();
+    }
   }
 #ifdef EVENTS_LOG_FN
   if (hour(now()) == 23 && minute(now()) == 59 && FS.exists(EVENTS_LOG_FN)) {
@@ -60,7 +71,7 @@ void eventsLoop() {
 void eventsWrite(int newEvent, int value1, int value2) {
   EventStruct& e = events[newEvent];
   unsigned long last = e.timestamp;
-  if (now() > SECS_PER_DAY && last > SECS_PER_DAY  // to not work with 1.1.1970
+  if (now() > MIN_VALID_TIME && last > MIN_VALID_TIME  //
       && (year(last) != year() || month(last) != month() || day(last) != day())) {
     e.count = 0; // start counting with first event of this type today
   }
@@ -189,8 +200,8 @@ void eventsBlynk() {
     unsigned long t = event.timestamp;
     if (t != 0) {
       char label[32];
-      sprintf(label, "%02d. %02d:%02d:%02d %s", day(t), hour(t), minute(t), second(t), eventLongLabels[map[i]]);
-      Blynk.virtualWrite(TABLE_WIDGET, "add", i, label, event.count == 1 ? (event.value1 - event.value2) : event.count);
+      sprintf(label, "%02d-%02d %02d:%02d:%02d %3d %s", month(t), day(t), hour(t), minute(t), second(t), event.count, eventLongLabels[map[i]]);
+      Blynk.virtualWrite(TABLE_WIDGET, "add", i, label, event.value1 - event.value2);
     }
   }
   lastEventsUpdate = now();
