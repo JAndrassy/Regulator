@@ -10,10 +10,14 @@
 // only Timer 1 OCR1A is implemented
 
 //SAMD21 EVSYS 'users' can be only TCC0 and TCC1. TRIAC_PIN must be one of WO pins of this timers
+// we use the Arduino pin to timer mapping from variant.cpp, which doesn't map all possible mux options
 // M0 TCC0 pins 2,3,6,7 TCC1 pins 8,9
 // MKR Zero TCC0 pins A3,A4,6,7 TCC1 2,3
 // Zero TCC0 pins 3,4,6,7,12 TCC1 8,9
-// only triacPin 6 is implemented (PORT_PMUX_PMUXE_F)
+
+#ifdef ARDUINO_ARCH_SAMD
+#include <wiring_private.h> // for pinPeripheral() as shown in https://www.arduino.cc/en/Tutorial/SamdSercom
+#endif
 
 namespace Triac {
 
@@ -62,10 +66,10 @@ void setup(byte zcPin, byte triacPin) {
   const PinDescription& pinDesc = g_APinDescription[triacPin]; // Arduino pin description
   TCC = (Tcc*) GetTC(pinDesc.ulPWMChannel);
   uint8_t tcChannel = GetTCChannelNumber(pinDesc.ulPWMChannel);
+  bool periF = (pinDesc.ulPinAttribute & PIN_ATTR_TIMER_ALT);
 
   // setup the pin as TCC wave out pin
-  PORT->Group[pinDesc.ulPort].PINCFG[pinDesc.ulPin].bit.PMUXEN = 1;
-  PORT->Group[pinDesc.ulPort].PMUX[pinDesc.ulPin >> 1].reg |= PORT_PMUX_PMUXE_F; // pin 6 only
+  pinPeripheral(triacPin, periF ? PIO_TIMER_ALT : PIO_TIMER);
 
   // setup the timer
 
@@ -97,7 +101,7 @@ void setup(byte zcPin, byte triacPin) {
   EVSYS->CTRL.bit.SWRST = 1; // reset
   while(EVSYS->CTRL.bit.SWRST);
 
-  EVSYS->USER.reg = EVSYS_ID_USER_TCC0_EV_0 | EVSYS_USER_CHANNEL(1); // set user TCC0 event 0 on channel 0
+  EVSYS->USER.reg = ((TCC == GetTC(0)) ? EVSYS_ID_USER_TCC0_EV_0 : EVSYS_ID_USER_TCC1_EV_0) | EVSYS_USER_CHANNEL(1); // set user TCC0 event 0 on channel 0
   EVSYS->CHANNEL.reg = EVSYS_CHANNEL_CHANNEL(0) | EVSYS_CHANNEL_PATH_ASYNCHRONOUS | // channel 0 is async
       EVSYS_CHANNEL_EDGSEL_FALLING_EDGE | EVSYS_CHANNEL_EVGEN(EVSYS_ID_GEN_EIC_EXTINT_0 + ulExtInt); // source is ext.interrupt
   while (!EVSYS->CHSTATUS.bit.USRRDY0);
