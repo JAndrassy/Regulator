@@ -90,7 +90,7 @@ boolean requestSymoRTC() {
   if (modbusError(res))
     return false;
   // SunSpec has seconds from 1.1.2000 UTC, TimeLib uses 'epoch' (seconds from 1.1.1970)
-  setTime(SECS_YR_2000 + (unsigned short) regs[0] * 65536L + (unsigned short) regs[1]); // Europe DST
+  setTime(SECS_YR_2000 + (unsigned short) regs[0] * 65536L + (unsigned short) regs[1] + SECS_PER_HOUR); // Europe DST
   int m = month();
   if (m > 10 || m < 3) {
     setTime(now() - SECS_PER_HOUR);

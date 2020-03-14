@@ -2,7 +2,6 @@
 #ifdef NO_EEPROM
 const char* STATS_FILENAME = "STATS.DAT";
 #else
-#include <EEPROM.h>
 const int STATS_EEPROM_ADDR = 256;
 #endif
 
@@ -35,6 +34,9 @@ void statsSetup() {
 #ifdef ESP8266
   EEPROM.end();
 #endif
+  if ((unsigned long) statsData.dayManualRun.heatingTime == 0xFFFFFFFF) { // empty EEPROM
+    memset(&statsData, 0, sizeof(statsData));
+  }
 #endif
 }
 

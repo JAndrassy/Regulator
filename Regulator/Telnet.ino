@@ -40,9 +40,7 @@ void telnetLoop(boolean log) {
             telnetClient.stop();
           break;
           case 'E': {
-            BufferedPrint bp(telnetClient, buff, sizeof(buff));
-            eventsPrint(bp);
-            bp.flush();
+            eventsPrint(telnetClient);
           }
           break;
           case 'R':

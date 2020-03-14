@@ -6,12 +6,11 @@ const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Netw
 const unsigned short eventIsError = bit(WATCHDOG_EVENT) | bit(NETWORK_EVENT) | bit(PUMP_EVENT) | bit(MODBUS_EVENT);
 
 #ifdef NO_EEPROM
-#define EVENTS_FILENAME "EVENTS.DAT"
-#define EVENTS_LOG_FN "EVENTS.LOG"
+const char* EVENTS_FILENAME = "EVENTS.DAT";
 #else
-#include <EEPROM.h>
 const int EVENTS_EEPROM_ADDR = 0;
 #endif
+const char* EVENTS_LOG_FN = "EVENTS.LOG";
 
 struct EventStruct {
   unsigned long timestamp;
@@ -28,9 +27,7 @@ EventStruct events[EVENTS_SIZE];
 void eventsSetup() {
 #ifdef NO_EEPROM
   if (!FS.exists(EVENTS_FILENAME)) {
-    for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
-      events[i].timestamp = 0;
-    }
+    events[EVENTS_SAVE_EVENT].timestamp = 0xFFFFFFFF;
   } else {
     File file = FS.open(EVENTS_FILENAME, FILE_READ);
     file.readBytes((char*) events, sizeof(events));
@@ -46,6 +43,13 @@ void eventsSetup() {
 #endif
 #endif
   eventsTimer = events[EVENTS_SAVE_EVENT].timestamp;
+  if (eventsTimer == 0xFFFFFFFF) { // empty EEPROM
+    for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
+      events[i].timestamp = 0;
+      events[i].count = 0;
+    }
+    eventsTimer = 0;
+  }
   eventsWrite(RESTART_EVENT, 0, 0);
 }
 
@@ -62,7 +66,7 @@ void eventsLoop() {
       eventsSave();
     }
   }
-#ifdef EVENTS_LOG_FN
+#ifdef FS
   if (hour(now()) == 23 && minute(now()) == 59 && FS.exists(EVENTS_LOG_FN)) {
     FS.remove(EVENTS_LOG_FN);
   }
@@ -80,15 +84,15 @@ void eventsWrite(int newEvent, int value1, int value2) {
   e.value1 = value1;
   e.value2 = value2;
   e.count++;
-#ifdef EVENTS_LOG_FN
+#ifdef FS
   if (newEvent != EVENTS_SAVE_EVENT) {
     File file = FS.open(EVENTS_LOG_FN, FILE_WRITE);
     if (file) {
-      char buff[64];
-      BufferedPrint bp(file, buff, sizeof(buff));
-      eventsPrint(bp, newEvent);
-      bp.println();
-      bp.flush();
+      if (file.size() == 0) {
+        file.println(F("Event name     |timestamp          |v1   |v2   |cnt|"));
+      }
+      eventsPrint(file, newEvent);
+      file.println();
       file.close();
     }
   }
@@ -137,12 +141,13 @@ byte eventsRealCount(bool errorsOnly) {
   return ec;
 }
 
-void eventsPrint(FormattedPrint& stream) {
+void eventsPrint(Print& stream) {
   byte map[EVENTS_SIZE];
   for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
     map[i] = i;
   }
   qsort(map, EVENTS_SIZE, 1, eventsCompare);
+  stream.println(F("Event name     |timestamp          |v1   |v2   |cnt|"));
   for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
     EventStruct& event = events[map[i]];
     if (i > 0) {
@@ -154,11 +159,13 @@ void eventsPrint(FormattedPrint& stream) {
   }
 }
 
-void eventsPrint(FormattedPrint& s, int ix) {
+void eventsPrint(Print& s, int ix) {
   unsigned long t = events[ix].timestamp;
-  s.printf(F("%-15s|%d-%02d-%02d %02d:%02d:%02d|% 5d|% 5d|% 3u|"), eventLongLabels[ix],
+  char buff[64];
+  sprintf_P(buff, PSTR("%-15s|%d-%02d-%02d %02d:%02d:%02d|% 5d|% 5d|% 3u|"), eventLongLabels[ix],
       year(t), month(t), day(t), hour(t), minute(t), second(t),
       events[ix].value1, events[ix].value2, events[ix].count);
+  s.print(buff);
 }
 
 void eventsPrintJson(FormattedPrint& stream) {

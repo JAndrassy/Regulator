@@ -20,8 +20,8 @@ const int MIN_POWER = 300;
 void pilotLoop() {
 
   const int PUMP_POWER = 40;
-  const byte MONITORING_UNTIL_SOC = 85; // %
-  const byte BYPASS_BUFFER_SOC = 94; // %
+  const byte MONITORING_UNTIL_SOC = 80; // %
+  const byte BYPASS_BUFFER_SOC = 95; // %
   const int CONSUMPTION_POWER_LIMIT = 3900; // W
   const byte TOP_OSCILLATION_SOC = 97; // %
   const int TOP_OSCILLATION_DISCHARGE_LIMIT = -600; // W
@@ -54,7 +54,8 @@ void pilotLoop() {
 
   // battery charge/discharge control
   int pvChP = (pvChargingPower > 0) ? 0 : pvChargingPower; // as default take only negative charge (discharge)
-  if (pvSOC > BYPASS_BUFFER_SOC && pvChargingPower > BYPASS_MIN_START_POWER && !pvBattCalib) {
+  byte socLimit = hourNow < 12 ? MONITORING_UNTIL_SOC : BYPASS_BUFFER_SOC;
+  if (pvSOC > socLimit && (heatingPower + pvChargingPower) > BYPASS_MIN_START_POWER && !pvBattCalib) {
     pvChP = pvChargingPower; // take this big charging as available (not everything will be used and/or the battery can charge later)
   } else if (pvSOC > TOP_OSCILLATION_SOC && pvChP < TOP_OSCILLATION_COUNTERMEASURE
       && (pvChP + meterPower) > TOP_OSCILLATION_DISCHARGE_LIMIT) { // tolerated discharge
@@ -75,7 +76,12 @@ void pilotLoop() {
     waitForItCounter = 0;
     return;
   }
-  if (availablePower - heatingPower > 0 && waitForItCounter < WAIT_FOR_IT_COUNT) {
+
+  // bypass the power regulator module for max power
+  boolean bypass = availablePower > (bypassRelayOn ? BYPASS_POWER : BYPASS_MIN_START_POWER);
+
+  // not switch relays for short spikes
+  if ((!mainRelayOn || (!bypassRelayOn && bypass)) && waitForItCounter < WAIT_FOR_IT_COUNT) {
     waitForItCounter++;
     return;
   }
@@ -84,9 +90,6 @@ void pilotLoop() {
   if (!turnMainRelayOn())
     return;
   state = RegulatorState::REGULATING;
-
-  // bypass the power regulator module for max power
-  boolean bypass = availablePower > (bypassRelayOn ? BYPASS_POWER : BYPASS_MIN_START_POWER);
 
   // set heating power
 #ifdef TRIAC

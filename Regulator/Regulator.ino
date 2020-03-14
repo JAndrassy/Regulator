@@ -8,12 +8,12 @@
 #define FS SPIFFS
 #define freeMemory ESP.getFreeHeap
 #define beforeApply onStart
-#else
-#include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
-#ifdef ARDUINO_AVR_UNO_WIFI_DEV_ED
+#elif ARDUINO_AVR_UNO_WIFI_DEV_ED
+#include <MemoryFree.h>
 #include <WiFiLink.h>
 #include <UnoWiFiDevEdSerial1.h>
 #else
+#include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
 #include <Ethernet.h> //Ethernet 2.00 for all W5000
 //#include <UIPEthernet.h> // for ENC28j60
 #define ETHERNET
@@ -21,10 +21,17 @@
 #define FS SD
 #include <ArduinoOTA.h>
 #endif
-#endif
+
 #ifdef ARDUINO_SAM_ZERO
 #define Serial SerialUSB
 #endif
+
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
+#define NO_EEPROM
+#else
+#include <EEPROM.h>
+#endif
+
 #include "consts.h"
 
 #define BLYNK_PRINT Serial

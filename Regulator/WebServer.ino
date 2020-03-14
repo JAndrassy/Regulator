@@ -53,14 +53,29 @@ void webServerLoop() {
 
 void webServerRestRequest(char cmd, ChunkedPrint& chunked) {
   RestRequest request = (RestRequest) cmd;
+  bool useChunkedEnc = true;
+  switch (request) {
+    case RestRequest::PUMP_ALARM_RESET:
+    case RestRequest::MANUAL_RUN:
+    case RestRequest::VALVES_BACK:
+    case RestRequest::SAVE_EVENTS:
+      useChunkedEnc = false;
+      break;
+    default:
+      break;
+  }
   chunked.println(F("HTTP/1.1 200 OK"));
   chunked.println(F("Connection: close"));
   chunked.println(F("Content-Type: application/json"));
-  chunked.println(F("Transfer-Encoding: chunked"));
+  if (useChunkedEnc) {
+    chunked.println(F("Transfer-Encoding: chunked"));
+  }
   chunked.println(F("Cache-Control: no-store"));
   chunked.println(F("Access-Control-Allow-Origin: *"));
   chunked.println();
-  chunked.begin();
+  if (useChunkedEnc) {
+    chunked.begin();
+  }
   switch (request) {
     default:
       printValuesJson(chunked);

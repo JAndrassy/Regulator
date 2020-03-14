@@ -25,21 +25,21 @@ void elsensLoop() {
 
   const int PUMP_POWER = 40;
 
-   // Grove I2C ADC and Grove Electricity Sensor CT
+  // system's power factor characteristics
+  const float PF_ANGLE_INTERVAL = PI * 0.33;
+  const float PF_ANGLE_SHIFT = PI * 0.22;
+
+  // Grove I2C ADC and Grove Electricity Sensor CT
 //  const int ELSENS_MAX_VALUE = 2300;
-//  const float PF_ANGLE_INTERVAL = PI * 0.33;
-//  const float PF_ANGLE_SHIFT = PI * 0.22;
 //  const float ELSENS_VALUE_COEF = 1.12;
 //  const int ELSENS_VALUE_SHIFT = 200;
 //  const int ELSENS_MIN_HEATING_VALUE = 300;
 
-  // 5 V ATmega 'analog' pin and ACS712 sensor 30A version
-  const int ELSENS_MAX_VALUE = 12300;
-  const float PF_ANGLE_INTERVAL = PI * 0.33;
-  const float PF_ANGLE_SHIFT = PI * 0.19;
-  const float ELSENS_VALUE_COEF = 0.2;
-  const int ELSENS_VALUE_SHIFT = 50;
-  const int ELSENS_MIN_HEATING_VALUE = 2500;
+  // 5 V ATmega 'analog' pin and ACS712 sensor 20A version
+  const int ELSENS_MAX_VALUE = 1940;
+  const float ELSENS_VALUE_COEF = 1.38;
+  const int ELSENS_VALUE_SHIFT = 80;
+  const int ELSENS_MIN_HEATING_VALUE = 250;
 
   // waiting for water to cooldown
   if (overheatedStart != 0) {
@@ -59,16 +59,17 @@ void elsensLoop() {
     alarmSound();
   }
 
-  float ratio = 1.0 - ((float) elsens / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
-  elsensPower = (int) (elsens * ELSENS_VALUE_COEF * cos(PF_ANGLE_SHIFT + ratio * PF_ANGLE_INTERVAL)) + ELSENS_VALUE_SHIFT;
-  if (elsensPower < PUMP_POWER) { // the function doesn't work ideal
+  if (elsens > ELSENS_MIN_HEATING_VALUE) {
+    float ratio = 1.0 - ((float) elsens / ELSENS_MAX_VALUE); // to 'guess' the 'power factor'
+    elsensPower = (int) (elsens * ELSENS_VALUE_COEF * cos(PF_ANGLE_SHIFT + ratio * PF_ANGLE_INTERVAL)) + ELSENS_VALUE_SHIFT;
+  } else {
     elsensPower = mainRelayOn ? PUMP_POWER : 0;
   }
 }
 
 boolean elsensCheckPump() {
 
-  const int ELSENS_MIN_ON_VALUE = 150;
+  const int ELSENS_MIN_ON_VALUE = 40;
 
   delay(1000); // pump run-up
   int v = readElSens();
@@ -94,7 +95,7 @@ int readElSens() {
 //  const int ELSENS_ANALOG_MIDDLE_VALUE = 0;  // Grove El. sensor CT
 //  const int RMS_INT_SCALE = 1;
   const int ELSENS_ANALOG_MIDDLE_VALUE = 511;
-  const int RMS_INT_SCALE = 100;
+  const int RMS_INT_SCALE = 10;
 
   unsigned long long sum = 0;
   int n = 0;

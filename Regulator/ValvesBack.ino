@@ -58,7 +58,7 @@ unsigned short valvesBackTempSensRead() {
   static unsigned long lastMeasureMillis;
   static unsigned short lastValue;
 
-  if (loopStartMillis - lastMeasureMillis > MEASURE_INTERVAL) {
+  if (loopStartMillis - lastMeasureMillis > MEASURE_INTERVAL || !lastMeasureMillis) {
     lastMeasureMillis = loopStartMillis;
     lastValue = analogRead(TEMPSENS_PIN);
   }

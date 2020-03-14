@@ -8,6 +8,9 @@ void csvLogSetup() {
   sprintf(fn0, "%02d-%02d-%02d.CSV", year(t) - 2000, month(t), day(t));
 
 #ifdef __SD_H__
+  if (!SD.exists(CSV_DIR)) {
+    SD.mkdir(CSV_DIR);
+  }
   File dir = SD.open(CSV_DIR);
   File file = dir.openNextFile();
   while (file) {
@@ -51,6 +54,9 @@ void csvLogLoop() {
     sprintf(fn, "%s%02d-%02d-%02d.CSV", CSV_DIR, year(t) - 2000, month(t), day(t));
     File file = FS.open(fn, FILE_WRITE);
     if (file) {
+      if (file.size() == 0) {
+        file.println(F("t;h;m;soc;b;raw;s;f;v;i;w"));
+      }
       file.print(buff);
       file.close();
     } else {
