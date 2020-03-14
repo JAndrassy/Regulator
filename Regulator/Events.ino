@@ -3,6 +3,7 @@ const unsigned long EVENTS_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
 const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'W', 'N', 'P', 'M', 'O', 'B', 'H', 'V', 'C', 'L', 'S'};
 const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Network", "Pump", "Modbus",
     "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "Stat.save"};
+const unsigned short eventIsError = bit(WATCHDOG_EVENT) | bit(NETWORK_EVENT) | bit(PUMP_EVENT) | bit(MODBUS_EVENT);
 
 #ifdef NO_EEPROM
 #define EVENTS_FILENAME "EVENTS.DAT"
@@ -125,11 +126,11 @@ void eventsSave() {
   msg.print(F(" events saved"));
 }
 
-byte eventsRealCount() {
+byte eventsRealCount(bool errorsOnly) {
   byte ec = 0;
   unsigned long midnight = previousMidnight(now());
   for (byte  i = RESTART_EVENT; i < STATS_SAVE_EVENT; i++) {
-    if (events[i].timestamp > midnight) {
+    if (events[i].timestamp > midnight && (!errorsOnly || (eventIsError & bit(i)))) {
       ec += events[i].count;
     }
   }

@@ -156,7 +156,11 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
 void printValuesJson(FormattedPrint& client) {
   client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d\",\"ec\":%d,\"ts\":%d,\"cp\":%d"),
       state, version, mainRelayOn, bypassRelayOn, balboaRelayOn,
-      valvesRelayOn, eventsRealCount(), valvesBackTempSensRead(), statsConsumedPowerToday());
+      valvesRelayOn, eventsRealCount(false), valvesBackTempSensRead(), statsConsumedPowerToday());
+  byte errCount = eventsRealCount(true);
+  if (errCount) {
+    client.printf(F(",\"err\":%d"), errCount);
+  }
   switch (state) {
     case RegulatorState::MANUAL_RUN:
       client.printf(F(",\"mr\":%u"), manualRunMinutesLeft());

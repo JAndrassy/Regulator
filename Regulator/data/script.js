@@ -28,7 +28,7 @@ function onLoad(cmd) {
   xhr.send();
 }
 
-var valueLabels = {"mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version"};
+var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "N" : "Network", "P" : "Pump", "M" : "MODBUS"};
 
@@ -44,7 +44,7 @@ function showValues(jsonData) {
     if (val == null)
       continue;
     var unit = "";
-    if (key == "r" || key == "ec"  || key == "ts" || key == "v") {
+    if (key == "r" || key == "ec" || key == "err" || key == "ts" || key == "v") {
     } else if (key == "st") {
       val = stateLabels[val];
     } else if (key == "csv") {
@@ -57,7 +57,7 @@ function showValues(jsonData) {
       unit = " W";
     }
     var boxDiv = document.createElement("DIV");
-    if (key == "ec" || key == "cp" || key == "csv" || (key == "st" && val == "ALARM")) {
+    if (key == "ec" || key == "err" || key == "cp" || key == "csv" || (key == "st" && val == "ALARM")) {
       boxDiv.className = "value-box value-box-clickable";
     } else if (key == "v") {
       boxDiv.className = "value-box value-box-double";
@@ -66,7 +66,7 @@ function showValues(jsonData) {
     }
     boxDiv.appendChild(createTextDiv("value-label", valueLabels[key]));
     boxDiv.appendChild(createTextDiv("value-value", val + unit));
-    if (key == 'ec') {
+    if (key == 'ec' || key == 'err') {
       boxDiv.onclick = function() {
         location = "events.html";
       }
@@ -101,6 +101,7 @@ function showValues(jsonData) {
 
 var eventHeaders = ["timestamp", "event", "value 1", "value 2", "count"];
 var eventLabels = ["EEPROM", "Restart", "Watchdog", "Network", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "Stats save"];
+var eventIsError = [false, false, true, true, true, true];
 
 function showEvents(jsonData) {
   var data = JSON.parse(jsonData);
@@ -113,6 +114,8 @@ function showEvents(jsonData) {
   contentDiv.appendChild(eventsHeaderDiv);
   var events = data.e;
   events.sort(function(e1, e2) { return (e2.t - e1.t); });
+  var today = new Date();
+  today.setHours(0,0,0,0);
   for (var i = 0; i < events.length; i++) {
     var event = events[i];
     var tmpstmp = "";
@@ -128,7 +131,12 @@ function showEvents(jsonData) {
       v2 = event.v2;
     }
     var eventDiv = document.createElement("DIV");
-    eventDiv.className = "table-row";
+    var date = new Date(event.t * 1000);
+    if (today < date && event.i < eventIsError.length && eventIsError[event.i]) {
+      eventDiv.className = "table-row table-row-error";
+    } else {
+      eventDiv.className = "table-row";
+    }
     eventDiv.appendChild(createTextDiv("table-cell", tmpstmp));
     eventDiv.appendChild(createTextDiv("table-cell", eventLabels[event.i]));
     eventDiv.appendChild(createTextDiv("table-cell table-cell-number", v1));
@@ -157,6 +165,10 @@ function showStats(jsonData) {
   contentDiv.appendChild(buildStatsRow("Month heating", data["monthHeatingTime"], data["monthConsumedPower"]));
   contentDiv.appendChild(buildStatsRow("Day manual-run", data["dayManualRunTime"], data["dayManualRunPower"]));
   contentDiv.appendChild(buildStatsRow("Month manual-run", data["monthManualRunTime"], data["monthManualRunPower"]));
+  var fn = data["fn"];
+  if (fn.length > 0) {
+    contentDiv.appendChild(createButton(fn, fn));
+  }
 }
 
 function buildStatsRow(label, heatingTime, consumedPower) {

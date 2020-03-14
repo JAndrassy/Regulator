@@ -1,6 +1,6 @@
 
 #ifdef NO_EEPROM
-#define STATS_FILENAME "STATS.DAT"
+const char* STATS_FILENAME = "STATS.DAT";
 #else
 #include <EEPROM.h>
 const int STATS_EEPROM_ADDR = 256;
@@ -179,10 +179,14 @@ void statsPrintJson(FormattedPrint& out) {
       "\"dayHeatingTime\":%ld,\"dayConsumedPower\":%ld,"
       "\"monthHeatingTime\":%ld,\"monthConsumedPower\":%ld,"
       "\"dayManualRunTime\":%ld,\"dayManualRunPower\":%ld,"
-      "\"monthManualRunTime\":%ld,\"monthManualRunPower\":%ld}"),
+      "\"monthManualRunTime\":%ld,\"monthManualRunPower\":%ld"),
       statsData.timestamp,
       statsData.day.heatingTime, statsData.day.consumedPower,
       statsData.month.heatingTime, statsData.month.consumedPower,
       statsData.dayManualRun.heatingTime, statsData.dayManualRun.consumedPower,
       statsData.monthManualRun.heatingTime, statsData.monthManualRun.consumedPower);
+#ifdef FS
+   out.printf(",\"fn\":\"DATA%d.CSV\"", year());
+#endif
+   out.print('}');
 }
