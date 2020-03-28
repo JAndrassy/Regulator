@@ -1,6 +1,8 @@
 //#include <Wire.h>
 //#define I2C_ADC121         0x50
 
+const int ELSENS_ANALOG_MIDDLE_VALUE = 511; // set 0 for Grove El. sensor CT
+
 const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resume 30 sec before pump stops
 
 unsigned long overheatedStart = 0;
@@ -92,9 +94,7 @@ byte overheatedSecondsLeft() {
  */
 int readElSens() {
 
-//  const int ELSENS_ANALOG_MIDDLE_VALUE = 0;  // Grove El. sensor CT
-//  const int RMS_INT_SCALE = 1;
-  const int ELSENS_ANALOG_MIDDLE_VALUE = 511;
+  // set 1 for Grove El. sensor CT
   const int RMS_INT_SCALE = 10;
 
   unsigned long long sum = 0;
@@ -111,6 +111,18 @@ int readElSens() {
   return sqrt((double) sum / n) * RMS_INT_SCALE;
 }
 
+void elsensWaitZeroCrossing() {
+
+  const int ZC_BAND = 10;
+
+  unsigned long startMillis = millis();
+  while (millis() - startMillis < 10) { // 10 milliseconds of AC half wave
+    short v = elsensAnalogRead();
+    if (v > ELSENS_ANALOG_MIDDLE_VALUE - ZC_BAND && v < ELSENS_ANALOG_MIDDLE_VALUE + ZC_BAND)
+      break;
+  }
+}
+
 unsigned short elsensAnalogRead() {
 #ifdef I2C_ADC121
   Wire.requestFrom(I2C_ADC121, 2);
@@ -121,3 +133,4 @@ unsigned short elsensAnalogRead() {
   return analogRead(ELSENS_PIN);
 #endif
 }
+

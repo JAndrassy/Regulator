@@ -21,6 +21,8 @@
 
 namespace Triac {
 
+volatile bool zeroCrossingFlag;
+
 const unsigned long AC_WAVE_MICROS = 10000; // at 50 Hz
 const int TIMER_PRESCALER = 8;
 
@@ -28,6 +30,7 @@ const int TIMER_PRESCALER = 8;
 const unsigned long PULSE_PERIOD = ((F_CPU / 1000000) * 30) / TIMER_PRESCALER;
 
 Tcc* TCC;
+uint8_t ulExtInt;
 
 void syncTCC() {
   while (TCC->SYNCBUSY.reg & TCC_SYNCBUSY_MASK);
@@ -39,6 +42,7 @@ void zeroCrossing() {
 #ifdef ARDUINO_ARCH_AVR
   TCNT1 = 0; // restart the timer
 #endif
+  zeroCrossingFlag = true;
 }
 
 void setup(byte zcPin, byte triacPin) {
@@ -59,7 +63,7 @@ void setup(byte zcPin, byte triacPin) {
 
   // setup the external interrupt
   attachInterrupt(zcPin, zeroCrossing, RISING);
-  uint8_t ulExtInt = g_APinDescription[zcPin].ulExtInt;
+  ulExtInt = g_APinDescription[zcPin].ulExtInt;
   EIC->EVCTRL.reg |= (1 << ulExtInt);// enable event
   EIC->INTENCLR.reg = EIC_INTENCLR_EXTINT(1 << ulExtInt); // turn-off interrupt
 
@@ -123,6 +127,19 @@ void setPeriod(float r) {
 #ifdef ARDUINO_ARCH_SAMD
   TCC->PER.reg = period + PULSE_PERIOD;
   syncTCC();
+#endif
+}
+
+void waitZeroCrossing() {
+  unsigned long startMillis = millis();
+  Triac::zeroCrossingFlag = false;
+#ifdef ARDUINO_ARCH_SAMD
+  EIC->INTENSET.reg = EIC_INTENSET_EXTINT(1 << ulExtInt);
+#endif
+  while (!Triac::zeroCrossingFlag && millis() - startMillis < (AC_WAVE_MICROS / 1000));
+#ifdef ARDUINO_ARCH_SAMD
+  EIC->INTENCLR.reg = EIC_INTENCLR_EXTINT(1 << ulExtInt);
+  delayMicroseconds(100); // detector is too early and MKR is fast
 #endif
 }
 

@@ -1,5 +1,4 @@
 #ifdef TRIAC
-#include <TriacLib.h>
 
 void pilotTriacPeriod(float p) {
   Triac::setPeriod(p);
@@ -102,9 +101,7 @@ void pilotLoop() {
 #endif
 
   if (bypass != bypassRelayOn) {
-    if (bypass) {
-      delay(20); // to be sure triac is off
-    }
+    waitZeroCrossing();
     digitalWrite(BYPASS_RELAY_PIN, bypass);
     bypassRelayOn = bypass;
   }

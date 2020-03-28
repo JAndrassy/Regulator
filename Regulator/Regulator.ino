@@ -33,6 +33,9 @@
 #endif
 
 #include "consts.h"
+#ifdef TRIAC
+#include <TriacLib.h>
+#endif
 
 #define BLYNK_PRINT Serial
 #define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
@@ -267,10 +270,12 @@ void handleSuspendAndOff() {
   } else if (mainRelayOn) { // && heatingPower == 0
     powerPilotStop();
     if (bypassRelayOn) {
+      waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, LOW);
       bypassRelayOn = false;
     }
     if (loopStartMillis - lastOn > PUMP_STOP_MILLIS) {
+      waitZeroCrossing();
       digitalWrite(MAIN_RELAY_PIN, LOW);
       mainRelayOn = false;
     }
@@ -377,4 +382,12 @@ boolean networkConnected() {
 #endif
   }
   return false;
+}
+
+void waitZeroCrossing() {
+#ifdef TRIAC
+  Triac::waitZeroCrossing();
+#else
+  elsensWaitZeroCrossing();
+#endif
 }

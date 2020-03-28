@@ -11,6 +11,7 @@ void manualRunLoop() {
       state = RegulatorState::MONITORING;
     } else if (turnMainRelayOn()) {
       manualRunStart = loopStartMillis;
+      waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, HIGH);
       bypassRelayOn = true;
       heatingPower = BYPASS_POWER;

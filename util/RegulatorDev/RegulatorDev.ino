@@ -203,6 +203,7 @@ void loop() {
     long v = s.toInt();
     s = "";
     if (v == -1) {
+      Triac::waitZeroCrossing();
       digitalWrite(MAIN_RELAY_PIN, LOW);
     } else if (v == -2) {
       digitalWrite(VALVES_RELAY_PIN, LOW);
@@ -210,6 +211,7 @@ void loop() {
     } else if (v == -3) {
       digitalWrite(VALVES_RELAY_PIN, LOW);
     } else if (v == -4) {
+      Triac::waitZeroCrossing();
       digitalWrite(MAIN_RELAY_PIN, LOW);
       digitalWrite(VALVES_RELAY_PIN, HIGH);
     } else if (v == 1024) {
@@ -219,6 +221,7 @@ void loop() {
       analogWrite(PWM_PIN, 0);
 #endif
       digitalWrite(MAIN_RELAY_PIN, HIGH);
+      Triac::waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, HIGH);
     } else if (v == 0) {
 #ifdef TRIAC
@@ -226,6 +229,7 @@ void loop() {
 #else
       analogWrite(PWM_PIN, 0);
 #endif
+      Triac::waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, LOW);
     } else {
       digitalWrite(MAIN_RELAY_PIN, HIGH);
@@ -234,6 +238,7 @@ void loop() {
 #else
       analogWrite(PWM_PIN, v);
 #endif
+      Triac::waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, LOW);
     }
     v = readElSens();
@@ -244,10 +249,14 @@ void loop() {
     unsigned short ts[size];
     unsigned short data[size];
     unsigned long start = micros();
+    Triac::zeroCrossingFlag = false;
     for (int i = 0; i < size; i++) {
-      do {
+      if (Triac::zeroCrossingFlag) {
+        Triac::zeroCrossingFlag = false;
+        data[i] = 1023;
+      } else {
         data[i] = elsensAnalogRead();
-      } while (data[i] < 100);
+      }
       ts[i] = micros() - start;
     }
     for (int i = 0; i < size; i++) {
@@ -286,7 +295,7 @@ int readElSens() {
     sum += v * v;
     n++;
   }
-  return sqrt((double) sum / n) * 100;
+  return sqrt((double) sum / n) * 10;
 }
 
 unsigned short elsensAnalogRead() {
