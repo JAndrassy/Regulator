@@ -39,12 +39,33 @@ const byte PWM_PIN = 14; // GBS_D7_io14;
 const byte TEMSENS_PIN = A0;
 const byte BALBOA_RELAY_PIN = 10; // GBS_A2_io15_PULLDOWN; // jumper wire from pin 10 to unused A2
 const byte VALVES_RELAY_PIN = 3; // GBS_A3_io3_TX0; // jumper wire from pin TX to unused A3
+
+#elif ARDUINO_SAMD_MKRZERO // on MKR Connector Carrier
+
+const byte TONE_PIN = 0;
+const byte BALBOA_RELAY_PIN = 1;
+const byte VALVES_RELAY_PIN = 2;
+const byte MAIN_RELAY_PIN = 3;
+const byte BYPASS_RELAY_PIN = 4;
+const byte ZC_EI_PIN = 5;  // on same connector with 6
+const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
+const byte NET_SS_PIN = 7;  // not on Carrier
+// SPI 8, 9, 10 not on Carrier
+// TWI 12, 11
+const byte TEMPSENS_PIN = A0;
+const byte ELSENS_PIN = A1;
+const byte BUTTON_PIN = A4;
+const byte LEDBAR_DATA_PIN = 13; // connector labeled Serial (it is for Serial1)
+const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
+
+const byte SD_SS_PIN = SDCARD_SS_PIN; // internal pin of MKR ZERO
+
 #else
 
 const byte TONE_PIN = 2;
 const byte SD_SS_PIN = 4; // SD card SS
 #ifdef TRIAC
-#ifdef ARDUINO_ARCH_SAMD
+#ifdef ARDUINO_SAM_ZERO // M0
 const byte MAIN_RELAY_PIN = 3;
 const byte ZC_EI_PIN = 5;
 const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
@@ -78,6 +99,8 @@ NetServer telnetServer(2323);
 #include <Wire.h>
 const byte REG_ADDR_RESULT = 0x00;
 const byte REG_ADDR_CONFIG = 0x02;
+#elif ARDUINO_ARCH_SAMD
+#include <avdweb_AnalogReadFast.h>
 #endif
 
 const char version[] = "build "  __DATE__ " " __TIME__;
@@ -85,8 +108,8 @@ const char version[] = "build "  __DATE__ " " __TIME__;
 void setup() {
   Serial.begin(115200);
 
-  pinMode(4, OUTPUT);
-  digitalWrite(4, HIGH);
+  pinMode(SD_SS_PIN, OUTPUT);
+  digitalWrite(SD_SS_PIN, HIGH);
 
 #ifdef I2C_ADDR_ADC121
   Wire.begin();
@@ -113,7 +136,7 @@ void setup() {
   }
 #endif
 
-  #ifdef ESP8266
+#ifdef ESP8266
   ArduinoOTA.begin();
   WiFi.mode(WIFI_STA);
   IPAddress ip(192, 168, 1, 8);
@@ -124,7 +147,7 @@ void setup() {
   Serial.println(WiFi.waitForConnectResult());
   Serial.println(WiFi.localIP());
 #elif defined(ethernet_h_) || defined(UIPETHERNET_H)
-  Ethernet.init(10);
+  Ethernet.init(NET_SS_PIN);
   IPAddress ip(192, 168, 1, 8);
   Ethernet.begin(mac, ip);
 #else
@@ -142,15 +165,11 @@ void setup() {
   SDStorage.clear(); // AVR SD bootloaders don't delete the update file
   ArduinoOTA.begin(ip, "regulator", "password", SDStorage);
 #else
-  ArduinoOTA.begin(ip, "Arduino", "password", InternalStorage);
+  ArduinoOTA.begin(ip, "regulator", "password", InternalStorage);
 #endif
 
 #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
   analogWriteResolution(10);
-  analogReadResolution(12);
-#endif
-#ifdef ARDUINO_ARCH_SAMD
-//  analogReadCorrection(11, 2054);
 #endif
 
   telnetServer.begin();
@@ -291,7 +310,7 @@ int readElSens() {
   int n = 0;
   unsigned long start_time = millis();
   while (millis() - start_time < 200) { // in 200 ms measures 10 50Hz AC oscillations
-    long v = (short) elsensAnalogRead() - 511;
+    long v = (short) elsensAnalogRead() - 512;
     sum += v * v;
     n++;
   }
@@ -304,6 +323,8 @@ unsigned short elsensAnalogRead() {
   byte buff[2];
   Wire.readBytes(buff, 2);
   return (buff[0] << 8) | buff[1];
+#elif ARDUINO_ARCH_SAMD
+  return analogReadFast(ELSENS_PIN);
 #else
   return analogRead(ELSENS_PIN);
 #endif

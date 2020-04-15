@@ -25,7 +25,30 @@ const byte TEMPSENS_PIN = A0;
 //const byte ELSENS_PIN = A0;
 const byte BALBOA_RELAY_PIN = GBS_A2_io15_PULLDOWN; // jumper wire from pin 10 to unused A2
 const byte VALVES_RELAY_PIN = GBS_A3_io3_TX0; // jumper wire from pin 1 to unused A3
-const byte STATUS_LED_PIN = 99; // status led not used
+
+#elif ARDUINO_SAMD_MKRZERO // on MKR Connector Carrier
+
+#define TRIAC
+#define FILE_NEW (O_READ | O_WRITE | O_CREAT)
+
+const byte TONE_PIN = 0;
+const byte BALBOA_RELAY_PIN = 1;
+const byte VALVES_RELAY_PIN = 2;
+const byte MAIN_RELAY_PIN = 3;
+const byte BYPASS_RELAY_PIN = 4;  // warn: 4 is SD CS pin on MKR ETH shield, if SD card is inserted
+const byte ZC_EI_PIN = 5;  // on same Grove connector with pin 6. warn: MKR ETH shield has pin 5 as Eth CS pin
+const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
+const byte NET_SS_PIN = 7;  // not on Carrier.
+// SPI 8, 9, 10 not on Carrier
+// TWI 12, 11
+const byte TEMPSENS_PIN = A0;
+const byte ELSENS_PIN = A1;
+const byte BUTTON_PIN = A4;
+const byte LEDBAR_DATA_PIN = 13; // connector labeled Serial (it is for Serial1)
+const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
+
+const byte SD_SS_PIN = SDCARD_SS_PIN; // internal pin of MKR ZERO
+
 #else
 #define FILE_NEW (O_READ | O_WRITE | O_CREAT)
 
@@ -34,7 +57,7 @@ const byte STATUS_LED_PIN = 99; // status led not used
 const byte TONE_PIN = 2;
 const byte SD_SS_PIN = 4; // SD card SS
 #ifdef TRIAC
-#ifdef ARDUINO_ARCH_SAMD
+#ifdef ARDUINO_SAM_ZERO // M0
 const byte MAIN_RELAY_PIN = 3;
 const byte ZC_EI_PIN = 5;
 const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
@@ -60,8 +83,9 @@ const byte ELSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
 //pin A4, A5 is I2C on Uno (on Uno Wifi ESP8266 over I2C SC)
-const byte STATUS_LED_PIN = 99; // status led not used
 #endif
+
+const byte STATUS_LED_PIN = 99; // status led not used
 
 const int MAX_POWER = 2050;
 const int BYPASS_POWER = 2050;

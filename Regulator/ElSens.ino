@@ -1,7 +1,10 @@
+#ifdef ARDUINO_ARCH_SAMD
+#include <avdweb_AnalogReadFast.h>
+#endif
 //#include <Wire.h>
 //#define I2C_ADC121         0x50
 
-const int ELSENS_ANALOG_MIDDLE_VALUE = 511; // set 0 for Grove El. sensor CT
+const int ELSENS_ANALOG_MIDDLE_VALUE = 512; // set 0 for Grove El. sensor CT
 
 const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resume 30 sec before pump stops
 
@@ -37,9 +40,15 @@ void elsensLoop() {
 //  const int ELSENS_VALUE_SHIFT = 200;
 //  const int ELSENS_MIN_HEATING_VALUE = 300;
 
+#ifdef ARDUINO_SAMD_MKRZERO
+  // ACS712 20A analogReadFast over MKR Connector Carrier A pin's voltage divider with capacitor removed
+  const int ELSENS_MAX_VALUE = 1500;
+  const float ELSENS_VALUE_COEF = 1.86;
+#else
   // 5 V ATmega 'analog' pin and ACS712 sensor 20A version
-  const int ELSENS_MAX_VALUE = 1940;
+  const int ELSENS_MAX_VALUE = 1900;
   const float ELSENS_VALUE_COEF = 1.38;
+#endif
   const int ELSENS_VALUE_SHIFT = 80;
   const int ELSENS_MIN_HEATING_VALUE = 250;
 
@@ -129,6 +138,8 @@ unsigned short elsensAnalogRead() {
   byte buff[2];
   Wire.readBytes(buff, 2);
   return (buff[0] << 8) | buff[1];
+#elif ARDUINO_ARCH_SAMD
+  return analogReadFast(ELSENS_PIN);
 #else
   return analogRead(ELSENS_PIN);
 #endif
