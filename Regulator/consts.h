@@ -1,8 +1,6 @@
 #ifndef H_CONSTS_H
 #define H_CONSTS_H
 
-#include "arduino_secrets.h"
-
 const char version[] = "build "  __DATE__ " " __TIME__;
 
 #ifdef ESP8266

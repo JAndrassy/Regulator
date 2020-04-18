@@ -1,3 +1,4 @@
+#include "arduino_secrets.h"
 #include <StreamLib.h>
 #include <TimeLib.h>
 #ifdef ESP8266
@@ -16,6 +17,7 @@
 #include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
 #include <Ethernet.h> //Ethernet 2.00 for all W5000
 //#include <UIPEthernet.h> // for ENC28j60
+byte mac[] = SECRET_MAC;
 #define ETHERNET
 #include <SD.h>
 #define FS SD

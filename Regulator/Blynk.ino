@@ -23,7 +23,7 @@ BLYNK_WRITE(VALVES_BACK_BUTTON) {
 }
 
 void blynkSetup() {
-  Blynk.config(MY_BLYNK_TOKEN, BLYNK_DEFAULT_DOMAIN, BLYNK_DEFAULT_PORT);
+  Blynk.config(SECRET_BLYNK_TOKEN, BLYNK_DEFAULT_DOMAIN, BLYNK_DEFAULT_PORT);
  // we do not wait for connection. it is established later in loop
 }
 

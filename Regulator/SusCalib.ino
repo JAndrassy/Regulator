@@ -37,7 +37,7 @@ void susCalibLoop() {
     strcat(buff, ":");
     strcat_P(buff, REALM_P);
     strcat(buff, ":");
-    strcat(buff, SYMO_SERVICE_PASS);
+    strcat(buff, SECRET_SYMO_SERVICE_PASS);
     md5HashHex(buff, buff); // HA1 starts the response string
     strcat(buff, ":");
     strcat(buff, nonce);
