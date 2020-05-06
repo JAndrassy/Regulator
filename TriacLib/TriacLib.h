@@ -10,10 +10,11 @@
 // only Timer 1 OCR1A is implemented
 
 //SAMD21 EVSYS 'users' can be only TCC0 and TCC1. TRIAC_PIN must be one of WO pins of this timers
-// we use the Arduino pin to timer mapping from variant.cpp, which doesn't map all possible mux options
+// we use the Arduino pin-to-timer mapping from variant.cpp, which doesn't map all possible mux options
 // M0 TCC0 pins 2,3,6,7 TCC1 pins 8,9
 // MKR Zero TCC0 pins A3,A4,6,7 TCC1 2,3
 // Zero TCC0 pins 3,4,6,7,12 TCC1 8,9
+// Nano 33 IoT TCC0 pins 5,6,9,10 TCC1 pin 4
 
 #ifdef ARDUINO_ARCH_SAMD
 #include <wiring_private.h> // for pinPeripheral() as shown in https://www.arduino.cc/en/Tutorial/SamdSercom

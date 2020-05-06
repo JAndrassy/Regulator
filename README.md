@@ -69,6 +69,7 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * Arduino Zero or M0 in Uno format with some shield or module for networking and with SD card to save events (no EEPROM)
 * esp8266 board in Uno format like the Wemos D1 R2, which can be used with Grove Base Shield
 * Arduino MKR board on Arduino MKR Connector Carrier (Grove compatible) with on-board WiFi, ETH Shield or other networking module  
+* Nano 33 IoT with [Nano Grove shield](https://www.seeedstudio.com/Grove-Shield-for-Arduino-Nano-p-4112.html)
 
 ### Heating system
 * [TEZA2000 heating](https://www.teza-eshop.sk/products/produkt-1/) - this small electric heating is a local 'invention'

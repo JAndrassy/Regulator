@@ -7,7 +7,7 @@ void telnetSetup() {
 
 void telnetLoop(boolean log) {
 
-  static NetClient telnetClient = telnetServer.available();
+  static NetClient telnetClient;
 
   char buff[100];
   CStringBuilder sb(buff, sizeof(buff));
@@ -21,7 +21,14 @@ void telnetLoop(boolean log) {
     Serial.println(msgBuff);
   }
   if (!telnetClient) {
+#ifdef ETHERNET
+    telnetClient = telnetServer.accept();
+#else
     telnetClient = telnetServer.available();
+#endif
+    if (telnetClient.connected()) {
+      telnetClient.println(F("Regulator\r\n"));
+    }
   }
   if (telnetClient) {
     if (telnetClient.connected()) {

@@ -11,8 +11,8 @@ void balboaReset() {
 void balboaLoop() {
   const int CONSUMPTION_POWER_LIMIT = 5000; // W
   const int BALBOA_HEATER_POWER = 3000; // W
-  const byte WAIT_FOR_IT_COUNT = 20; // more then a minute and half
-  static byte waitForItCounter = 0; // to not react on short spikes
+  const unsigned long WAIT_FOR_IT_MILLIS = 86000; // 86 seconds. 4 seconds less then a minute and half
+  static unsigned long waitForItTimer = 0; // to not react on short spikes
 
   int hhc = inverterAC - meterPower - heatingPower; // household consumption without heater
   if (balboaRelayOn) { // if relay on, balboa heater is paused
@@ -22,21 +22,21 @@ void balboaLoop() {
       return;
   }
 
-
   boolean pause = hhc >= CONSUMPTION_POWER_LIMIT;
   if (balboaRelayOn != pause) {
-    if (pause && (waitForItCounter < WAIT_FOR_IT_COUNT)) {
-      waitForItCounter++;
-    } else {
-      digitalWrite(BALBOA_RELAY_PIN, pause);
-      balboaRelayOn = pause;
-      if (pause) {
-        eventsWrite(BALBOA_PAUSE_EVENT, inverterAC, meterPower);
-        waitForItCounter = 0;
-        alarmSound();
-      }
+    if (!pause) {
+      digitalWrite(BALBOA_RELAY_PIN, LOW);
+      balboaRelayOn = false;
+    } else if (!waitForItTimer) {
+      waitForItTimer = loopStartMillis; // start the timer
+    } else if (loopStartMillis - waitForItTimer > WAIT_FOR_IT_MILLIS) {
+      waitForItTimer = 0;
+      digitalWrite(BALBOA_RELAY_PIN, HIGH);
+      balboaRelayOn = true;
+      eventsWrite(BALBOA_PAUSE_EVENT, inverterAC, meterPower);
+      alarmSound();
     }
   } else {
-    waitForItCounter = 0;
+    waitForItTimer = 0;
   }
 }

@@ -22,6 +22,7 @@ void pilotLoop() {
   const byte MONITORING_UNTIL_SOC = 80; // %
   const byte BYPASS_BUFFER_SOC = 95; // %
   const int CONSUMPTION_POWER_LIMIT = 3900; // W
+  const int BATTERY_MAX_CHARGING_POWER = 4000; // W
   const byte TOP_OSCILLATION_SOC = 97; // %
   const int TOP_OSCILLATION_DISCHARGE_LIMIT = -600; // W
   const int TOP_OSCILLATION_COUNTERMEASURE = -20; // W
@@ -44,7 +45,11 @@ void pilotLoop() {
   }
 
   // check state of charge
-  if (pvSOC < MONITORING_UNTIL_SOC) // %
+  // * the Symo regulates the distribution of energy while the battery is charging. we don't want to interfere,
+  // but we must enter the regulation algorithm if heating is on.
+  // * at battery calibration there is no regulation. battery takes what is needed. surplus power can occur
+  // * if the production is larger then the battery can use for charging, surplus can occur
+  if (pvSOC < MONITORING_UNTIL_SOC && heatingPower == 0 && !pvBattCalib && pvChargingPower < BATTERY_MAX_CHARGING_POWER)
     return;
 
   // in bypass mode, we can use battery as buffer to ignore short PV shadows or small concurrent consumption
@@ -54,8 +59,14 @@ void pilotLoop() {
   // battery charge/discharge control
   int pvChP = (pvChargingPower > 0) ? 0 : pvChargingPower; // as default take only negative charge (discharge)
   byte socLimit = hourNow < 12 ? MONITORING_UNTIL_SOC : BYPASS_BUFFER_SOC;
-  if (pvSOC > socLimit && (heatingPower + pvChargingPower) > BYPASS_MIN_START_POWER && !pvBattCalib) {
+  if (pvSOC > socLimit && (heatingPower + pvChargingPower) > BYPASS_MIN_START_POWER && !pvBattCalib 
+      && (inverterAC - heatingPower + BYPASS_MIN_START_POWER) < CONSUMPTION_POWER_LIMIT) {
     pvChP = pvChargingPower; // take this big charging as available (not everything will be used and/or the battery can charge later)
+  } else if (pvSOC < BYPASS_BUFFER_SOC && pvChargingPower < (BATTERY_MAX_CHARGING_POWER - TOP_OSCILLATION_DISCHARGE_LIMIT)) {
+    heatingPower = 0; // stop heating, which started by taking the big charging
+    powerPilotRaw = 0;
+    waitForItCounter = 0;
+    return;
   } else if (pvSOC > TOP_OSCILLATION_SOC && pvChP < TOP_OSCILLATION_COUNTERMEASURE
       && (pvChP + meterPower) > TOP_OSCILLATION_DISCHARGE_LIMIT) { // tolerated discharge
     pvChP = TOP_OSCILLATION_COUNTERMEASURE; // almost ignore discharge. full battery can do a little discharging

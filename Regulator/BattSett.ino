@@ -13,7 +13,12 @@ void battSettLoop() {
 
   const byte EVAL_START_HOUR = 16;
   const byte LIMIT_TARGET_HOUR = 7;
-  const byte PERCENT_PER_HOUR = 5;
+  const byte LIMIT_PERCENT_WINTER = 12;
+  const byte LIMIT_PERCENT_SUMMER = 15;
+  const byte PERCENT_PER_HOUR_SUMMER = 5;
+  const byte PERCENT_PER_HOUR_WINTER = 6;
+  const byte SUMMER_FIRST_MONT = 4;
+  const byte SUMMER_LAST_MONT = 9;
   const byte MIN_SOC = 7;
   const byte MARGINAL_SOC = 30;
 
@@ -37,12 +42,11 @@ void battSettLoop() {
   // enable discharge limit, if SoC is lower then needed
   if (hourNow >= EVAL_START_HOUR) {
     if (!enableDone) {
-      int m = month();
-      byte percentPerHour = PERCENT_PER_HOUR;
-      if (m > 9 || m < 4) {
-        percentPerHour++;
-      }
-      if (pvSOC > MARGINAL_SOC && (pvChargingPower < 0) && (pvSOC - MIN_SOC < percentPerHour * ((24 - hourNow) + LIMIT_TARGET_HOUR))) { // %
+      bool winter = (month() > SUMMER_LAST_MONT || month() < SUMMER_FIRST_MONT);
+      byte percentPerHour = winter ? PERCENT_PER_HOUR_WINTER : PERCENT_PER_HOUR_SUMMER;
+      byte requiredSoc = MIN_SOC + percentPerHour * ((24 - hourNow) + LIMIT_TARGET_HOUR); // %
+      if ((pvSOC > MARGINAL_SOC) && (pvChargingPower < 0) && (pvSOC < requiredSoc)) {
+        battSettSetLimit(REG_OutWRte, winter ? LIMIT_PERCENT_WINTER : LIMIT_PERCENT_SUMMER);
         int res = battSettControl(false, true);
         eventsWrite(BATTSETT_LIMIT_EVENT, pvSOC, res);
         enableDone = true;

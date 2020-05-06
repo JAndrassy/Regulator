@@ -10,7 +10,6 @@ const char REALM_P[] PROGMEM = "Webinterface area";
 void susCalibLoop() {
 
   const byte SUSCALIB_HOUR = 9;
-  const byte SUSCALIB_SOC_LIMIT = 90;
   static boolean done = false;
   static char nonce[64] = "";
 
@@ -23,7 +22,7 @@ void susCalibLoop() {
   }
   if (done)
     return;
-  if (pvBattCalib || pvSOC > SUSCALIB_SOC_LIMIT) // over night calibration in progress
+  if (pvBattCalib) // over night calibration in progress
     return;
 
   char buff[128];
@@ -48,6 +47,7 @@ void susCalibLoop() {
 
   int st = -1;
   NetClient client;
+  client.setConnectionTimeout(3000);
 
   if (client.connect(symoAddress, 80)) {
     st = 0;
