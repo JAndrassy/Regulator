@@ -86,6 +86,9 @@ int pvChargingPower; // battery charging power
 int pvSOC; //state of charge
 bool pvBattCalib; // true if Symo calibrates the battery
 int meterPower; // smart meter measured power
+int meterPowerPhaseA;
+int meterPowerPhaseB;
+int meterPowerPhaseC;
 int voltage; // smart meter measured AC voltage
 int inverterAC; // inverter AC power
 
@@ -252,6 +255,7 @@ void loop() {
 
   telnetLoop(true); // logs modbus and heating data
   csvLogLoop();
+  blynkChartData();
 }
 
 void shutdown() {

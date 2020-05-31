@@ -147,3 +147,4 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 
 2019/10 Grove Electricity Sensor CT replaced with ACS712 and Grove I2C ADC removed
  
+2020/05 I bought Blynk points and updated the Blynk dashboard and I added charts 

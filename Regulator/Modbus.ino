@@ -126,7 +126,11 @@ boolean requestMeter() {
   if (modbusError(res))
     return false;
   voltage = regs[3] * pow(10, regs[8]); // ac voltage F3 * scale
-  meterPower = -regs[11] * pow(10, regs[15]); // ac power * scale
+  float sf = pow(10, regs[15]);
+  meterPower = -regs[11] * sf; // ac power * scale
+  meterPowerPhaseA = regs[12] * sf;
+  meterPowerPhaseB = regs[13] * sf;
+  meterPowerPhaseC = regs[14] * sf;
   return true;
 }
 
@@ -139,6 +143,7 @@ boolean requestBattery() {
   pvSOC = regs[54] / 100; // storage register addr - mppt register addr + ChaSta offset
   pvBattCalib = false;
   switch (regs[57]) {  // charge status
+    case 2:  // EMPTY
     case 4:  // CHARGING
     case 6:  // HOLDING
       break;
