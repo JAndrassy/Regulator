@@ -72,7 +72,6 @@ RegulatorState state = RegulatorState::MONITORING;
 AlarmCause alarmCause = AlarmCause::NOT_IN_ALARM;
 
 boolean buttonPressed = false;
-boolean manualRunRequest = false;
 
 boolean mainRelayOn = false;
 boolean bypassRelayOn = false;

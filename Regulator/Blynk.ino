@@ -19,13 +19,14 @@
 #define PV_PRODUCTION_WIDGET V15
 #define MANUAL_RUN_WIDGET V16
 #define TEMP_SENS_WIDGET V17
+#define BALBOA_PAUSE_BUTTON V18
 
 BLYNK_READ(GAUGE_WIDGET) {
   updateWidgets();
 }
 
 BLYNK_WRITE(MANUAL_RUN_BUTTON) {
-  manualRunRequest = true;
+  manualRunRequest();
 }
 
 BLYNK_WRITE(VALVES_BACK_BUTTON) {
@@ -33,6 +34,10 @@ BLYNK_WRITE(VALVES_BACK_BUTTON) {
     valvesBackStart(0);
     updateWidgets();
   }
+}
+
+BLYNK_WRITE(BALBOA_PAUSE_BUTTON) {
+  balboaManualPause();
 }
 
 void blynkSetup() {
@@ -62,6 +67,7 @@ void updateWidgets() {
   Blynk.virtualWrite(TEMP_SENS_WIDGET, valvesBackTempSensRead());
   Blynk.virtualWrite(MANUAL_RUN_WIDGET, (short) manualRunMinutesLeft());
   Blynk.virtualWrite(MANUAL_RUN_BUTTON, state == RegulatorState::MANUAL_RUN);
+  Blynk.virtualWrite(BALBOA_PAUSE_BUTTON, balboaRelayOn);
   char buff[17];
   CStringBuilder sb(buff, sizeof(buff));
   switch (state) {

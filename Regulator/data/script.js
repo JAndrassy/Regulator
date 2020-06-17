@@ -11,13 +11,13 @@ function onLoad(cmd) {
     alert(xhr.status + " " + xhr.statusText);
   }
   xhr.onload = function(e) {
-    if (cmd == "E") {
+    if (cmd == "E" || cmd == "S") {
       showEvents(xhr.responseText);
     } else if (cmd == "C") {
       showStats(xhr.responseText);
     } else if (cmd == "L") {
       showCsvFilesList(xhr.responseText);
-    } else if (cmd == "A") {
+    } else if (cmd == "A" || cmd == "P") {
       showAlarm(xhr.responseText);
       //{"a":2,"t":1501962011,"v1":262,"v2":200,"c":1}
     } else {
@@ -97,6 +97,8 @@ function showValues(jsonData) {
   if (s.charAt(0) == "0" && s.charAt(6) == "0") {
     contentDiv.appendChild(createCommandBox("Valves", "Back", "V"));
   }
+  var balboaRelayOn = (s.charAt(4) == "1");
+  contentDiv.appendChild(createCommandBox("Balboa pause", balboaRelayOn ? "Off" : "On", "B"));
 }
 
 var eventHeaders = ["timestamp", "event", "value 1", "value 2", "count"];
@@ -106,6 +108,9 @@ var eventIsError = [false, false, true, true, true, true];
 function showEvents(jsonData) {
   var data = JSON.parse(jsonData);
   var contentDiv = document.getElementById("contentDiv");
+  while(contentDiv.firstChild){
+    contentDiv.removeChild(contentDiv.firstChild);
+  } 
   var eventsHeaderDiv = document.createElement("DIV");
   eventsHeaderDiv.className = "table-header";
   for (var i in eventHeaders) {
@@ -207,6 +212,9 @@ function showCsvFilesList(jsonData) {
 function showAlarm(jsonData) {
   var data = JSON.parse(jsonData);
   var contentDiv = document.getElementById("contentDiv");
+  while(contentDiv.firstChild){
+    contentDiv.removeChild(contentDiv.firstChild);
+  } 
   var label = alarmLabels[data.a];
   contentDiv.appendChild(createTextDiv("message-label", label));
   if (data.a == 0) 
@@ -241,20 +249,10 @@ function createButton(text, command) {
   button.onclick = function() {
     if (command.length > 1) {
       location = command;
-    } else if (command == 'I') {
-      onLoad(command); 
     } else {
-      if (!confirm("Are you sure?"))
+      if (command != "I" && !confirm("Are you sure?"))
         return;
-      var xhr = new XMLHttpRequest();
-      xhr.onerror = function(e) {
-        alert(xhr.status + " " + xhr.statusText);
-      }
-      xhr.onload = function(e) {
-        location.reload();
-      };
-      xhr.open("GET", "http://" + host + ":" + restPort + "/" + command, true);
-      xhr.send();
+      onLoad(command);
     }
   }
   button.appendChild(document.createTextNode(text));

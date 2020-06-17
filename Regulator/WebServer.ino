@@ -8,6 +8,7 @@ enum struct RestRequest {
   PUMP_ALARM_RESET = 'P',
   MANUAL_RUN = 'H',
   VALVES_BACK = 'V',
+  BALBOA_PAUSE = 'B',
   SAVE_EVENTS = 'S'
 };
 
@@ -41,7 +42,7 @@ void webServerLoop() {
       char buff[1024];
 #endif
       ChunkedPrint chunked(client, buff, sizeof(buff));
-      if (l == 2 && strchr("IECLAPHVS", fn[1])) {
+      if (l == 2 && strchr("IECLAPHVBS", fn[1])) {
         webServerRestRequest(fn[1], chunked);
       } else {
         webServerServeFile(fn, chunked);
@@ -53,29 +54,14 @@ void webServerLoop() {
 
 void webServerRestRequest(char cmd, ChunkedPrint& chunked) {
   RestRequest request = (RestRequest) cmd;
-  bool useChunkedEnc = true;
-  switch (request) {
-    case RestRequest::PUMP_ALARM_RESET:
-    case RestRequest::MANUAL_RUN:
-    case RestRequest::VALVES_BACK:
-    case RestRequest::SAVE_EVENTS:
-      useChunkedEnc = false;
-      break;
-    default:
-      break;
-  }
   chunked.println(F("HTTP/1.1 200 OK"));
   chunked.println(F("Connection: close"));
   chunked.println(F("Content-Type: application/json"));
-  if (useChunkedEnc) {
-    chunked.println(F("Transfer-Encoding: chunked"));
-  }
+  chunked.println(F("Transfer-Encoding: chunked"));
   chunked.println(F("Cache-Control: no-store"));
   chunked.println(F("Access-Control-Allow-Origin: *"));
   chunked.println();
-  if (useChunkedEnc) {
-    chunked.begin();
-  }
+  chunked.begin();
   switch (request) {
     default:
       printValuesJson(chunked);
@@ -93,16 +79,25 @@ void webServerRestRequest(char cmd, ChunkedPrint& chunked) {
       printAlarmJson(chunked);
       break;
     case RestRequest::PUMP_ALARM_RESET:
-      buttonPressed = true;
+      alarmCause = AlarmCause::NOT_IN_ALARM;
+      state = RegulatorState::MONITORING;
+      printAlarmJson(chunked);
       break;
     case RestRequest::MANUAL_RUN:
-      manualRunRequest = true;
+      manualRunRequest();
+      printValuesJson(chunked);
       break;
     case RestRequest::VALVES_BACK:
       valvesBackStart(0);
+      printValuesJson(chunked);
+      break;
+    case RestRequest::BALBOA_PAUSE:
+      balboaManualPause();
+      printValuesJson(chunked);
       break;
     case RestRequest::SAVE_EVENTS:
       eventsSave();
+      eventsPrintJson(chunked);
       break;
   }
   chunked.end();
