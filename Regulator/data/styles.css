@@ -72,7 +72,10 @@ body {
 }
 
 .table-cell-number {
+  max-width: 100px;
   text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .table-header {

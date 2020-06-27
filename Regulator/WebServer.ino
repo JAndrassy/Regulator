@@ -5,10 +5,11 @@ enum struct RestRequest {
   STATS = 'C',
   CSV_LIST = 'L',
   ALARM = 'A',
-  PUMP_ALARM_RESET = 'P',
+  PUMP_ALARM_RESET = 'X',
   MANUAL_RUN = 'H',
   VALVES_BACK = 'V',
   BALBOA_PAUSE = 'B',
+  PLAN_CHANGE = 'P',
   SAVE_EVENTS = 'S'
 };
 
@@ -42,8 +43,8 @@ void webServerLoop() {
       char buff[1024];
 #endif
       ChunkedPrint chunked(client, buff, sizeof(buff));
-      if (l == 2 && strchr("IECLAPHVBS", fn[1])) {
-        webServerRestRequest(fn[1], chunked);
+      if (l <= 3 && strchr("IECLAPHVBSX", fn[1])) {
+        webServerRestRequest(fn[1], fn[2], chunked);
       } else {
         webServerServeFile(fn, chunked);
       }
@@ -52,7 +53,7 @@ void webServerLoop() {
   }
 }
 
-void webServerRestRequest(char cmd, ChunkedPrint& chunked) {
+void webServerRestRequest(char cmd, char param, ChunkedPrint& chunked) {
   RestRequest request = (RestRequest) cmd;
   chunked.println(F("HTTP/1.1 200 OK"));
   chunked.println(F("Connection: close"));
@@ -93,6 +94,10 @@ void webServerRestRequest(char cmd, ChunkedPrint& chunked) {
       break;
     case RestRequest::BALBOA_PAUSE:
       balboaManualPause();
+      printValuesJson(chunked);
+      break;
+    case RestRequest::PLAN_CHANGE:
+      powerPilotSetPlan(param - '0');
       printValuesJson(chunked);
       break;
     case RestRequest::SAVE_EVENTS:
@@ -164,9 +169,9 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
 }
 
 void printValuesJson(FormattedPrint& client) {
-  client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d\",\"ec\":%d,\"ts\":%d,\"cp\":%d"),
-      state, version, mainRelayOn, bypassRelayOn, balboaRelayOn,
-      valvesRelayOn, eventsRealCount(false), valvesBackTempSensRead(), statsConsumedPowerToday());
+  client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d\",\"p\":%d,\"ec\":%d,\"ts\":%d,\"cp\":%d"),
+      state, version, mainRelayOn, bypassRelayOn, balboaRelayOn, valvesRelayOn, powerPilotPlan,
+      eventsRealCount(false), valvesBackTempSensRead(), statsConsumedPowerToday());
   byte errCount = eventsRealCount(true);
   if (errCount) {
     client.printf(F(",\"err\":%d"), errCount);

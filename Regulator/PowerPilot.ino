@@ -19,7 +19,7 @@ const int MIN_POWER = 300;
 void pilotLoop() {
 
   const int PUMP_POWER = 40;
-  const byte MONITORING_UNTIL_SOC = 80; // %
+  const byte MONITORING_UNTIL_SOC = 85; // %
   const byte BYPASS_BUFFER_SOC = 95; // %
   const int CONSUMPTION_POWER_LIMIT = 3900; // W
   const int BATTERY_MAX_CHARGING_POWER = 4000; // W
@@ -28,6 +28,7 @@ void pilotLoop() {
   const int TOP_OSCILLATION_COUNTERMEASURE = -20; // W
   const int MIN_START_POWER = 500; // W
   const int BYPASS_MIN_START_POWER = BYPASS_POWER + 100;
+  const int HEATING_PRIORITY_START_POWER = BYPASS_POWER + 250;
   const byte WAIT_FOR_IT_COUNT = 3;
 
   static byte waitForItCounter = 0; // to not react on short spikes
@@ -44,12 +45,26 @@ void pilotLoop() {
       return;
   }
 
+  // handle heating strategy plan
+  if (hourNow >= 12 && (powerPilotPlan == HEATING_PRIORITY_AM || powerPilotPlan == HEATING_DISABLED_AM)) {
+    powerPilotPlan = BATTERY_PRIORITY;
+  }
+  if (powerPilotPlan == HEATING_DISABLED || powerPilotPlan == HEATING_DISABLED_AM) {
+    if (heatingPower > 0) {
+      heatingPower = 0;
+      powerPilotRaw = 0;
+    }
+    return;
+  }
+
   // check state of charge
-  // * the Symo regulates the distribution of energy while the battery is charging. we don't want to interfere,
+  // * the Symo regulates the distribution of energy while the battery is charging.
+  // usually we don't want to interfere with that (unless heating has priority),
   // but we must enter the regulation algorithm if heating is on.
   // * at battery calibration there is no regulation. battery takes what is needed. surplus power can occur
   // * if the production is larger then the battery can use for charging, surplus can occur
-  if (pvSOC < MONITORING_UNTIL_SOC && heatingPower == 0 && !pvBattCalib && pvChargingPower < BATTERY_MAX_CHARGING_POWER)
+  if (powerPilotPlan != HEATING_PRIORITY_AM && pvSOC < MONITORING_UNTIL_SOC
+      && heatingPower == 0 && !pvBattCalib && pvChargingPower < BATTERY_MAX_CHARGING_POWER)
     return;
 
   // in bypass mode, we can use battery as buffer to ignore short PV shadows or small concurrent consumption
@@ -58,9 +73,9 @@ void pilotLoop() {
 
   // battery charge/discharge control
   int pvChP = (pvChargingPower > 0) ? 0 : pvChargingPower; // as default take only negative charge (discharge)
-  byte socLimit = hourNow < 12 ? MONITORING_UNTIL_SOC : BYPASS_BUFFER_SOC;
-  if (pvSOC > socLimit && (heatingPower + pvChargingPower) > BYPASS_MIN_START_POWER && !pvBattCalib 
-      && (inverterAC - heatingPower + BYPASS_MIN_START_POWER) < CONSUMPTION_POWER_LIMIT) {
+  if ((powerPilotPlan == HEATING_PRIORITY_AM || pvSOC > BYPASS_BUFFER_SOC)
+      && (heatingPower + pvChargingPower) > HEATING_PRIORITY_START_POWER && !pvBattCalib
+      && (inverterAC - heatingPower + HEATING_PRIORITY_START_POWER) < CONSUMPTION_POWER_LIMIT) {
     pvChP = pvChargingPower; // take this big charging as available (not everything will be used and/or the battery can charge later)
   } else if (pvSOC < BYPASS_BUFFER_SOC && pvChargingPower < (BATTERY_MAX_CHARGING_POWER - TOP_OSCILLATION_DISCHARGE_LIMIT)) {
     heatingPower = 0; // stop heating, which started by taking the big charging
@@ -117,6 +132,13 @@ void pilotLoop() {
     bypassRelayOn = bypass;
   }
   heatingPower = bypass ? BYPASS_POWER : (availablePower > MAX_POWER) ? MAX_POWER : availablePower;
+}
+
+void powerPilotSetPlan(byte plan) {
+  if (powerPilotPlan == plan)
+    return;
+  eventsWrite(POWERPILOT_PLAN_EVENT, plan, powerPilotPlan);
+  powerPilotPlan = plan;
 }
 
 void powerPilotStop() {

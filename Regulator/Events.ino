@@ -1,8 +1,7 @@
 
 const unsigned long EVENTS_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
-const char eventLabels[EVENTS_SIZE] = {'E', 'R', 'W', 'N', 'P', 'M', 'O', 'B', 'H', 'V', 'C', 'L', 'S'};
 const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Network", "Pump", "Modbus",
-    "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "Stat.save"};
+    "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "PowerPilot plan", "Stat.save"};
 const unsigned short eventIsError = bit(WATCHDOG_EVENT) | bit(NETWORK_EVENT) | bit(PUMP_EVENT) | bit(MODBUS_EVENT);
 
 #ifdef NO_EEPROM
@@ -49,6 +48,11 @@ void eventsSetup() {
       events[i].count = 0;
     }
     eventsTimer = 0;
+  } else {
+    unsigned long t = events[POWERPILOT_PLAN_EVENT].timestamp;
+    if (day(t) == day() && month(t) == month() && year(t) == year()) {
+      powerPilotPlan = events[POWERPILOT_PLAN_EVENT].value1; // to restore the value after reset
+    }
   }
   eventsWrite(RESTART_EVENT, 0, 0);
 }

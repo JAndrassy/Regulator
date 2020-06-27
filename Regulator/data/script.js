@@ -17,7 +17,7 @@ function onLoad(cmd) {
       showStats(xhr.responseText);
     } else if (cmd == "L") {
       showCsvFilesList(xhr.responseText);
-    } else if (cmd == "A" || cmd == "P") {
+    } else if (cmd == "A" || cmd == "X") {
       showAlarm(xhr.responseText);
       //{"a":2,"t":1501962011,"v1":262,"v2":200,"c":1}
     } else {
@@ -28,9 +28,10 @@ function onLoad(cmd) {
   xhr.send();
 }
 
-var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version"};
+var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "N" : "Network", "P" : "Pump", "M" : "MODBUS"};
+var planLabels  = ["Battery has priority (default)", "Heating has priority AM", "Disable heating AM", "Disable heating"];
 
 function showValues(jsonData) {
   var data = JSON.parse(jsonData);
@@ -44,8 +45,7 @@ function showValues(jsonData) {
     if (val == null)
       continue;
     var unit = "";
-    if (key == "r" || key == "ec" || key == "err" || key == "ts" || key == "v") {
-    } else if (key == "st") {
+    if (key == "st") {
       val = stateLabels[val];
     } else if (key == "csv") {
       val = "list";
@@ -53,19 +53,23 @@ function showValues(jsonData) {
       unit = "%";
     } else if (key == "mr") {
       unit = " min.";
-    } else {
+    } else if (key == "h" || key == "m" || key == "b" || key == "i" || key == "cp") {
       unit = " W";
     }
     var boxDiv = document.createElement("DIV");
     if (key == "ec" || key == "err" || key == "cp" || key == "csv" || (key == "st" && val == "ALARM")) {
       boxDiv.className = "value-box value-box-clickable";
-    } else if (key == "v") {
+    } else if (key == "v" || key == "p") {
       boxDiv.className = "value-box value-box-double";
     } else {
       boxDiv.className = "value-box";
     }
     boxDiv.appendChild(createTextDiv("value-label", valueLabels[key]));
+    if (key == "p") {
+      boxDiv.appendChild(createDropDownListDiv(planLabels, val, "P"));
+    } else {
     boxDiv.appendChild(createTextDiv("value-value", val + unit));
+    }
     if (key == 'ec' || key == 'err') {
       boxDiv.onclick = function() {
         location = "events.html";
@@ -102,7 +106,7 @@ function showValues(jsonData) {
 }
 
 var eventHeaders = ["timestamp", "event", "value 1", "value 2", "count"];
-var eventLabels = ["Events", "Restart", "Watchdog", "Network", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "Stats save"];
+var eventLabels = ["Events", "Restart", "Watchdog", "Network", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "PowerPilot plan", "Stats save"];
 var eventIsError = [false, false, true, true, true, true];
 
 function showEvents(jsonData) {
@@ -128,12 +132,19 @@ function showEvents(jsonData) {
       tmpstmp = t2s(event.t);
     }
     var v1 = "";
-    if (event.v1 != 0) {
-      v1 = "" + event.v1;
-    }
     var v2 = "";
-    if (event.v2 != 0) {
-      v2 = event.v2;
+    if (eventLabels[event.i] == "PowerPilot plan") {
+      v1 = planLabels[event.v1];
+      if (event.v2 != 0) {
+        v2 = planLabels[event.v2];
+      }
+    } else {
+      if (event.v1 != 0) {
+        v1 = "" + event.v1;
+      }
+      if (event.v2 != 0) {
+        v2 = event.v2;
+      }
     }
     var eventDiv = document.createElement("DIV");
     var date = new Date(event.t * 1000);
@@ -222,7 +233,7 @@ function showAlarm(jsonData) {
   contentDiv.appendChild(createTextDiv("message-timestamp", t2s(data.e.t)));
   if (label == "Pump") {
     contentDiv.appendChild(createTextDiv("message-text", "Current sensor value is " + data.e.v1 + ". Expected value is " + data.e.v2 + "."));
-    contentDiv.appendChild(createButton("Reset", "P"));
+    contentDiv.appendChild(createButton("Reset", "X"));
   }
 }
 
@@ -257,6 +268,24 @@ function createButton(text, command) {
   }
   button.appendChild(document.createTextNode(text));
   return button;
+}
+
+function createDropDownListDiv(values, index, command) {
+  var div = document.createElement("DIV");
+  div.className = "value-value";
+  var select = document.createElement("SELECT");
+  var l;
+  for (l of values) {
+    var o = document.createElement("OPTION");
+    o.text = l;
+    select.options.add(o);
+  }
+  select.selectedIndex = index;
+  select.addEventListener("change", function() {
+    onLoad(command + select.selectedIndex);
+  });
+  div.appendChild(select);
+  return div;
 }
 
 function createCommandBox(title, label, command) {

@@ -20,6 +20,7 @@
 #define MANUAL_RUN_WIDGET V16
 #define TEMP_SENS_WIDGET V17
 #define BALBOA_PAUSE_BUTTON V18
+#define POWERPILOT_PLAN_SELECTOR V19
 
 BLYNK_READ(GAUGE_WIDGET) {
   updateWidgets();
@@ -27,6 +28,7 @@ BLYNK_READ(GAUGE_WIDGET) {
 
 BLYNK_WRITE(MANUAL_RUN_BUTTON) {
   manualRunRequest();
+  updateWidgets();
 }
 
 BLYNK_WRITE(VALVES_BACK_BUTTON) {
@@ -38,6 +40,12 @@ BLYNK_WRITE(VALVES_BACK_BUTTON) {
 
 BLYNK_WRITE(BALBOA_PAUSE_BUTTON) {
   balboaManualPause();
+  updateWidgets();
+}
+
+BLYNK_WRITE(POWERPILOT_PLAN_SELECTOR) {
+  powerPilotSetPlan(param.asInt() - 1); // Blynk Select index starts at 1
+  updateWidgets();
 }
 
 void blynkSetup() {
@@ -68,6 +76,7 @@ void updateWidgets() {
   Blynk.virtualWrite(MANUAL_RUN_WIDGET, (short) manualRunMinutesLeft());
   Blynk.virtualWrite(MANUAL_RUN_BUTTON, state == RegulatorState::MANUAL_RUN);
   Blynk.virtualWrite(BALBOA_PAUSE_BUTTON, balboaRelayOn);
+  Blynk.virtualWrite(POWERPILOT_PLAN_SELECTOR, powerPilotPlan + 1);
   char buff[17];
   CStringBuilder sb(buff, sizeof(buff));
   switch (state) {
