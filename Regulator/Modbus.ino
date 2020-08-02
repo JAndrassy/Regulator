@@ -79,6 +79,9 @@ void modbusClearData() {
   pvChargingPower = 0;
   pvSOC = 0;
   meterPower = 0;
+  meterPowerPhaseA = 0;
+  meterPowerPhaseB = 0;
+  meterPowerPhaseC = 0;
   inverterAC = 0;
   voltage = 0;
 }

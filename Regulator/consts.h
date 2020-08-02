@@ -64,7 +64,7 @@ const byte BUTTON_PIN = 11;
 const byte ZC_EI_PIN = 3; // INT1 pin
 const byte TRIAC_PIN = 5; // TIMER1 OC1A
 const byte MAIN_RELAY_PIN = 6;
-const byte BUTTON_PIN = A6;
+const byte BUTTON_PIN = 14;
 #endif
 #else
 const byte MAIN_RELAY_PIN = 3;

@@ -135,6 +135,8 @@ void statsAddMilliwats() {
 }
 
 void statsSave() {
+  if (!statsMilliwatMilis)
+    return;
   statsAddMilliwats();
 #ifdef NO_EEPROM
   File file = FS.open(STATS_FILENAME, FILE_NEW);

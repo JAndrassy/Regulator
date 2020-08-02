@@ -18,6 +18,7 @@
 #else
 #include <Ethernet.h>
 #include <SD.h>
+#define NO_OTA_PORT
 #include <ArduinoOTA.h>
 byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 #endif

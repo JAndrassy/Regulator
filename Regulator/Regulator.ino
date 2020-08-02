@@ -21,6 +21,7 @@ byte mac[] = SECRET_MAC;
 #define ETHERNET
 #include <SD.h>
 #define FS SD
+#define NO_OTA_PORT
 #include <ArduinoOTA.h>
 #endif
 
@@ -347,8 +348,10 @@ boolean restHours() {
 
   if (hourNow >= BEGIN_HOUR && hourNow < END_HOUR) {
     if (state == RegulatorState::REST) {
-      state = RegulatorState::MONITORING;
       requestSymoRTC(); // every morning sync clock
+      if (hour() < BEGIN_HOUR)  // sync can set the clock back, then would the powerPlan reset
+        return true;
+      state = RegulatorState::MONITORING;
     }
     return false;
   }

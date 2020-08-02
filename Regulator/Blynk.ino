@@ -22,6 +22,8 @@
 #define BALBOA_PAUSE_BUTTON V18
 #define POWERPILOT_PLAN_SELECTOR V19
 
+unsigned long previousWidgetsUpdateMillis = 0;
+
 BLYNK_READ(GAUGE_WIDGET) {
   updateWidgets();
 }
@@ -101,6 +103,7 @@ void updateWidgets() {
   }
   Blynk.virtualWrite(STATE_WIDGET, buff);
   eventsBlynk();
+  previousWidgetsUpdateMillis = millis(); // not loopStartMillis, it must be exact here
 }
 
 void blynkChartData() {
@@ -132,7 +135,7 @@ void blynkChartData() {
   powerPhaseBSum += meterPowerPhaseB + third;
   powerPhaseCSum += (meterPowerPhaseC + third) - measuredPower; // heater is on phase C
 
-  if (loopStartMillis - previousMillis >= PUSH_INTERVAL) {
+  if (loopStartMillis - previousMillis >= PUSH_INTERVAL && (millis() - previousWidgetsUpdateMillis) > 2000) {
     if (loopStartMillis - previousMillis >= (PUSH_INTERVAL * 5)) { // after rest or alarm state send zeros
       productionSum = 0;
       usedProductionSum = 0;
