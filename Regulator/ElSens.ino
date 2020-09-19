@@ -46,10 +46,10 @@ void elsensLoop() {
   const float ELSENS_VALUE_COEF = 1.86;
 #else
   // 5 V ATmega 'analog' pin and ACS712 sensor 20A version
-  const int ELSENS_MAX_VALUE = 1900;
-  const float ELSENS_VALUE_COEF = 1.38;
+  const int ELSENS_MAX_VALUE = 2000;
+  const float ELSENS_VALUE_COEF = 1.31;
 #endif
-  const int ELSENS_VALUE_SHIFT = 80;
+  const int ELSENS_VALUE_SHIFT = 100;
   const int ELSENS_MIN_HEATING_VALUE = 250;
 
   // waiting for water to cooldown

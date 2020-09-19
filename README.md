@@ -47,11 +47,11 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) 2pcs
 * ACS712 current sensor module
 * [Grove I2C ADC module](https://www.seeedstudio.com/grove-i2c-adc-p-1580.html) - to read the electricity sensor with esp8266
-* [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) - for 'valves back' circuit
+* [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) or [Grove Solid State Relay V2](https://www.seeedstudio.com/Grove-Solid-State-Relay-V2-p-3128.html) - for 'valves back' circuit
 * [Grove Temperature Sensor](https://www.seeedstudio.com/Grove-Temperature-Sensor-p-774.html) - to check the next heating distributor if the main heating is running
 * [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) is for Balboa hot tub heating suspend activation
 * [Grove Speaker](https://www.seeedstudio.com/Grove-Speaker-p-1445.html) - Speaker module with amplifier for strong beeps
-* [Grove LED Bar](https://www.seeedstudio.com/Grove-LED-Bar-v2.0-p-2474.html) - 10 LEDs with individual dimming needing only any two digital pins 
+* [Grove LED Bar](https://www.seeedstudio.com/Grove-LED-Bar-v2.0-p-2474.html) - 10 LEDs with individual dimming requiring only any two digital pins 
 * 5 mm status LED with resistor as simple alternative to LED Bar
 * Button - plain momentary push-button to be used with internal pin pull-up (do not use the Grove button module, it has a pull-down and when you disconnected it, the pin floats. or with esp8266 it can be used on io 16 with internal pull-down set)
 * [Grove Wrapper](https://www.seeedstudio.com/Grove-Blue-Wrapper-1%2A2%284-PCS-pack%29-p-2583.html) - to fasten the Grove modules to a DIN rail mount (the Grove 30 A relays don't fit into Grove wrappers)
