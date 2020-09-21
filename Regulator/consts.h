@@ -55,7 +55,7 @@ const byte SD_SS_PIN = SDCARD_SS_PIN; // internal pin of MKR ZERO
 const byte TONE_PIN = 2;
 const byte SD_SS_PIN = 4; // SD card SS
 #ifdef TRIAC
-#ifdef ARDUINO_SAM_ZERO // M0
+#ifdef ARDUINO_SAMD_ZERO
 const byte MAIN_RELAY_PIN = 3;
 const byte ZC_EI_PIN = 5;
 const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib

@@ -40,20 +40,8 @@ void beep() {
 }
 
 void beeperTone(int freq, uint32_t time) {
-#ifdef ARDUINO_ARCH_NRF5
-  int d = (1000 * 1000 / 2 / freq) - 20;
-  bool s = true;
-  uint32_t t = millis();
-  while (millis() - t < time) {
-    digitalWrite(TONE_PIN, s);
-    s = !s;
-    delayMicroseconds(d);
-  }
-  digitalWrite(TONE_PIN, LOW);
-#else
   tone(TONE_PIN, freq);
   delay(time);
   noTone(TONE_PIN);
-#endif
 }
 

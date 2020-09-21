@@ -111,7 +111,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * SusCalib.ino - at 9 am sends 'calibration disable' for 3 hours
 
 ### Special
-* ConsumptionMeter.ino - take data from secondary Fronius Smart Meter measuring this heaters consumption. Value is only logged to csv for evaluation (charts in Calc). It is an alternative to WemoInsight.ino.
+* ConsumptionMeter.ino - take data from secondary Fronius Smart Meter measuring this heater's consumption. Value is only logged to csv for evaluation (charts in Calc). It is an alternative to WemoInsight.ino.
 * WemoInsight.ino - web service request to Belkin WiFi switch used as system's reference Watt-meter. Value is only logged to csv for evaluation (charts in Calc). It is an alternative to ConsumptionMeter.ino.
 * Balboa.ino - defers hot tub heating if overall household consumption exceeds PV inverter's limit
 
@@ -123,7 +123,7 @@ With Uno WiFi I had the static pages served by the esp8266 WebServer of WiFi Lin
 
 WebServer.ino can serve the pages from SD card or SPIFFS.
 
-This static web pages can be started from a folder on a computer to show the data from Regulator. Only set the IP address of Arduino in script.js.
+These static web pages can be started from a folder on a computer to show the data from Regulator. Only set the IP address of Arduino in script.js.
 
 ## Comments
 

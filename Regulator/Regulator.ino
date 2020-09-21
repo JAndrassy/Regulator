@@ -25,11 +25,7 @@ byte mac[] = SECRET_MAC;
 #include <ArduinoOTA.h>
 #endif
 
-#ifdef ARDUINO_SAM_ZERO
-#define Serial SerialUSB
-#endif
-
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
+#if defined(ARDUINO_ARCH_SAMD)
 #define NO_EEPROM
 #else
 #include <EEPROM.h>
@@ -187,7 +183,7 @@ void setup() {
   ArduinoOTA.begin(ip, "regulator", "password", InternalStorage);
 #endif
 
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
+#if defined(ARDUINO_ARCH_SAMD)
   analogWriteResolution(10);
 #endif
 
