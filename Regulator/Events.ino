@@ -33,13 +33,7 @@ void eventsSetup() {
     file.close();
   }
 #else
-#ifdef ESP8266
-  EEPROM.begin(EEPROM_SIZE);
-#endif
   EEPROM.get(EVENTS_EEPROM_ADDR, events);
-#ifdef ESP8266
-  EEPROM.end();
-#endif
 #endif
   eventsTimer = events[EVENTS_SAVE_EVENT].timestamp;
   if (eventsTimer == 0xFFFFFFFF) { // empty EEPROM
@@ -122,13 +116,7 @@ void eventsSave() {
     file.close();
   }
 #else
-#ifdef ESP8266
-  EEPROM.begin(EEPROM_SIZE);
-#endif
   EEPROM.put(EVENTS_EEPROM_ADDR, events);
-#ifdef ESP8266
-  EEPROM.end();
-#endif
 #endif
   eventsTimer = events[EVENTS_SAVE_EVENT].timestamp;
   msg.print(F(" events saved"));

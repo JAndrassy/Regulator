@@ -112,10 +112,6 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
   boolean notFound = true;
 #ifdef FS
   char* ext = strchr(fn, '.');
-#ifdef ESP8266
-  {
-    File dataFile = SPIFFS.open(fn, "r");
-#else
   if (sdCardAvailable) {
     if (strlen(ext) > 4) {
       ext[4] = 0;
@@ -125,7 +121,6 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
       ext += 2;
     }
     File dataFile = SD.open(fn);
-#endif
     if (dataFile) {
       notFound = false;
       bp.println(F("HTTP/1.1 200 OK"));

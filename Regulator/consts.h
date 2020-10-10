@@ -3,51 +3,6 @@
 
 const char version[] = "build "  __DATE__ " " __TIME__;
 
-#ifdef ESP8266
-#include "gbs-d1r2.h"
-#define FILE_WRITE "a"
-#define FILE_READ "r"
-#define FILE_NEW "w"
-#define EEPROM_SIZE 512
-
-const byte BUTTON_PIN = GBS_RX_io1_RX0;
-const byte MAIN_RELAY_PIN = GBS_D2_io16;
-//I2C GBS_D3_io5_I2C_SCL
-//I2C GBS_D4_io4_I2C_SCA
-const byte BYPASS_RELAY_PIN = GBS_D5_io0_PULLUP;
-const byte TONE_PIN  = GBS_D6_io2_PULLUP; // relay or mosfet module on io2 block boot
-const byte PWM_PIN = GBS_D7_io14;
-const byte LEDBAR_DATA_PIN = GBS_D8_io12;
-const byte LEDBAR_CLOCK_PIN = GBS_D9_io13;
-const byte TEMPSENS_PIN = A0;
-//const byte ELSENS_PIN = A0;
-const byte BALBOA_RELAY_PIN = GBS_A2_io15_PULLDOWN; // jumper wire from pin 10 to unused A2
-const byte VALVES_RELAY_PIN = GBS_A3_io3_TX0; // jumper wire from pin 1 to unused A3
-
-#elif ARDUINO_SAMD_MKRZERO // on MKR Connector Carrier
-
-#define TRIAC
-#define FILE_NEW (O_READ | O_WRITE | O_CREAT)
-
-const byte TONE_PIN = 0;
-const byte BALBOA_RELAY_PIN = 1;
-const byte VALVES_RELAY_PIN = 2;
-const byte MAIN_RELAY_PIN = 3;
-const byte BYPASS_RELAY_PIN = 4;  // warn: 4 is SD CS pin on MKR ETH shield, if SD card is inserted
-const byte ZC_EI_PIN = 5;  // on same Grove connector with pin 6. warn: MKR ETH shield has pin 5 as Eth CS pin
-const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
-const byte NET_SS_PIN = 7;  // not on Carrier.
-// SPI 8, 9, 10 not on Carrier
-// TWI 12, 11
-const byte TEMPSENS_PIN = A0;
-const byte ELSENS_PIN = A1;
-const byte BUTTON_PIN = A4;
-const byte LEDBAR_DATA_PIN = 13; // connector labeled Serial (it is for Serial1)
-const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
-
-const byte SD_SS_PIN = SDCARD_SS_PIN; // internal pin of MKR ZERO
-
-#else
 #define FILE_NEW (O_READ | O_WRITE | O_CREAT)
 
 #define TRIAC
@@ -81,7 +36,6 @@ const byte ELSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
 //pin A4, A5 is I2C on Uno (on Uno Wifi ESP8266 over I2C SC)
-#endif
 
 const byte STATUS_LED_PIN = 99; // status led not used
 

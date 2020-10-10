@@ -27,13 +27,7 @@ void statsSetup() {
     file.close();
   }
 #else
-#ifdef ESP8266
-  EEPROM.begin(EEPROM_SIZE);
-#endif
   EEPROM.get(STATS_EEPROM_ADDR, statsData);
-#ifdef ESP8266
-  EEPROM.end();
-#endif
   if ((unsigned long) statsData.dayManualRun.heatingTime == 0xFFFFFFFF) { // empty EEPROM
     memset(&statsData, 0, sizeof(statsData));
   }
@@ -145,13 +139,7 @@ void statsSave() {
     file.close();
   }
 #else
-#ifdef ESP8266
-  EEPROM.begin(EEPROM_SIZE);
-#endif
   EEPROM.put(STATS_EEPROM_ADDR, statsData);
-#ifdef ESP8266
-  EEPROM.end();
-#endif
 #endif
   eventsWrite(STATS_SAVE_EVENT, (loopStartMillis - statsSaveTimer) / 60000, 0);
   statsSaveTimer = loopStartMillis;

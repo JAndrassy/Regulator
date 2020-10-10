@@ -1,22 +1,3 @@
-#ifdef ESP8266
-#include <user_interface.h>
-
-void watchdogSetup() {
-  uint32_t reason = ESP.getResetInfoPtr()->reason;
-  switch (reason) {
-    case REASON_EXCEPTION_RST:
-    case REASON_WDT_RST:
-    case REASON_SOFT_WDT_RST:
-      eventsWrite(WATCHDOG_EVENT, 0, reason);
-      break;
-    default:
-      break;
-  }
-}
-
-void watchdogLoop() {
-}
-#endif
 
 #ifdef __AVR__
 #include <avr/wdt.h>

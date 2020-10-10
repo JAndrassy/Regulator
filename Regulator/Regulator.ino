@@ -1,29 +1,16 @@
 #include "arduino_secrets.h"
 #include <StreamLib.h>
 #include <TimeLib.h>
-#ifdef ESP8266
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <ArduinoOTA.h>
-#include <FS.h>
-#define FS SPIFFS
-#define freeMemory ESP.getFreeHeap
-#define beforeApply onStart
-#elif ARDUINO_AVR_UNO_WIFI_DEV_ED
-#include <MemoryFree.h>
-#include <WiFiLink.h>
-#include <UnoWiFiDevEdSerial1.h>
-#else
+
 #include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
 #include <Ethernet.h> //Ethernet 2.00 for all W5000
-//#include <UIPEthernet.h> // for ENC28j60
+//#include <EthernetENC.h> // for ENC28j60
 byte mac[] = SECRET_MAC;
 #define ETHERNET
 #include <SD.h>
 #define FS SD
 #define NO_OTA_PORT
 #include <ArduinoOTA.h>
-#endif
 
 #if defined(ARDUINO_ARCH_SAMD)
 #define NO_EEPROM
@@ -38,16 +25,7 @@ byte mac[] = SECRET_MAC;
 
 #define BLYNK_PRINT Serial
 #define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
-#ifdef ESP8266
-#include <BlynkSimpleEsp8266.h>
-#elif defined(ethernet_h_)
 #include <BlynkSimpleEthernet.h>
-#elif defined (UIPCLIENT_H)
-#include <BlynkSimpleUIPEthernet.h>
-#elif defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
-#define BLYNK_NO_INFO
-#include <BlynkSimpleWiFiLink.h>
-#endif
 
 #ifdef ARDUINO_ARCH_SAMD
 #include <RTCZero.h>
@@ -125,9 +103,7 @@ void setup() {
 //  statusLedSetup();
   balboaSetup();
 
-#ifndef ESP8266
   Serial.begin(115200); // TX can be used if Serial is not used
-#endif
 
   beep();
 
@@ -153,29 +129,13 @@ void setup() {
   IPAddress ip(192, 168, 1, 6);
   IPAddress gw(192, 168, 1, 1);
   IPAddress sn(255, 255, 255, 0);
-#ifdef ETHERNET
+
   Ethernet.init(NET_SS_PIN);
   Ethernet.begin(mac, ip, gw, gw, sn);
-#elif defined(ESP8266)
-  WiFi.hostname("regulator");
-  SPIFFS.begin();
-  WiFi.config(ip, gw, sn, gw);
-  WiFi.begin();
-  WiFi.waitForConnectResult();
-#else
-  Serial1.begin(115200);
-  Serial1.resetESP();
-  delay(3000); //ESP init
-  WiFi.init(&Serial1);
-  ip = WiFi.localIP();
-#endif
   // connection is checked in loop
 
   ArduinoOTA.beforeApply(shutdown);
-#if defined(ESP8266)
-  MDNS.begin("regulator");
-  ArduinoOTA.begin();
-#elif defined(ARDUINO_AVR_ATMEGA1284) // app binary is larger then half of the flash
+#if defined(ARDUINO_AVR_ATMEGA1284) // app binary is larger then half of the flash
   SDStorage.setUpdateFileName("FIRMWARE.BIN");
   SDStorage.clear(); // AVR SD bootloaders don't delete the update file
   ArduinoOTA.begin(ip, "regulator", "password", SDStorage);

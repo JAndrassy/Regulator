@@ -27,17 +27,6 @@ void csvLogSetup() {
     file.close();
     file = dir.openNextFile();
   }
-#elif ESP8266
-  Dir dir = SPIFFS.openDir(CSV_DIR);
-  while (dir.next()) {
-    String fn = dir.fileName();
-    const char* ext = strchr(fn.c_str(), '.');
-    if (strcmp(ext, ".CSV") == 0) {
-      if (strcmp(fn.substring(sizeof(CSV_DIR) + 1).c_str(), fn0) < 0) {
-        SPIFFS.remove(fn);
-      }
-    }
-  }
 #endif
 }
 
