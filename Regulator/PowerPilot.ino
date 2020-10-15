@@ -1,4 +1,3 @@
-#ifdef TRIAC
 
 void pilotTriacPeriod(float p) {
   Triac::setPeriod(p);
@@ -7,12 +6,6 @@ void pilotTriacPeriod(float p) {
 void pilotSetup() {
   Triac::setup(ZC_EI_PIN, TRIAC_PIN);
 }
-
-#else
-
-void pilotSetup() {
-}
-#endif
 
 const int MIN_POWER = 300;
 
@@ -118,14 +111,9 @@ void pilotLoop() {
   state = RegulatorState::REGULATING;
 
   // set heating power
-#ifdef TRIAC
   float r = bypass ? 0 : power2TriacPeriod(availablePower);
   pilotTriacPeriod(r);
   powerPilotRaw = r * 1000; // to log
-#else
-  powerPilotRaw = bypass ? 0 : power2pwm(availablePower);
-  analogWrite(PWM_PIN, powerPilotRaw);
-#endif
 
   if (bypass != bypassRelayOn) {
     waitZeroCrossing();
@@ -143,11 +131,7 @@ void powerPilotSetPlan(byte plan) {
 }
 
 void powerPilotStop() {
-#ifdef TRIAC
   pilotTriacPeriod(0);
-#else
-  analogWrite(PWM_PIN, 0);
-#endif
   powerPilotRaw = 0;
 }
 
@@ -161,28 +145,4 @@ float power2TriacPeriod(int power) {
     return 0.95;
   float ratio = (float) power / MAX_POWER;
   return POWER2PERIOD_SHIFT + POWER2PERIOD_KOEF * asin(sqrt(ratio));
-}
-
-unsigned short power2pwm(int power) {
-
-  const float MAX_CURRENT = 8.8;
-  const float POWER2PWM_KOEF = 30.0;
-  const float PF_ANGLE_SHIFT = 0.08 * PI;
-  const float PF_ANGLE_INTERVAL = 0.33 * PI;
-  const unsigned short MIN_PWM = 190;
-
-  if (power < MIN_POWER)
-    return 0;
-  unsigned short res;
-  if (power >= MAX_POWER) {
-    res = 1023;
-  } else {
-    float current = (float) power / voltage;
-    float ratio = current / MAX_CURRENT;
-    res = MIN_PWM + POWER2PWM_KOEF * current / cos(PF_ANGLE_SHIFT + (ratio * PF_ANGLE_INTERVAL));
-  }
-#ifdef __AVR__
-  res /= 4;
-#endif
-  return res;
 }

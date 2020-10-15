@@ -1,7 +1,6 @@
 #include "arduino_secrets.h"
 #include <StreamLib.h>
 #include <TimeLib.h>
-
 #include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
 #include <Ethernet.h> //Ethernet 2.00 for all W5000
 //#include <EthernetENC.h> // for ENC28j60
@@ -19,9 +18,7 @@ byte mac[] = SECRET_MAC;
 #endif
 
 #include "consts.h"
-#ifdef TRIAC
 #include <TriacLib.h>
-#endif
 
 #define BLYNK_PRINT Serial
 #define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
@@ -351,9 +348,5 @@ boolean networkConnected() {
 }
 
 void waitZeroCrossing() {
-#ifdef TRIAC
   Triac::waitZeroCrossing();
-#else
-  elsensWaitZeroCrossing();
-#endif
 }
