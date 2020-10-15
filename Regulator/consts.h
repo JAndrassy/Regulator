@@ -23,7 +23,7 @@ const byte LEDBAR_DATA_PIN = 8;
 const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
 const byte NET_SS_PIN = 10;
 //pin 10-13 SPI (Ethernet, SD)
-const byte TEMPSENS_PIN = A0;
+// A0 free
 const byte ELSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;

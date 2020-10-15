@@ -28,7 +28,7 @@ function onLoad(cmd) {
   xhr.send();
 }
 
-var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Temp.sens.", "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan"};
+var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Boiler temp.", "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "N" : "Network", "P" : "Pump", "M" : "MODBUS"};
 var planLabels  = ["Battery has priority (default)", "Heating has priority AM", "Disable heating AM", "Disable heating"];
@@ -53,6 +53,8 @@ function showValues(jsonData) {
       unit = "%";
     } else if (key == "mr") {
       unit = " min.";
+    } else if (key == "ts") {
+      unit = "°C";
     } else if (key == "h" || key == "m" || key == "b" || key == "i" || key == "cp") {
       unit = " W";
     }

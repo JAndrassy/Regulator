@@ -46,14 +46,12 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * [Robotdyn AC Light Dimmer Module](https://robotdyn.com/catalog/new-products/ac-light-dimmer-module-2-channel-3-3v-5v-logic-ac-50-60hz-220v-110v.html) - Triac and zero crossing detector for direct AC phase cutting. I use the double dimmer for larger cooler. For 2 kW the single dimmer overheated. First I added a fan. It helped but it was noisy. For 1.5 kW or less it should be good.
 * [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) 2pcs
 * ACS712 current sensor module
-* [Grove I2C ADC module](https://www.seeedstudio.com/grove-i2c-adc-p-1580.html) - to read the electricity sensor with esp8266
 * [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) or [Grove Solid State Relay V2](https://www.seeedstudio.com/Grove-Solid-State-Relay-V2-p-3128.html) - for 'valves back' circuit
-* [Grove Temperature Sensor](https://www.seeedstudio.com/Grove-Temperature-Sensor-p-774.html) - to check the next heating distributor if the main heating is running
 * [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) is for Balboa hot tub heating suspend activation
 * [Grove Speaker](https://www.seeedstudio.com/Grove-Speaker-p-1445.html) - Speaker module with amplifier for strong beeps
 * [Grove LED Bar](https://www.seeedstudio.com/Grove-LED-Bar-v2.0-p-2474.html) - 10 LEDs with individual dimming requiring only any two digital pins 
 * 5 mm status LED with resistor as simple alternative to LED Bar
-* Button - plain momentary push-button to be used with internal pin pull-up (do not use the Grove button module, it has a pull-down and when you disconnected it, the pin floats. or with esp8266 it can be used on io 16 with internal pull-down set)
+* Button - plain momentary push-button to be used with internal pin pull-up (do not use the Grove button module, it has a pull-down and when you disconnected it, the pin floats.
 * [Grove Wrapper](https://www.seeedstudio.com/Grove-Blue-Wrapper-1%2A2%284-PCS-pack%29-p-2583.html) - to fasten the Grove modules to a DIN rail mount (the Grove 30 A relays don't fit into Grove wrappers)
 
 #### Removed components
@@ -61,13 +59,14 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * Kemo M028N with [Kemo M150](https://www.kemo-electronic.de/en/Transformer-Dimmer/Converter/M150-DC-pulse-converter.php) - to regulate the heating power with PWM signal. The high VA rating is necessary because the system can run hours on maximum.
 * [Grove Screw Terminal](https://www.seeedstudio.com/Grove-Screw-Terminal-p-996.html) - to connect Grove connector to M150
 * [Grove Mosfet](https://www.seeedstudio.com/Grove-MOSFET-p-1594.html) - instead of Screw Terminal for 5 V PWM with 3.3 V boards  
+* [Grove I2C ADC module](https://www.seeedstudio.com/grove-i2c-adc-p-1580.html) - to read the electricity sensor with esp8266
+* [Grove Temperature Sensor](https://www.seeedstudio.com/Grove-Temperature-Sensor-p-774.html) - it was measuring  the next heating distributor to determine if the main heating is running
 
 
 ### MCU options
 * [Arduino Uno WiFi](https://github.com/jandrassy/UnoWiFiDevEdSerial1/wiki) 
 * any AVR Arduino in Uno or Mega format with some shield or module for networking
 * Arduino Zero or M0 in Uno format with some shield or module for networking and with SD card to save events (no EEPROM)
-* esp8266 board in Uno format like the Wemos D1 R2, which can be used with Grove Base Shield
 * Arduino MKR board on Arduino MKR Connector Carrier (Grove compatible) with on-board WiFi, ETH Shield or other networking module  
 * Nano 33 IoT with [Nano Grove shield](https://www.seeedstudio.com/Grove-Shield-for-Arduino-Nano-p-4112.html)
 
@@ -90,7 +89,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * PowerPilot.ino - heater regulation with AC phase cutting to exactly consume the excess solar electricity calculated from SunSpec data. 
 * ManualRun.ino - unregulated timed heating, activated with a button or from a remote monitoring
 * ElSens.ino - functions around the electricity sensor: checking expected consumption of the pump and heating and detecting disconnection by the heater's thermostat
-* ValvesBack.ino - handles turning valves back to the main heating system, if temperature sensor detects warming of the second heating circuit
+* ValvesBack.ino - handles turning valves back to the main heating system, if EMS-ESP reports that the main heating is active
 * TriacLib.h - AC dimmer module control
 
 ### Front panel
@@ -148,3 +147,7 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 2019/10 Grove Electricity Sensor CT replaced with ACS712 and Grove I2C ADC removed
  
 2020/05 I bought Blynk points and updated the Blynk dashboard and I added charts 
+
+2020/10 I removed the temperature sensor which measured the main heating temperature for 'valves back' function. The temperature is now retrieved over network from the EMS-ESP Arduino, which adds IoT monitoring to my Buderus boiler.
+
+2020/10 I removed code for esp8266 and nRF51 and code for power control over PWM with Kemo modules

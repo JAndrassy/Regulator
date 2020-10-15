@@ -93,7 +93,6 @@ void setup() {
   digitalWrite(BYPASS_RELAY_PIN, LOW);
 
   pilotSetup();
-  valvesBackSetup();
   elsensSetup();
   buttonSetup();
   ledBarSetup();
@@ -120,6 +119,8 @@ void setup() {
     SdFile::dateTimeCallback(sdTimeCallback);
     sdCardAvailable = true;
     Serial.println(F("SD card initialized"));
+  } else {
+    alarmSound();
   }
 #endif
 
@@ -144,6 +145,7 @@ void setup() {
   analogWriteResolution(10);
 #endif
 
+  valvesBackSetup();
   telnetSetup();
   blynkSetup();
   webServerSetup();

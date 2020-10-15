@@ -166,7 +166,7 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
 void printValuesJson(FormattedPrint& client) {
   client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d\",\"p\":%d,\"ec\":%d,\"ts\":%d,\"cp\":%d"),
       state, version, mainRelayOn, bypassRelayOn, balboaRelayOn, valvesRelayOn, powerPilotPlan,
-      eventsRealCount(false), valvesBackTempSensRead(), statsConsumedPowerToday());
+      eventsRealCount(false), valvesBackBoilerTemperature(), statsConsumedPowerToday());
   byte errCount = eventsRealCount(true);
   if (errCount) {
     client.printf(F(",\"err\":%d"), errCount);

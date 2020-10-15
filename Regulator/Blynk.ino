@@ -18,7 +18,7 @@
 #define HH_CONSUMPTION_WIDGET V14
 #define PV_PRODUCTION_WIDGET V15
 #define MANUAL_RUN_WIDGET V16
-#define TEMP_SENS_WIDGET V17
+#define BOILER_TEMP_WIDGET V17
 #define BALBOA_PAUSE_BUTTON V18
 #define POWERPILOT_PLAN_SELECTOR V19
 
@@ -74,7 +74,7 @@ void updateWidgets() {
   Blynk.virtualWrite(BYPASS_RELAY_WIDGET, bypassRelayOn  ? 0xFF : 0);
   Blynk.virtualWrite(BALBOA_RELAY_WIDGET, balboaRelayOn ? 0xFF : 0);
   Blynk.virtualWrite(VALVES_BACK_WIDGET, valvesBackExecuted() ? 0xFF : 0);
-  Blynk.virtualWrite(TEMP_SENS_WIDGET, valvesBackTempSensRead());
+  Blynk.virtualWrite(BOILER_TEMP_WIDGET, valvesBackBoilerTemperature());
   Blynk.virtualWrite(MANUAL_RUN_WIDGET, (short) manualRunMinutesLeft());
   Blynk.virtualWrite(MANUAL_RUN_BUTTON, state == RegulatorState::MANUAL_RUN);
   Blynk.virtualWrite(BALBOA_PAUSE_BUTTON, balboaRelayOn);
