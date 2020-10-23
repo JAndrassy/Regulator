@@ -8,7 +8,7 @@ void statusLedLopp() {
   static unsigned long previousMillis = 0;
   static boolean blinkLedState = false;
 
-#ifdef __AVR__
+#ifdef ARDUINO_ARCH_AVR
 #define PWMRANGE 256
 #else
 #define PWMRANGE 1024

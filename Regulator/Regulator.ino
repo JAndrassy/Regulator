@@ -115,12 +115,17 @@ void setup() {
 #ifdef __SD_H__
   pinMode(NET_SS_PIN, OUTPUT);
   digitalWrite(NET_SS_PIN, HIGH); // unselect network device on SPI bus
-  if (SD.begin(SD_SS_PIN)) {
+  if (!SD.begin(SD_SS_PIN)) {
+    alarmSound();
+  } else {
     SdFile::dateTimeCallback(sdTimeCallback);
     sdCardAvailable = true;
     Serial.println(F("SD card initialized"));
-  } else {
-    alarmSound();
+#if defined(ARDUINO_AVR_ATMEGA1284)
+    // clear the update file as soon as possible
+    SDStorage.setUpdateFileName("FIRMWARE.BIN");
+    SDStorage.clear(); // AVR SD bootloaders don't delete the update file
+#endif
   }
 #endif
 
@@ -134,8 +139,6 @@ void setup() {
 
   ArduinoOTA.beforeApply(shutdown);
 #if defined(ARDUINO_AVR_ATMEGA1284) // app binary is larger then half of the flash
-  SDStorage.setUpdateFileName("FIRMWARE.BIN");
-  SDStorage.clear(); // AVR SD bootloaders don't delete the update file
   ArduinoOTA.begin(ip, "regulator", "password", SDStorage);
 #else
   ArduinoOTA.begin(ip, "regulator", "password", InternalStorage);

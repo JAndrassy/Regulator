@@ -1,5 +1,5 @@
 
-#ifdef __AVR__
+#ifdef ARDUINO_ARCH_AVR
 #include <avr/wdt.h>
 
 const byte WDT_TIMER = WDTO_8S; // interrupt every 8 sec

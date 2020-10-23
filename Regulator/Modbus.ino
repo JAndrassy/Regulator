@@ -98,12 +98,12 @@ boolean requestSymoRTC() {
   if (m > 10 || m < 3) {
     setTime(now() - SECS_PER_HOUR);
   } else if (m == 3) {
-    int d = 31 - ((((5 * year()) / 4) + 1) % 7);
+    int d = 31 - ((((5 * year()) / 4) + 4) % 7);
     if (day() < d) {
       setTime(now() - SECS_PER_HOUR);
     }
   } else if (m == 10) {
-    int d = 31 - ((((5 * year()) / 4) + 4) % 7);
+    int d = 31 - ((((5 * year()) / 4) + 1) % 7);
     if (day() >= d) {
       setTime(now() - SECS_PER_HOUR);
     }

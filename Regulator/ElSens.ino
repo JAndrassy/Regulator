@@ -1,29 +1,14 @@
 #ifdef ARDUINO_ARCH_SAMD
 #include <avdweb_AnalogReadFast.h>
 #endif
-//#include <Wire.h>
-//#define I2C_ADC121         0x50
 
-const int ELSENS_ANALOG_MIDDLE_VALUE = 512; // set 0 for Grove El. sensor CT
+const int ELSENS_ANALOG_MIDDLE_VALUE = 512;
 
 const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resume 30 sec before pump stops
 
 unsigned long overheatedStart = 0;
 
 void elsensSetup() {
-#ifdef I2C_ADC121
-  const byte REG_ADDR_RESULT = 0x00;
-  const byte REG_ADDR_CONFIG = 0x02;
-  Wire.begin();
-  Wire.setClock(400000);
-  Wire.beginTransmission(I2C_ADC121);
-  Wire.write(REG_ADDR_CONFIG);
-  Wire.write(REG_ADDR_RESULT);
-  Wire.endTransmission();
-  Wire.beginTransmission(I2C_ADC121);
-  Wire.write(REG_ADDR_RESULT);
-  Wire.endTransmission();
-#endif
 }
 
 void elsensLoop() {
@@ -33,12 +18,6 @@ void elsensLoop() {
   // system's power factor characteristics
   const float PF_ANGLE_INTERVAL = PI * 0.33;
   const float PF_ANGLE_SHIFT = PI * 0.22;
-
-  // Grove I2C ADC and Grove Electricity Sensor CT
-//  const int ELSENS_MAX_VALUE = 2300;
-//  const float ELSENS_VALUE_COEF = 1.12;
-//  const int ELSENS_VALUE_SHIFT = 200;
-//  const int ELSENS_MIN_HEATING_VALUE = 300;
 
 #ifdef ARDUINO_SAMD_MKRZERO
   // ACS712 20A analogReadFast over MKR Connector Carrier A pin's voltage divider with capacitor removed
@@ -85,6 +64,7 @@ boolean elsensCheckPump() {
   delay(1000); // pump run-up
   int v = readElSens();
   if (v < ELSENS_MIN_ON_VALUE) {
+    waitZeroCrossing();
     digitalWrite(MAIN_RELAY_PIN, LOW);
     mainRelayOn = false;
     alarmCause = AlarmCause::PUMP;
@@ -133,12 +113,7 @@ void elsensWaitZeroCrossing() {
 }
 
 unsigned short elsensAnalogRead() {
-#ifdef I2C_ADC121
-  Wire.requestFrom(I2C_ADC121, 2);
-  byte buff[2];
-  Wire.readBytes(buff, 2);
-  return (buff[0] << 8) | buff[1];
-#elif ARDUINO_ARCH_SAMD
+#if ARDUINO_ARCH_SAMD
   return analogReadFast(ELSENS_PIN);
 #else
   return analogRead(ELSENS_PIN);

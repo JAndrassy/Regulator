@@ -143,7 +143,7 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
       uint16_t c = 0;
       while (dataFile.available()) {
         bp.write(dataFile.read());
-        if ((c++) == 50000) {
+        if ((c++) == 20000) {
           watchdogLoop();
           c = 0;
         }

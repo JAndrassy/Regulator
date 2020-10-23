@@ -53,7 +53,7 @@ unsigned short valvesBackBoilerTemperature() {
   static unsigned long lastMeasureMillis;
   static unsigned short lastValue;
 
-  if (loopStartMillis - lastMeasureMillis > MEASURE_INTERVAL || !lastMeasureMillis) {
+  if (loopStartMillis - lastMeasureMillis > MEASURE_INTERVAL) {
     lastMeasureMillis = loopStartMillis;
     lastValue = valvesBackRequestBoilerTemperature();
   }

@@ -1,17 +1,16 @@
 # Regulator
 
-DIY Arduino [consumption regulator](https://github.com/jandrassy/Regulator/wiki) build to use excess solar power for auxiliary 'summer' heating. The solar power data are retrieved over SunSpec Modbus TCP. IoT monitoring with Blynk.
+DIY Arduino [consumption regulator](https://github.com/jandrassy/Regulator/wiki) build to use surplus solar power for auxiliary 'summer' heating. The solar power data are retrieved over SunSpec Modbus TCP. IoT monitoring with Blynk.
 
 ## Intro
 
-I have in the basement a small wellness room with a hot tub. The room has a floor heating and in the Winter there is pleasantly warm. But in Summer the floor was uncomfortable cold. After I bought a Fronius Symo Hybrid PV system, I discovered that I could use the excess solar power in Summer to heat with a small 2kW electric heater the water of the floor heating of that room.
+I have in the basement a small wellness room with a hot tub. The room has a floor heating and in the Winter there is pleasantly warm. But in Summer the floor was uncomfortable cold. After I bought a Fronius Symo Hybrid PV system in 2016, I discovered that I could use the surplus solar power in Summer to heat with a small 2kW electric heater the water of the floor heating of that room.
 
 For the PWM regulation of "PWM to 'phase cutting' adapter box" I discovered Arduino. I am a professional software developer so the programming is the easy and fun part. And building the box was fun too. And it is still work in progress with improvements, additional functions and control. In Jun 2019 I replaced the PWM-to-phase-cutting module with Triac Dimmer module with the Triac directly controlled by the Arduino.
 
-To regulate the water heater using excess solar power Fronius has Ohmpilot, but it can't do the additional control which my regulator does, like commanding valves or turning off some other deferrable consumption.
+To regulate the water heater using surplus solar power Fronius has Ohmpilot, but it can't do the additional control which my regulator does, like commanding valves or turning off some other deferrable consumption.
 
 I don't think someone could take this project and use it without changes, but the concept and many parts of the project can help to build a similar system. The source code is modular with multiple ino files. They are all like add-ons to the main Regulator.ino which handles only the core parts of the system. Most of the additional ino files can be simply removed, because they are special for my system or add only additional optional control and/or monitoring.
-
 I decided to go the multiple ino code separation way with almost no encapsulation of partial functionality. I could encapsulate functionality into classes with declarations in h files, but it would be only more work for me and harder to understand and reuse for a hobby coder.
 
 
@@ -33,7 +32,6 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 
 * [with Arduino Uno WiFi](img/regulator-labeled.png)
 * [with Wemos D1 R2](img/regulator-d1-labeled.png)
-* [with M0 and ENC28J60 Ethernet module](img/regulator-m0-labeled.png)
 * [AC schematics](img/schemaAC.png)
 * [AC schematics without valves control](img/schemaACsimple.png)
 
@@ -136,8 +134,6 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 
 2018/8 I wanted Ethernet and 32 bit MCU. I moved to Crowduino MO -SD with Ethernet Shield
 
-2019/1 ENC28J60 Ethernet module 
-
 2019/5 secondary Fronius Smart Meter measures the heater for Fronius Solarweb
 
 2019/6 I replaced the Kemo modules with the AC 'dimmer' module
@@ -151,3 +147,5 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 2020/10 I removed the temperature sensor which measured the main heating temperature for 'valves back' function. The temperature is now retrieved over network from the EMS-ESP Arduino, which adds IoT monitoring to my Buderus boiler.
 
 2020/10 I removed code for esp8266 and nRF51 and code for power control over PWM with Kemo modules
+
+2020/-- GitHub user stealth-ultd built [his version](https://github.com/jandrassy/Regulator/discussions/1#discussioncomment-282050) of Regulator.

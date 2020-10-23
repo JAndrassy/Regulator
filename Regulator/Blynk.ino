@@ -22,8 +22,6 @@
 #define BALBOA_PAUSE_BUTTON V18
 #define POWERPILOT_PLAN_SELECTOR V19
 
-unsigned long previousWidgetsUpdateMillis = 0;
-
 BLYNK_READ(GAUGE_WIDGET) {
   updateWidgets();
 }
@@ -51,7 +49,9 @@ BLYNK_WRITE(POWERPILOT_PLAN_SELECTOR) {
 }
 
 void blynkSetup() {
+#ifndef UIP_CONNECT_TIMEOUT
   _blynkEthernetClient.setConnectionTimeout(4000);
+#endif
   Blynk.config(SECRET_BLYNK_TOKEN, BLYNK_DEFAULT_DOMAIN, BLYNK_DEFAULT_PORT);
  // we do not wait for connection. it is established later in loop
 }
@@ -103,7 +103,6 @@ void updateWidgets() {
   }
   Blynk.virtualWrite(STATE_WIDGET, buff);
   eventsBlynk();
-  previousWidgetsUpdateMillis = millis(); // not loopStartMillis, it must be exact here
 }
 
 void blynkChartData() {
@@ -121,6 +120,10 @@ void blynkChartData() {
   static long powerPhaseBSum;
   static long powerPhaseCSum;
 
+  if (!previousMillis) {
+    previousMillis = loopStartMillis;
+  }
+
   n++;
   short production = inverterAC + pvChargingPower;
   short toGrid = ((meterPower > 0) ? meterPower : 0);
@@ -135,7 +138,7 @@ void blynkChartData() {
   powerPhaseBSum += meterPowerPhaseB + third;
   powerPhaseCSum += (meterPowerPhaseC + third) - measuredPower; // heater is on phase C
 
-  if (loopStartMillis - previousMillis >= PUSH_INTERVAL && (millis() - previousWidgetsUpdateMillis) > 2000) {
+  if (loopStartMillis - previousMillis >= PUSH_INTERVAL) {
     if (loopStartMillis - previousMillis >= (PUSH_INTERVAL * 5)) { // after rest or alarm state send zeros
       productionSum = 0;
       usedProductionSum = 0;
@@ -148,7 +151,7 @@ void blynkChartData() {
       powerPhaseCSum = 0;
       n = 1;
     }
-    previousMillis = loopStartMillis;
+    previousMillis += PUSH_INTERVAL;
 
     Blynk.virtualWrite(V20, productionSum / n); // green line. energy produced by PV panels
     Blynk.virtualWrite(V21, usedProductionSum / n); // yellow fill. the green area above is "to grid"

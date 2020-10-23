@@ -47,8 +47,9 @@ void susCalibLoop() {
 
   int st = -1;
   NetClient client;
+#ifndef UIP_CONNECT_TIMEOUT
   client.setConnectionTimeout(3000);
-
+#endif
   if (client.connect(symoAddress, 80)) {
     st = 0;
 

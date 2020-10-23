@@ -60,25 +60,27 @@ const byte SD_SS_PIN = SDCARD_SS_PIN; // internal pin of MKR ZERO
 #else
 
 const byte TONE_PIN = 2;
-const byte SD_SS_PIN = 4; // SD card SS
 #ifdef TRIAC
 #ifdef ARDUINO_SAMD_ZERO
 const byte MAIN_RELAY_PIN = 3;
+const byte SD_SS_PIN = 4;
 const byte ZC_EI_PIN = 5;
 const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
+const byte NET_SS_PIN = 10;
 #elif defined(PROBADIO)
 const byte ZC_EI_PIN = 3; // INT1 pin
 const byte TRIAC_PIN = 5; // TIMER1 OC1A
 const byte MAIN_RELAY_PIN = 6;
+const byte SD_SS_PIN = 10;
+const byte NET_SS_PIN = 29;
 #endif
 #else
 const byte MAIN_RELAY_PIN = 3;
 const byte PWM_PIN = 6;
 #endif
 const byte BYPASS_RELAY_PIN = 7;
-const byte NET_SS_PIN = 10;
 //pin 10-13 SPI (Ethernet, SD)
-const byte TEMPSENS_PIN = A0;
+// A0;
 const byte ELSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
@@ -124,12 +126,17 @@ void setup() {
 
   beep();
   Serial.println("START");
+  Serial.println(version);
 
 #ifdef __SD_H__
   pinMode(NET_SS_PIN, OUTPUT);
   digitalWrite(NET_SS_PIN, HIGH);
   if (SD.begin(SD_SS_PIN)) {
     Serial.println(F("SD card initialized"));
+#if defined(ARDUINO_AVR_ATMEGA1284)
+    SDStorage.setUpdateFileName("FIRMWARE.BIN");
+    SDStorage.clear(); // AVR SD bootloaders don't delete the update file
+#endif
   }
 #endif
 
@@ -158,8 +165,6 @@ void setup() {
 #endif
 
 #if defined(ARDUINO_AVR_ATMEGA1284)
-  SDStorage.setUpdateFileName("FIRMWARE.BIN");
-  SDStorage.clear(); // AVR SD bootloaders don't delete the update file
   ArduinoOTA.begin(ip, "regulator", "password", SDStorage);
 #else
   ArduinoOTA.begin(ip, "regulator", "password", InternalStorage);
@@ -218,19 +223,23 @@ void loop() {
   if (c == '\n') {
     long v = s.toInt();
     s = "";
+
     if (v == -1) {
       Triac::waitZeroCrossing();
       digitalWrite(MAIN_RELAY_PIN, LOW);
     } else if (v == -2) {
       digitalWrite(VALVES_RELAY_PIN, LOW);
       digitalWrite(MAIN_RELAY_PIN, HIGH);
+
     } else if (v == -3) {
       digitalWrite(VALVES_RELAY_PIN, LOW);
+
     } else if (v == -4) {
       Triac::waitZeroCrossing();
       digitalWrite(MAIN_RELAY_PIN, LOW);
       digitalWrite(VALVES_RELAY_PIN, HIGH);
-    } else if (v == 1024) {
+
+    } else if (v == -5) {
 #ifdef TRIAC
       pilotTriacPeriod(0);
 #else
@@ -260,26 +269,7 @@ void loop() {
     v = readElSens();
     client.println(v);
   } else if (c == 'T') {
-//    client.println(analogRead(TEMPSENS_PIN));
-    const short size = 400;
-    unsigned short ts[size];
-    unsigned short data[size];
-    unsigned long start = micros();
-    Triac::zeroCrossingFlag = false;
-    for (int i = 0; i < size; i++) {
-      if (Triac::zeroCrossingFlag) {
-        Triac::zeroCrossingFlag = false;
-        data[i] = 1023;
-      } else {
-        data[i] = elsensAnalogRead();
-      }
-      ts[i] = micros() - start;
-    }
-    for (int i = 0; i < size; i++) {
-      client.print(ts[i]);
-      client.print('\t');
-      client.println(data[i]);
-    }
+    sampleAC(0);
   } else if (c == 'R') {
     Serial.println("RESET");
     client.stop();
@@ -328,21 +318,9 @@ unsigned short elsensAnalogRead() {
 }
 
 void beeperTone(int freq, uint32_t time) {
-#ifdef ARDUINO_ARCH_NRF5
-  int d = (1000 * 1000 / 2 / freq) - 20;
-  bool s = true;
-  uint32_t t = millis();
-  while (millis() - t < time) {
-    digitalWrite(TONE_PIN, s);
-    s = !s;
-    delayMicroseconds(d);
-  }
-  digitalWrite(TONE_PIN, LOW);
-#else
   tone(TONE_PIN, freq);
   delay(time);
   noTone(TONE_PIN);
-#endif
 }
 
 void beep() {
@@ -350,4 +328,25 @@ void beep() {
   pinMode(TONE_PIN, OUTPUT);
   beeperTone(BEEP_1, 200);
   pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
+}
+
+void sampleAC(unsigned long start) {
+  const short size = 400;
+  unsigned long ts[size];
+  unsigned short data[size];
+  Triac::zeroCrossingFlag = false;
+  for (int i = 0; i < size; i++) {
+//    if (Triac::zeroCrossingFlag) {
+//      Triac::zeroCrossingFlag = false;
+//      data[i] = 1023;
+//    } else {
+      data[i] = elsensAnalogRead();
+//    }
+    ts[i] = micros() - start;
+  }
+  for (int i = 0; i < size; i++) {
+    client.print(ts[i]);
+    client.print('\t');
+    client.println(data[i]);
+  }
 }
