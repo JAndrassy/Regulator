@@ -44,7 +44,8 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * [Robotdyn AC Light Dimmer Module](https://robotdyn.com/catalog/new-products/ac-light-dimmer-module-2-channel-3-3v-5v-logic-ac-50-60hz-220v-110v.html) - Triac and zero crossing detector for direct AC phase cutting. I use the double dimmer for larger cooler. For 2 kW the single dimmer overheated. First I added a fan. It helped but it was noisy. For 1.5 kW or less it should be good.
 * [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) 2pcs
 * ACS712 current sensor module
-* [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) or [Grove Solid State Relay V2](https://www.seeedstudio.com/Grove-Solid-State-Relay-V2-p-3128.html) - for 'valves back' circuit
+* [Grove SSR V2](https://wiki.seeedstudio.com/Grove-Solid_State_Relay_V2/) for circulation pump
+* [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) or Grove Solid State Relay V2 - for 'valves back' circuit
 * [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) is for Balboa hot tub heating suspend activation
 * [Grove Speaker](https://www.seeedstudio.com/Grove-Speaker-p-1445.html) - Speaker module with amplifier for strong beeps
 * [Grove LED Bar](https://www.seeedstudio.com/Grove-LED-Bar-v2.0-p-2474.html) - 10 LEDs with individual dimming requiring only any two digital pins 
@@ -149,3 +150,5 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 2020/10 I removed code for esp8266 and nRF51 and code for power control over PWM with Kemo modules
 
 2020/-- GitHub user stealth-ultd built [his version](https://github.com/jandrassy/Regulator/discussions/1#discussioncomment-282050) of Regulator.
+
+2021/02 I added extra relay for circ. pump to solve interference from the pump motor at main relay switching

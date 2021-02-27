@@ -89,6 +89,7 @@ void sdTimeCallback(uint16_t* date, uint16_t* time) {
 
 void setup() {
   pinMode(MAIN_RELAY_PIN, OUTPUT);
+  pinMode(PUMP_RELAY_PIN, OUTPUT);
   pinMode(BYPASS_RELAY_PIN, OUTPUT);
   digitalWrite(BYPASS_RELAY_PIN, LOW);
 
@@ -240,6 +241,7 @@ void handleSuspendAndOff() {
       bypassRelayOn = false;
     }
     if (loopStartMillis - lastOn > PUMP_STOP_MILLIS) {
+      digitalWrite(PUMP_RELAY_PIN, LOW);
       waitZeroCrossing();
       digitalWrite(MAIN_RELAY_PIN, LOW);
       mainRelayOn = false;
@@ -324,9 +326,12 @@ boolean restHours() {
 boolean turnMainRelayOn() {
   if (mainRelayOn)
     return true;
+  watchdogLoop();
   valvesBackReset();
   digitalWrite(MAIN_RELAY_PIN, HIGH);
   mainRelayOn = true;
+  delay(1000); // valves rotation start
+  digitalWrite(PUMP_RELAY_PIN, HIGH);
   return elsensCheckPump();
 }
 

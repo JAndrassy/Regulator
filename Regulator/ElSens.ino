@@ -64,6 +64,7 @@ boolean elsensCheckPump() {
   delay(1000); // pump run-up
   int v = readElSens();
   if (v < ELSENS_MIN_ON_VALUE) {
+    digitalWrite(PUMP_RELAY_PIN, LOW);
     waitZeroCrossing();
     digitalWrite(MAIN_RELAY_PIN, LOW);
     mainRelayOn = false;

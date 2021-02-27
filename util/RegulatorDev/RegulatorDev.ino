@@ -63,28 +63,30 @@ const byte TONE_PIN = 2;
 #ifdef TRIAC
 #ifdef ARDUINO_SAMD_ZERO
 const byte MAIN_RELAY_PIN = 3;
-const byte SD_SS_PIN = 4;
-const byte ZC_EI_PIN = 5;
+const byte SD_SS_PIN = 4;  // Ethernet shield
+const byte ZC_EI_PIN = 5;  // on one Grove connector with TRIAC_PIN
 const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
-const byte NET_SS_PIN = 10;
+const byte NET_SS_PIN = 10; // Ethernet shield
+// const byte PUMP_RELAY_PIN = ??;
 #elif defined(PROBADIO)
-const byte ZC_EI_PIN = 3; // INT1 pin
-const byte TRIAC_PIN = 5; // TIMER1 OC1A
-const byte MAIN_RELAY_PIN = 6;
-const byte SD_SS_PIN = 10;
-const byte NET_SS_PIN = 29;
+const byte ZC_EI_PIN = 3; // INT1 pin. on one Grove connector with TRIAC_PIN
+const byte TRIAC_PIN = 4; // TIMER1 OC2A
+const byte MAIN_RELAY_PIN = 5;
+const byte PUMP_RELAY_PIN = 6;
+const byte SD_SS_PIN = 10;  // Adafruit SD card adapter directly on pins 10 to 13
+//pin 10-13 SPI (Ethernet, SD)
+const byte NET_SS_PIN = A5; // is close to SPI header
 #endif
 #else
 const byte MAIN_RELAY_PIN = 3;
 const byte PWM_PIN = 6;
 #endif
 const byte BYPASS_RELAY_PIN = 7;
-//pin 10-13 SPI (Ethernet, SD)
-// A0;
+
+// A0 free
 const byte ELSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
-//pin A4, A5 is I2C on AVR (ADC, on Uno Wifi ESP8266 over I2C SC)
 #endif
 
 const int START_BEEP = 4186;
@@ -104,6 +106,8 @@ const byte REG_ADDR_CONFIG = 0x02;
 
 const char version[] = "build "  __DATE__ " " __TIME__;
 
+bool mainRelayOn;
+
 void setup() {
   Serial.begin(115200);
 
@@ -120,6 +124,7 @@ void setup() {
 #endif
 
   pinMode(BYPASS_RELAY_PIN, OUTPUT);
+  pinMode(PUMP_RELAY_PIN, OUTPUT);
   pinMode(MAIN_RELAY_PIN, OUTPUT);
   pinMode(VALVES_RELAY_PIN, OUTPUT);
   pinMode(BALBOA_RELAY_PIN, OUTPUT);
@@ -152,7 +157,7 @@ void setup() {
   Serial.println(WiFi.localIP());
 #elif defined(ethernet_h_) || defined(UIPETHERNET_H)
   Ethernet.init(NET_SS_PIN);
-  IPAddress ip(192, 168, 1, 8);
+  IPAddress ip(192, 168, 1, 6);
   Ethernet.begin(mac, ip);
 #else
   Serial1.begin(115200);
@@ -189,6 +194,7 @@ void setup() {
   beep();
 
   digitalWrite(BYPASS_RELAY_PIN, LOW);
+  digitalWrite(PUMP_RELAY_PIN, LOW);
   digitalWrite(MAIN_RELAY_PIN, LOW);
   Serial.println("READY");
 }
@@ -224,28 +230,43 @@ void loop() {
     long v = s.toInt();
     s = "";
 
-    if (v == -1) {
-      Triac::waitZeroCrossing();
-      digitalWrite(MAIN_RELAY_PIN, LOW);
-    } else if (v == -2) {
+    if (v == -1) { // main relay off
+      if (mainRelayOn) {
+        digitalWrite(PUMP_RELAY_PIN, LOW);
+        Triac::waitZeroCrossing();
+        digitalWrite(MAIN_RELAY_PIN, LOW);
+        mainRelayOn = false;
+      }
+    } else if (v == -2) { // main relay on
       digitalWrite(VALVES_RELAY_PIN, LOW);
-      digitalWrite(MAIN_RELAY_PIN, HIGH);
+      if (!mainRelayOn) {
+        digitalWrite(MAIN_RELAY_PIN, HIGH);
+        mainRelayOn = true;
+      }
+    } else if (v == -3) { // pump relay on
+      digitalWrite(PUMP_RELAY_PIN, HIGH);
 
-    } else if (v == -3) {
-      digitalWrite(VALVES_RELAY_PIN, LOW);
-
-    } else if (v == -4) {
-      Triac::waitZeroCrossing();
-      digitalWrite(MAIN_RELAY_PIN, LOW);
+    } else if (v == -4) { // valves back on
+      if (mainRelayOn) {
+        digitalWrite(PUMP_RELAY_PIN, LOW);
+        Triac::waitZeroCrossing();
+        digitalWrite(MAIN_RELAY_PIN, LOW);
+        mainRelayOn = false;
+      }
       digitalWrite(VALVES_RELAY_PIN, HIGH);
 
-    } else if (v == -5) {
+    } else if (v == -5) { // bypass on
 #ifdef TRIAC
       pilotTriacPeriod(0);
 #else
       analogWrite(PWM_PIN, 0);
 #endif
-      digitalWrite(MAIN_RELAY_PIN, HIGH);
+      if (!mainRelayOn) {
+        digitalWrite(MAIN_RELAY_PIN, HIGH);
+        mainRelayOn = true;
+        delay(1000); // valves rotation start
+        digitalWrite(PUMP_RELAY_PIN, HIGH);
+      }
       Triac::waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, HIGH);
     } else if (v == 0) {
@@ -257,7 +278,12 @@ void loop() {
       Triac::waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, LOW);
     } else {
-      digitalWrite(MAIN_RELAY_PIN, HIGH);
+      if (!mainRelayOn) {
+        digitalWrite(MAIN_RELAY_PIN, HIGH);
+        mainRelayOn = true;
+        delay(1000); // valves rotation start
+        digitalWrite(PUMP_RELAY_PIN, HIGH);
+      }
 #ifdef TRIAC
       pilotTriacPeriod((float) v / 10000);
 #else
