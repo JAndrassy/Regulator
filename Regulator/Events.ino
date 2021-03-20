@@ -1,8 +1,9 @@
 
 const unsigned long EVENTS_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
 const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Network", "Pump", "Modbus",
-    "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "PowerPilot plan", "Stat.save"};
-const unsigned short eventIsError = bit(WATCHDOG_EVENT) | bit(NETWORK_EVENT) | bit(PUMP_EVENT) | bit(MODBUS_EVENT);
+    "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "PowerPilot plan",
+    "Ext.heater", "Stat.save"};
+const unsigned short eventIsError = bit(WATCHDOG_EVENT) | bit(NETWORK_EVENT) | bit(PUMP_EVENT) | bit(MODBUS_EVENT) | bit(EXT_HEATER_EVENT);
 
 #ifdef NO_EEPROM
 const char* EVENTS_FILENAME = "EVENTS.DAT";

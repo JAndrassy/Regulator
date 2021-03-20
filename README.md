@@ -89,6 +89,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * ManualRun.ino - unregulated timed heating, activated with a button or from a remote monitoring
 * ElSens.ino - functions around the electricity sensor: checking expected consumption of the pump and heating and detecting disconnection by the heater's thermostat
 * ValvesBack.ino - handles turning valves back to the main heating system, if EMS-ESP reports that the main heating is active
+* ExtHeater.h - external/extension heater for additional consumption of surplus power
 * TriacLib.h - AC dimmer module control
 
 ### Front panel
@@ -110,7 +111,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 
 ### Special
 * ConsumptionMeter.ino - take data from secondary Fronius Smart Meter measuring this heater's consumption. Value is only logged to csv for evaluation (charts in Calc). It is an alternative to WemoInsight.ino.
-* WemoInsight.ino - web service request to Belkin WiFi switch used as system's reference Watt-meter. Value is only logged to csv for evaluation (charts in Calc). It is an alternative to ConsumptionMeter.ino.
+* WemoInsight.ino - functions to access Belkin WiFi switch. Can be used as an alternative to ConsumptionMeter.ino or for control of external heater.
 * Balboa.ino - defers hot tub heating if overall household consumption exceeds PV inverter's limit
 
 ### Web interface
@@ -152,3 +153,5 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 2020/-- GitHub user stealth-ultd built [his version](https://github.com/jandrassy/Regulator/discussions/1#discussioncomment-282050) of Regulator.
 
 2021/02 I added extra relay for circ. pump to solve interference from the pump motor at main relay switching
+
+2021/03 ExtHeater.ino for more surplus consumption

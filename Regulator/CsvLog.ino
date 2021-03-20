@@ -44,7 +44,7 @@ void csvLogLoop() {
     File file = FS.open(fn, FILE_WRITE);
     if (file) {
       if (file.size() == 0) {
-        file.println(F("t;h;m;soc;b;raw;s;f;v;i;w"));
+        file.println(F("t;h;m;soc;b;raw;s;f;v;i;sm;eh"));
       }
       file.print(buff);
       file.close();
@@ -55,8 +55,9 @@ void csvLogLoop() {
   }
 
   if (state == RegulatorState::REGULATING || state == RegulatorState::OVERHEATED) {
-    lines.printf(F("%02d:%02d:%02d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d\r\n"), hour(t), minute(t), second(t),
-        heatingPower, meterPower, pvSOC, pvChargingPower, powerPilotRaw, elsens, elsensPower, voltage, inverterAC, measuredPower);
+    lines.printf(F("%02d:%02d:%02d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d\r\n"), hour(t), minute(t), second(t),
+        heatingPower, meterPower, pvSOC, pvChargingPower, powerPilotRaw, elsens, elsensPower,
+        voltage, inverterAC, measuredPower, (int) extHeaterIsOn);
   }
 #endif
 }

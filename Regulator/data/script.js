@@ -28,10 +28,13 @@ function onLoad(cmd) {
   xhr.send();
 }
 
-var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Boiler temp.", "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan"};
+var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", 
+    "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Boiler temp.", 
+    "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan", "eh" : "Ext.Heater Plan"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "N" : "Network", "P" : "Pump", "M" : "MODBUS"};
 var planLabels  = ["Battery has priority (default)", "Heating has priority AM", "Disable heating AM", "Disable heating"];
+var extHeaterPlanLabels  = ["Ext. heater disabled", "Use ext. heater"];
 
 function showValues(jsonData) {
   var data = JSON.parse(jsonData);
@@ -69,6 +72,8 @@ function showValues(jsonData) {
     boxDiv.appendChild(createTextDiv("value-label", valueLabels[key]));
     if (key == "p") {
       boxDiv.appendChild(createDropDownListDiv(planLabels, val, "P"));
+    } else if (key == "eh") {
+      boxDiv.appendChild(createDropDownListDiv(extHeaterPlanLabels, val, "W"));
     } else {
     boxDiv.appendChild(createTextDiv("value-value", val + unit));
     }
@@ -108,8 +113,8 @@ function showValues(jsonData) {
 }
 
 var eventHeaders = ["timestamp", "event", "value 1", "value 2", "count"];
-var eventLabels = ["Events", "Restart", "Watchdog", "Network", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "PowerPilot plan", "Stats save"];
-var eventIsError = [false, false, true, true, true, true];
+var eventLabels = ["Events", "Restart", "Watchdog", "Network", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "PowerPilot plan", "Ext Heater", "Stats save"];
+var eventIsError = [false,    false,     true,       true,      true,           true,           false,      false,           false,       false,         false,                 false,      false,             true,         false];
 
 function showEvents(jsonData) {
   var data = JSON.parse(jsonData);
@@ -181,6 +186,8 @@ function showStats(jsonData) {
   contentDiv.appendChild(statsHeaderDiv);
   contentDiv.appendChild(buildStatsRow("Day heating", data["dayHeatingTime"], data["dayConsumedPower"]));
   contentDiv.appendChild(buildStatsRow("Month heating", data["monthHeatingTime"], data["monthConsumedPower"]));
+  contentDiv.appendChild(buildStatsRow("Day external", data["dayExtHeatingTime"], data["dayExtConsumedPower"]));
+  contentDiv.appendChild(buildStatsRow("Month external", data["monthExtHeatingTime"], data["monthExtConsumedPower"]));
   contentDiv.appendChild(buildStatsRow("Day manual-run", data["dayManualRunTime"], data["dayManualRunPower"]));
   contentDiv.appendChild(buildStatsRow("Month manual-run", data["monthManualRunTime"], data["monthManualRunPower"]));
   var fn = data["fn"];

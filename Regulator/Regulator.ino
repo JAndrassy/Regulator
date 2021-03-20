@@ -22,6 +22,8 @@ byte mac[] = SECRET_MAC;
 
 #define BLYNK_PRINT Serial
 #define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
+#define BLYNK_MAX_SENDBYTES 256
+#define BLYNK_USE_128_VPINS
 #include <BlynkSimpleEthernet.h>
 
 #ifdef ARDUINO_ARCH_SAMD
@@ -74,6 +76,10 @@ int elsensPower; // power calculation
 
 //external meter measurement
 int measuredPower;
+
+// additional heater control over Wemo Inside smart socket
+byte extHeaterPlan = EXT_HEATER_NORMAL;
+bool extHeaterIsOn = true; // assume is on to turn it off n loop
 
 char msgBuff[32];
 CStringBuilder msg(msgBuff, sizeof(msgBuff));
@@ -208,6 +214,7 @@ void loop() {
 //  wemoLoop();
   consumptionMeterLoop();
 
+  extHeaterLoop();
   pilotLoop();
 
   battSettLoop();
@@ -246,6 +253,11 @@ void handleSuspendAndOff() {
       digitalWrite(MAIN_RELAY_PIN, LOW);
       mainRelayOn = false;
     }
+  }
+  if (extHeaterIsOn //
+      && ((state != RegulatorState::REGULATING && state != RegulatorState::OVERHEATED) || extHeaterPlan == EXT_HEATER_DISABLED) //
+      && networkConnected()) {
+    extHeaterStop();
   }
 }
 
@@ -319,6 +331,7 @@ boolean restHours() {
     state = RegulatorState::REST;
     clearData();
     powerPilotSetPlan(BATTERY_PRIORITY);
+    extHeaterPlan = EXT_HEATER_NORMAL;
   }
   return true;
 }

@@ -1,30 +1,34 @@
-
+/*
 void wemoLoop() {
   if (state != RegulatorState::REGULATING)
     return;
-  wemoPowerUsage();
+  measuredPower = wemoPowerUsage();
+}
+*/
+int wemoSwitch(bool on) {
+  char response[128];
+  int res = wemoRequest("basicevent:1", "SetBinaryState", "BinaryState", on ? "1" : "0", response, sizeof(response));
+  if (res < 0)
+    return res;
+  return (response[0] - '0');
 }
 
-boolean wemoPowerUsage() {
-  measuredPower = -1;
+int wemoPowerUsage() {
   char response[128];
   int res = wemoRequest("insight:1", "GetInsightParams", "InsightParams", nullptr, response, sizeof(response));
   if (res < 0) {
     msg.printf("W err %d", res);
-    return false;
+    return -1;
   }
   char *p = response;
   for (int i = 0; i < 7; i++) {
     p = strchr(p, '|');
     if (p == NULL)
-      return false;
+      return -2;
     p++;
   }
-  measuredPower = atol(p) / 1000;
-  return true;
+  return atol(p) / 1000;
 }
-
-
 
 int wemoRequest(const char* service, const char* action, const char* param, const char* value, char* response, size_t size) {
 

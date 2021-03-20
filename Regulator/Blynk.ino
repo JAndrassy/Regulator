@@ -21,31 +21,45 @@
 #define BOILER_TEMP_WIDGET V17
 #define BALBOA_PAUSE_BUTTON V18
 #define POWERPILOT_PLAN_SELECTOR V19
+// V20 to V31 are chart data
+#define EXT_HEATER_WIDGET V32
+#define EXT_HEATER_PLAN_SELECTOR V33
+#define STATS_TABLE_WIDGET V34
 
 BLYNK_READ(GAUGE_WIDGET) {
   updateWidgets();
 }
 
-BLYNK_WRITE(MANUAL_RUN_BUTTON) {
+BLYNK_WRITE_DEFAULT() { // supports v.pins > 31
+
+  switch (request.pin) {
+    case MANUAL_RUN_BUTTON:
   manualRunRequest();
   updateWidgets();
-}
+    break;
 
-BLYNK_WRITE(VALVES_BACK_BUTTON) {
+    case VALVES_BACK_BUTTON:
   if (param.asInt()) {
     valvesBackStart(0);
     updateWidgets();
   }
-}
+    break;
 
-BLYNK_WRITE(BALBOA_PAUSE_BUTTON) {
+    case BALBOA_PAUSE_BUTTON:
   balboaManualPause();
   updateWidgets();
-}
+    break;
 
-BLYNK_WRITE(POWERPILOT_PLAN_SELECTOR) {
+    case POWERPILOT_PLAN_SELECTOR:
   powerPilotSetPlan(param.asInt() - 1); // Blynk Select index starts at 1
   updateWidgets();
+    break;
+    
+    case EXT_HEATER_PLAN_SELECTOR:
+      extHeaterPlan = (param.asInt() - 1); // Blynk Select index starts at 1
+      updateWidgets();
+    break;
+  }
 }
 
 void blynkSetup() {
@@ -79,6 +93,8 @@ void updateWidgets() {
   Blynk.virtualWrite(MANUAL_RUN_BUTTON, state == RegulatorState::MANUAL_RUN);
   Blynk.virtualWrite(BALBOA_PAUSE_BUTTON, balboaRelayOn);
   Blynk.virtualWrite(POWERPILOT_PLAN_SELECTOR, powerPilotPlan + 1);
+  Blynk.virtualWrite(EXT_HEATER_WIDGET, extHeaterIsOn ? 0xFF : 0);
+  Blynk.virtualWrite(EXT_HEATER_PLAN_SELECTOR, extHeaterPlan + 1);
   char buff[17];
   CStringBuilder sb(buff, sizeof(buff));
   switch (state) {
@@ -103,6 +119,7 @@ void updateWidgets() {
   }
   Blynk.virtualWrite(STATE_WIDGET, buff);
   eventsBlynk();
+  statsBlynk();
 }
 
 void blynkChartData() {
@@ -163,13 +180,12 @@ void blynkChartData() {
     // black line. household consumption without regulated consumption of heater.
     // black line above blue area is "from grid"
     // blue area above black line is regulated conditional consumption
-    long hhConsumptionAvg = hhConsumptionSum / n;
     long heaterConsumptionAvg = heaterConsumptionSum / n;
-    if (state == RegulatorState::REGULATING) {
-      Blynk.virtualWrite(V23, hhConsumptionAvg - heaterConsumptionAvg);
-    } else {
-      Blynk.virtualWrite(V23, hhConsumptionAvg);
+    long hhConsumptionAvg = (hhConsumptionSum / n) - heaterConsumptionAvg;
+    if (extHeaterIsOn) {
+      hhConsumptionAvg -= EXT_HEATER_POWER;
     }
+    Blynk.virtualWrite(V23, hhConsumptionAvg);
 
     Blynk.virtualWrite(V25, pvSOC);
     Blynk.virtualWrite(V26, pvBattCalib);
