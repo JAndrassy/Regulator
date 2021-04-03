@@ -21,45 +21,39 @@
 #define BOILER_TEMP_WIDGET V17
 #define BALBOA_PAUSE_BUTTON V18
 #define POWERPILOT_PLAN_SELECTOR V19
-// V20 to V31 are chart data
-#define EXT_HEATER_WIDGET V32
-#define EXT_HEATER_PLAN_SELECTOR V33
-#define STATS_TABLE_WIDGET V34
+#define EXT_HEATER_WIDGET V20
+#define EXT_HEATER_PLAN_SELECTOR V21
+#define STATS_TABLE_WIDGET V22
 
 BLYNK_READ(GAUGE_WIDGET) {
   updateWidgets();
 }
 
-BLYNK_WRITE_DEFAULT() { // supports v.pins > 31
-
-  switch (request.pin) {
-    case MANUAL_RUN_BUTTON:
+BLYNK_WRITE(MANUAL_RUN_BUTTON) {
   manualRunRequest();
   updateWidgets();
-    break;
+}
 
-    case VALVES_BACK_BUTTON:
+BLYNK_WRITE(VALVES_BACK_BUTTON) {
   if (param.asInt()) {
     valvesBackStart(0);
     updateWidgets();
   }
-    break;
+}
 
-    case BALBOA_PAUSE_BUTTON:
+BLYNK_WRITE(BALBOA_PAUSE_BUTTON) {
   balboaManualPause();
   updateWidgets();
-    break;
+}
 
-    case POWERPILOT_PLAN_SELECTOR:
+BLYNK_WRITE(POWERPILOT_PLAN_SELECTOR) {
   powerPilotSetPlan(param.asInt() - 1); // Blynk Select index starts at 1
   updateWidgets();
-    break;
-    
-    case EXT_HEATER_PLAN_SELECTOR:
-      extHeaterPlan = (param.asInt() - 1); // Blynk Select index starts at 1
-      updateWidgets();
-    break;
-  }
+}
+
+BLYNK_WRITE(EXT_HEATER_PLAN_SELECTOR) {
+  extHeaterPlan = (param.asInt() - 1); // Blynk Select index starts at 1
+  updateWidgets();
 }
 
 void blynkSetup() {
@@ -77,7 +71,7 @@ void blynkLoop() {
 void updateWidgets() {
 //  msg.print(F("Blynk"));
   Blynk.virtualWrite(PV_PRODUCTION_WIDGET, inverterAC + pvChargingPower);
-  Blynk.virtualWrite(HH_CONSUMPTION_WIDGET, inverterAC - meterPower - measuredPower);
+  Blynk.virtualWrite(HH_CONSUMPTION_WIDGET, inverterAC - meterPower - elsensPower);
   Blynk.virtualWrite(METER_WIDGET, meterPower);
   Blynk.virtualWrite(CHARGING_WIDGET, pvChargingPower);
   Blynk.virtualWrite(CALIBRATING_WIDGET, pvBattCalib ? 0xFF : 0);
@@ -148,12 +142,12 @@ void blynkChartData() {
   usedProductionSum += production - toGrid;
   inverterConsumedSum += inverterAC - toGrid;
   hhConsumptionSum += inverterAC - meterPower;
-  heaterConsumptionSum += measuredPower;
+  heaterConsumptionSum += elsensPower;
 
   short third = inverterAC / 3;
   powerPhaseASum += meterPowerPhaseA + third;
   powerPhaseBSum += meterPowerPhaseB + third;
-  powerPhaseCSum += (meterPowerPhaseC + third) - measuredPower; // heater is on phase C
+  powerPhaseCSum += (meterPowerPhaseC + third) - elsensPower; // heater is on phase C
 
   if (loopStartMillis - previousMillis >= PUSH_INTERVAL) {
     if (loopStartMillis - previousMillis >= (PUSH_INTERVAL * 5)) { // after rest or alarm state send zeros
@@ -167,12 +161,14 @@ void blynkChartData() {
       powerPhaseBSum = 0;
       powerPhaseCSum = 0;
       n = 1;
+      previousMillis = loopStartMillis;
+    } else {
+      previousMillis += PUSH_INTERVAL;
     }
-    previousMillis += PUSH_INTERVAL;
 
-    Blynk.virtualWrite(V20, productionSum / n); // green line. energy produced by PV panels
-    Blynk.virtualWrite(V21, usedProductionSum / n); // yellow fill. the green area above is "to grid"
-    Blynk.virtualWrite(V22, inverterConsumedSum / n); // blue fill
+    Blynk.virtualWrite(V32, productionSum / n); // green line. energy produced by PV panels
+    Blynk.virtualWrite(V33, usedProductionSum / n); // yellow fill. the green area above is "to grid"
+    Blynk.virtualWrite(V34, inverterConsumedSum / n); // blue fill
     // overlap of blue and yellow is "direct consumption"
     // clear yellow fill is "to battery"
     // clear blue fill is "from battery"
@@ -181,21 +177,24 @@ void blynkChartData() {
     // black line above blue area is "from grid"
     // blue area above black line is regulated conditional consumption
     long heaterConsumptionAvg = heaterConsumptionSum / n;
-    long hhConsumptionAvg = (hhConsumptionSum / n) - heaterConsumptionAvg;
+    long hhConsumptionAvg = (hhConsumptionSum / n);
+    if (state != RegulatorState::MANUAL_RUN) {
+      hhConsumptionAvg -= heaterConsumptionAvg;
+    }
     if (extHeaterIsOn) {
       hhConsumptionAvg -= EXT_HEATER_POWER;
     }
-    Blynk.virtualWrite(V23, hhConsumptionAvg);
+    Blynk.virtualWrite(V35, hhConsumptionAvg);
 
-    Blynk.virtualWrite(V25, pvSOC);
-    Blynk.virtualWrite(V26, pvBattCalib);
-    Blynk.virtualWrite(V27, balboaRelayOn);
-    Blynk.virtualWrite(V28, state == RegulatorState::OVERHEATED);
+    Blynk.virtualWrite(V36, pvSOC);
+    Blynk.virtualWrite(V37, pvBattCalib);
+    Blynk.virtualWrite(V38, balboaRelayOn);
+    Blynk.virtualWrite(V39, state == RegulatorState::OVERHEATED);
 
-    Blynk.virtualWrite(V29, powerPhaseASum / n);
-    Blynk.virtualWrite(V30, powerPhaseBSum / n);
-    Blynk.virtualWrite(V31, powerPhaseCSum / n);
-    Blynk.virtualWrite(V24, heaterConsumptionAvg);
+    Blynk.virtualWrite(V40, powerPhaseASum / n);
+    Blynk.virtualWrite(V41, powerPhaseBSum / n);
+    Blynk.virtualWrite(V42, powerPhaseCSum / n);
+    Blynk.virtualWrite(V43, heaterConsumptionAvg);
 
     n = 0;
     productionSum = 0;

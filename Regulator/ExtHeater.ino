@@ -15,8 +15,12 @@ void extHeaterLoop() {
 
   static unsigned long lastHeaterCheckMillis;
 
-  if ((state != RegulatorState::REGULATING && state != RegulatorState::OVERHEATED) || extHeaterPlan == EXT_HEATER_DISABLED)
+  if ((state != RegulatorState::REGULATING && state != RegulatorState::OVERHEATED) || extHeaterPlan == EXT_HEATER_DISABLED) {
+    if (extHeaterIsOn) {
+      extHeaterStop();
+    }
     return;
+  }
 
   short availablePower = (extHeaterIsOn ? EXT_HEATER_POWER : 0) + heatingPower + meterPower;
   if (extHeaterIsOn) {
@@ -73,6 +77,7 @@ bool extHeaterErr(int res, byte op) {
       extHeaterStop();
     }
     extHeaterPlan = EXT_HEATER_DISABLED;
+    extHeaterIsOn = false;
   }
   return true;
 }

@@ -17,7 +17,6 @@ byte mac[] = SECRET_MAC;
 #include <EEPROM.h>
 #endif
 
-#include "consts.h"
 #include <TriacLib.h>
 
 #define BLYNK_PRINT Serial
@@ -30,6 +29,8 @@ byte mac[] = SECRET_MAC;
 #include <RTCZero.h>
 RTCZero rtc;
 #endif
+
+#include "consts.h"
 
 #ifdef ETHERNET
 #define NetServer EthernetServer
@@ -81,7 +82,7 @@ int measuredPower;
 
 // additional heater control over Wemo Inside smart socket
 byte extHeaterPlan = EXT_HEATER_NORMAL;
-bool extHeaterIsOn = true; // assume is on to turn it off n loop
+bool extHeaterIsOn = true; // assume is on to turn it off in loop
 
 char msgBuff[32];
 CStringBuilder msg(msgBuff, sizeof(msgBuff));
@@ -108,7 +109,7 @@ void setup() {
 //  statusLedSetup();
   balboaSetup();
 
-  Serial.begin(115200); // TX can be used if Serial is not used
+  Serial.begin(115200);
 
   beep();
 
@@ -139,11 +140,9 @@ void setup() {
 #endif
 
   IPAddress ip(192, 168, 1, 6);
-  IPAddress gw(192, 168, 1, 1);
-  IPAddress sn(255, 255, 255, 0);
-
   Ethernet.init(NET_SS_PIN);
-  Ethernet.begin(mac, ip, gw, gw, sn);
+  Ethernet.begin(mac, ip);
+  delay(150);
   // connection is checked in loop
 
   ArduinoOTA.beforeApply(shutdown);
@@ -181,8 +180,8 @@ void loop() {
   handleSuspendAndOff();
   statsLoop();
 
-  ArduinoOTA.handle();
   watchdogLoop();
+  ArduinoOTA.handle();
   eventsLoop();
 
   // user interface
@@ -260,6 +259,7 @@ void handleSuspendAndOff() {
       waitZeroCrossing();
       digitalWrite(PUMP_RELAY_PIN, LOW);
       waitZeroCrossing();
+      delay(5);
       digitalWrite(MAIN_RELAY_PIN, LOW);
       mainRelayOn = false;
     }

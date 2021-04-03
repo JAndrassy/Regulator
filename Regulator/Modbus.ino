@@ -17,19 +17,26 @@ enum {
 };
 
 NetClient modbus;
+uint8_t requestId = 0;
 
 void modbusSetup() {
-  if (!requestSymoRTC()) {
-    alarmCause = AlarmCause::MODBUS;
-    eventsWrite(MODBUS_EVENT, -1, 0);
+
+  const unsigned long GET_TIME_ATTEMPTS_TIMEOUT = 5000;
+
+  unsigned long startMillis = millis();
+  while (millis() - startMillis < GET_TIME_ATTEMPTS_TIMEOUT) {
+    if (requestSymoRTC())
+      return;
+    delay(500);
   }
+  alarmCause = AlarmCause::MODBUS; // time was not retrieved
 }
 
 boolean modbusLoop() {
 
   const int DELAY_MILLIS = 4000;
   const int DATASET_MILLIS = 12000;
-  const byte DATASET_FAIL_COUNT = 3;
+  const byte DATASET_FAIL_COUNT = 5;
 
   static byte datasetState = MODBUS_DELAY;
   static unsigned long datasetStart;
@@ -108,6 +115,7 @@ boolean requestSymoRTC() {
       setTime(now() - SECS_PER_HOUR);
     }
   }
+  hourNow = hour();
 #ifdef ARDUINO_ARCH_SAMD
   rtc.setEpoch(now());
 #endif
@@ -142,24 +150,29 @@ boolean requestBattery() {
   int res = modbusRequest(1, 40257, 58, regs); //MPPT reg + SF offsset
   if (modbusError(res))
     return false;
+  short pvProduction = (unsigned short) regs[17] * pow(10, regs[0]); // mppt 1 dc power * scale
   pvChargingPower = (unsigned short) regs[37] * pow(10, regs[0]); // dc power * scale
   pvSOC = regs[54] / 100; // storage register addr - mppt register addr + ChaSta offset
   pvBattCalib = false;
   switch (regs[57]) {  // charge status
     case 2:  // EMPTY
-    case 4:  // CHARGING
-    case 6:  // HOLDING
+        if (pvProduction < inverterAC) {
+          pvChargingPower = -pvChargingPower;
+        }
       break;
     case 7:  // TESTING (CALIBRATION)
       pvBattCalib = true;
       break;
-    default:
+    case 3:  // DISCHARGING
+    case 5:  // FULL
       pvChargingPower = -pvChargingPower;
   }
   return true;
 }
 
 boolean modbusError(int err) {
+
+  const byte ERROR_COUNT_ALARM = 8;
 
   static byte modbusErrorCounter = 0;
   static int modbusErrorCode = 0;
@@ -173,10 +186,10 @@ boolean modbusError(int err) {
   modbusErrorCounter++;
   switch (modbusErrorCounter) {
     case 1:
-      msg.printf(F("modbus error %d"), err);
+      msg.printf(F(" MB_error_%d"), err);
     break;
-    case 10:
-      msg.printf(F("modbus error %d %d times"), err, modbusErrorCounter);
+    case ERROR_COUNT_ALARM:
+      msg.printf(F(" MB_error_%d_%d_times"), err, modbusErrorCounter);
       if (state != RegulatorState::ALARM) {
         eventsWrite(MODBUS_EVENT, err, 0);
         alarmCause = AlarmCause::MODBUS;
@@ -205,14 +218,14 @@ int modbusRequest(byte uid, unsigned int addr, byte len, short *regs) {
   if (err != 0)
     return err;
 
-  byte request[] = {0, 1, 0, 0, 0, 6, uid, FNC_READ_REGS, (byte) (addr / 256), (byte) (addr % 256), 0, len};
+  byte request[] = {requestId++, 1, 0, 0, 0, 6, uid, FNC_READ_REGS, (byte) (addr / 256), (byte) (addr % 256), 0, len};
   modbus.write(request, sizeof(request));
+  modbus.flush();
 
   int respDataLen = len * 2;
   byte response[max((int) DATA_IX, respDataLen)];
   int readLen = modbus.readBytes(response, DATA_IX);
   if (readLen < DATA_IX) {
-    modbus.stop();
     return MODBUS_NO_RESPONSE;
   }
   switch (response[CODE_IX]) {
@@ -223,8 +236,10 @@ int modbusRequest(byte uid, unsigned int addr, byte len, short *regs) {
     default:
       return -3;
   }
-  if (response[LENGTH_IX] != respDataLen)
+  if ((uint8_t)(requestId - 1) != response[0]) {
+    msg.printf(F(" %d!=%d"), requestId - 1, (int) response[0]);
     return -2;
+  }
   readLen = modbus.readBytes(response, respDataLen);
   if (readLen < respDataLen)
     return -4;
@@ -244,18 +259,17 @@ int modbusWriteSingle(unsigned int address, int val) {
   if (err != 0)
     return err;
 
-  byte req[] = { 0, 1, 0, 0, 0, 6, 1, FNC_WRITE_SINGLE, // header
+  byte req[] = { requestId++, 1, 0, 0, 0, 6, 1, FNC_WRITE_SINGLE, // header
         (byte) (address / 256), (byte) (address % 256),
         (byte) (val / 256), (byte) (val % 256)};
 
   modbus.write(req, sizeof(req));
+  modbus.flush();
 
   byte response[RESPONSE_LENGTH];
   int readLen = modbus.readBytes(response, RESPONSE_LENGTH);
-  if (readLen < RESPONSE_LENGTH) {
-    modbus.stop();
+  if (readLen < RESPONSE_LENGTH)
     return MODBUS_NO_RESPONSE;
-  }
   switch (response[CODE_IX]) {
     case FNC_WRITE_SINGLE:
       break;
@@ -274,7 +288,7 @@ int modbusConnection() {
     if (!modbus.connect(symoAddress, 502))
       return MODBUS_CONNECT_ERROR;
     modbus.setTimeout(2000);
-    msg.print(F(" modbus reconnect"));
+    msg.print(F(" MB_reconnect"));
   } else {
     while (modbus.read() != -1); // clean the buffer
   }

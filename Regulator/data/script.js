@@ -30,7 +30,7 @@ function onLoad(cmd) {
 
 var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", 
     "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Boiler temp.", 
-    "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan", "eh" : "Ext.Heater Plan"};
+    "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan", "eh" : "Ext. Heater Plan"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "N" : "Network", "P" : "Pump", "M" : "MODBUS"};
 var planLabels  = ["Battery has priority (default)", "Heating has priority AM", "Disable heating AM", "Disable heating"];
@@ -184,19 +184,19 @@ function showStats(jsonData) {
   statsHeaderDiv.appendChild(createTextDiv("table-header-cell", "consumed (W)"));
   statsHeaderDiv.appendChild(createTextDiv("table-header-cell", "average (W)"));
   contentDiv.appendChild(statsHeaderDiv);
-  contentDiv.appendChild(buildStatsRow("Day heating", data["dayHeatingTime"], data["dayConsumedPower"]));
-  contentDiv.appendChild(buildStatsRow("Month heating", data["monthHeatingTime"], data["monthConsumedPower"]));
-  contentDiv.appendChild(buildStatsRow("Day external", data["dayExtHeatingTime"], data["dayExtConsumedPower"]));
-  contentDiv.appendChild(buildStatsRow("Month external", data["monthExtHeatingTime"], data["monthExtConsumedPower"]));
-  contentDiv.appendChild(buildStatsRow("Day manual-run", data["dayManualRunTime"], data["dayManualRunPower"]));
-  contentDiv.appendChild(buildStatsRow("Month manual-run", data["monthManualRunTime"], data["monthManualRunPower"]));
+  contentDiv.appendChild(buildStatsRow("Day heating", data["dayHeatingTime"], data["dayConsumedPower"], true));
+  contentDiv.appendChild(buildStatsRow("Month heating", data["monthHeatingTime"], data["monthConsumedPower"], true));
+  contentDiv.appendChild(buildStatsRow("Day external", data["dayExtHeatingTime"], data["dayExtConsumedPower"], false));
+  contentDiv.appendChild(buildStatsRow("Month external", data["monthExtHeatingTime"], data["monthExtConsumedPower"], false));
+  contentDiv.appendChild(buildStatsRow("Day manual-run", data["dayManualRunTime"], data["dayManualRunPower"], false));
+  contentDiv.appendChild(buildStatsRow("Month manual-run", data["monthManualRunTime"], data["monthManualRunPower"], false));
   var fn = data["fn"];
   if (fn.length > 0) {
     contentDiv.appendChild(createButton(fn, fn));
   }
 }
 
-function buildStatsRow(label, heatingTime, consumedPower) {
+function buildStatsRow(label, heatingTime, consumedPower, showAverage) {
   var div = document.createElement("DIV");
   div.className = "table-row";
   div.appendChild(createTextDiv("table-cell", label));
@@ -204,7 +204,7 @@ function buildStatsRow(label, heatingTime, consumedPower) {
   var m = Math.floor(heatingTime - h * 60);
   div.appendChild(createTextDiv("table-cell", h + ":" + ("" + m).padStart(2, "0")));
   div.appendChild(createTextDiv("table-cell table-cell-number", consumedPower));
-  div.appendChild(createTextDiv("table-cell table-cell-number", (heatingTime) != 0 ? Math.floor(consumedPower / (heatingTime/60)) : ""));
+  div.appendChild(createTextDiv("table-cell table-cell-number", ((showAverage && heatingTime) != 0) ? Math.floor(consumedPower / (heatingTime/60)) : ""));
   return div;
 }
 

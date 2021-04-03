@@ -72,7 +72,7 @@ void pilotLoop() {
       && (heatingPower + pvChargingPower) > (mainRelayOn ? BYPASS_POWER : HEATING_PRIORITY_START_POWER)
       && (inverterAC - heatingPower + BYPASS_POWER) < CONSUMPTION_POWER_LIMIT) {
     pvChP = pvChargingPower; // take this big charging as available (not everything will be used and/or the battery can charge later)
-  } else if (pvSOC < BYPASS_BUFFER_SOC) {
+  } else if (pvSOC < BYPASS_BUFFER_SOC && pvChargingPower < BATTERY_MAX_CHARGING_POWER) {
     pvChP += LEFT_FOR_BATTERY; // retreat in steps, if the battery takes it
   } else if (pvSOC > TOP_OSCILLATION_SOC && pvChP < TOP_OSCILLATION_COUNTERMEASURE
       && (pvChP + meterPower) > TOP_OSCILLATION_DISCHARGE_LIMIT) { // tolerated discharge
@@ -102,9 +102,12 @@ void pilotLoop() {
   // not switch relays for short spikes
   if ((!mainRelayOn || (!bypassRelayOn && bypass)) && waitForItCounter < WAIT_FOR_IT_COUNT) {
     waitForItCounter++;
-    return;
-  }
+    if (!mainRelayOn)
+      return;
+    bypass = false;
+  } else {
   waitForItCounter = 0;
+  }
 
   if (!turnMainRelayOn())
     return;

@@ -1,6 +1,4 @@
 
-const unsigned int VALVE_ROTATION_TIME = 30000; // 30 sec
-
 unsigned long valvesBackTime = 0;
 
 void valvesBackSetup() {
@@ -10,7 +8,6 @@ void valvesBackSetup() {
 
 void valvesBackReset() {
   if (valvesRelayOn) {
-    msg.print(" VR_on");
     digitalWrite(VALVES_RELAY_PIN, LOW);
     valvesRelayOn = false;
   }
@@ -19,6 +16,7 @@ void valvesBackReset() {
 
 void valvesBackLoop() {
 
+  const unsigned int VALVE_ROTATION_TIME = 30000; // 30 sec
   const int BOILER_TEMP_WARM = 25;
   const int BOILER_TEMP_HOT = 65;
   const byte VALVES_BACK_HOUR = 5;

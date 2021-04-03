@@ -229,7 +229,7 @@ void statsBlynk() {
   Blynk.virtualWrite(STATS_TABLE_WIDGET, "clr");
   unsigned long t = statsData.timestamp;
   char buff[32];
-  sprintf(buff, "%d-%02d-%02d", year(t), month(t), day(t));
+  sprintf_P(buff, PSTR("%d-%02d-%02d"), year(t), month(t), day(t));
   Blynk.virtualWrite(STATS_TABLE_WIDGET, "add", 0, buff, "W");
   byte i = 1;
   statsBlynkRow(i++, "Day heating", statsData.day);

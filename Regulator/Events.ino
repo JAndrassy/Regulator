@@ -184,7 +184,7 @@ void eventsBlynk() {
     map[i] = i;
   }
   qsort(map, EVENTS_SIZE, 1, eventsCompare);
-  for (unsigned int i = 0; i < EVENTS_SIZE - 1; i++) {
+  for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
     EventStruct& event = events[map[i]];
     unsigned long t = event.timestamp;
     if (t != 0) {
