@@ -92,7 +92,7 @@ void statsLoop() {
       statsData.dayManualRun.heatingTime = 0;
       statsData.dayManualRun.consumedPower = 0;
     }
-    msg.print("stats reset");
+    msg.print(" stats_reset");
     statsData.timestamp = now();
   }
 
@@ -176,7 +176,7 @@ void statsSave() {
 #endif
   eventsWrite(STATS_SAVE_EVENT, (loopStartMillis - statsSaveTimer) / 60000, 0);
   statsSaveTimer = loopStartMillis;
-  msg.print("stats saved");
+  msg.print(" stats_saved");
 }
 
 int statsConsumedPowerToday() {

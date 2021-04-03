@@ -10,7 +10,6 @@ const char* EVENTS_FILENAME = "EVENTS.DAT";
 #else
 const int EVENTS_EEPROM_ADDR = 0;
 #endif
-const char* EVENTS_LOG_FN = "EVENTS.LOG";
 
 struct EventStruct {
   unsigned long timestamp;
@@ -65,11 +64,6 @@ void eventsLoop() {
       eventsSave();
     }
   }
-#ifdef FS
-  if (hour(now()) == 23 && minute(now()) == 59 && FS.exists(EVENTS_LOG_FN)) {
-    FS.remove(EVENTS_LOG_FN);
-  }
-#endif
 }
 
 void eventsWrite(int newEvent, int value1, int value2) {
@@ -84,16 +78,10 @@ void eventsWrite(int newEvent, int value1, int value2) {
   e.value2 = value2;
   e.count++;
 #ifdef FS
-  if (newEvent != EVENTS_SAVE_EVENT) {
-    File file = FS.open(EVENTS_LOG_FN, FILE_WRITE);
-    if (file) {
-      if (file.size() == 0) {
-        file.println(F("Event name     |timestamp          |v1   |v2   |cnt|"));
-      }
-      eventsPrint(file, newEvent);
-      file.println();
-      file.close();
-    }
+  if (newEvent != EVENTS_SAVE_EVENT && newEvent != STATS_SAVE_EVENT) {
+    char buff[64];
+    sprintf_P(buff, PSTR("%s %d %d"), eventLongLabels[newEvent], events[newEvent].value1, events[newEvent].value2);
+    log(buff);
   }
 #endif
 }
@@ -120,7 +108,7 @@ void eventsSave() {
   EEPROM.put(EVENTS_EEPROM_ADDR, events);
 #endif
   eventsTimer = events[EVENTS_SAVE_EVENT].timestamp;
-  msg.print(F(" events saved"));
+  msg.print(F(" events_saved"));
 }
 
 byte eventsRealCount(bool errorsOnly) {

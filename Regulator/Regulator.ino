@@ -42,6 +42,8 @@ RTCZero rtc;
 unsigned long loopStartMillis;
 byte hourNow; // current hour
 
+const char* LOG_FN = "EVENTS.LOG";
+
 RegulatorState state = RegulatorState::MONITORING;
 AlarmCause alarmCause = AlarmCause::NOT_IN_ALARM;
 
@@ -155,6 +157,8 @@ void setup() {
   analogWriteResolution(10);
 #endif
 
+  msg.print(F("start"));
+
   valvesBackSetup();
   telnetSetup();
   blynkSetup();
@@ -172,7 +176,7 @@ void loop() {
 
   freeMem = freeMemory();
   loopStartMillis = millis();
-  hourNow = hour(now());
+  hourNow = hour();
 
   handleSuspendAndOff();
   statsLoop();
@@ -190,6 +194,9 @@ void loop() {
   blynkLoop();
   webServerLoop();
   telnetLoop(msg.length() != 0); // checks input commands and prints msg
+  if (msg.length()) {
+    log(msgBuff);
+  }
   msg.reset();  //clear msg
 
   if (handleAlarm())
@@ -243,11 +250,14 @@ void handleSuspendAndOff() {
   } else if (mainRelayOn) { // && heatingPower == 0
     powerPilotStop();
     if (bypassRelayOn) {
+      msg.print(F(" BR_off"));
       waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, LOW);
       bypassRelayOn = false;
     }
     if (loopStartMillis - lastOn > PUMP_STOP_MILLIS) {
+      msg.print(F(" MR_off"));
+      waitZeroCrossing();
       digitalWrite(PUMP_RELAY_PIN, LOW);
       waitZeroCrossing();
       digitalWrite(MAIN_RELAY_PIN, LOW);
@@ -312,10 +322,11 @@ boolean handleAlarm() {
 
 boolean restHours() {
 
+  const unsigned long MIN_VALID_TIME = SECS_YR_2000 + SECS_PER_YEAR;
   const int BEGIN_HOUR = 8;
   const int END_HOUR = 22; // to monitor discharge
 
-  if (balboaRelayOn)
+  if (now() < MIN_VALID_TIME || balboaRelayOn)
     return false;
 
   if (hourNow >= BEGIN_HOUR && hourNow < END_HOUR) {
@@ -324,6 +335,9 @@ boolean restHours() {
       if (hour() < BEGIN_HOUR)  // sync can set the clock back, then would the powerPlan reset
         return true;
       state = RegulatorState::MONITORING;
+#ifdef FS
+      FS.remove(LOG_FN);
+#endif
     }
     return false;
   }
@@ -341,9 +355,11 @@ boolean turnMainRelayOn() {
     return true;
   watchdogLoop();
   valvesBackReset();
+  msg.print(F(" MR_on"));
   digitalWrite(MAIN_RELAY_PIN, HIGH);
   mainRelayOn = true;
   delay(1000); // valves rotation start
+  waitZeroCrossing();
   digitalWrite(PUMP_RELAY_PIN, HIGH);
   return elsensCheckPump();
 }
@@ -372,4 +388,18 @@ boolean networkConnected() {
 
 void waitZeroCrossing() {
   Triac::waitZeroCrossing();
+}
+
+void log(const char *msg) {
+#ifdef FS
+  File file = FS.open(LOG_FN, FILE_WRITE);
+  if (file) {
+    unsigned long t = now();
+    char buff[10];
+    sprintf_P(buff, PSTR("%02d:%02d:%02d "), hour(t), minute(t), second(t));
+    file.print(buff);
+    file.println(msg);
+    file.close();
+  }
+#endif
 }

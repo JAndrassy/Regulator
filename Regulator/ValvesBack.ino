@@ -10,6 +10,7 @@ void valvesBackSetup() {
 
 void valvesBackReset() {
   if (valvesRelayOn) {
+    msg.print(" VR_on");
     digitalWrite(VALVES_RELAY_PIN, LOW);
     valvesRelayOn = false;
   }
@@ -29,6 +30,7 @@ void valvesBackLoop() {
     }
   }
   if (valvesRelayOn && (loopStartMillis - valvesBackTime) > VALVE_ROTATION_TIME) {
+    msg.print(" VR_off");
     digitalWrite(VALVES_RELAY_PIN, LOW);
     valvesRelayOn = false;
   }
@@ -37,6 +39,7 @@ void valvesBackLoop() {
 void valvesBackStart(int v) {
   if (mainRelayOn)
     return;
+  msg.print(" VR_on");
   digitalWrite(VALVES_RELAY_PIN, HIGH);
   valvesRelayOn = true;
   valvesBackTime = loopStartMillis;
