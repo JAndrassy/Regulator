@@ -64,7 +64,7 @@ function showValues(jsonData) {
     var boxDiv = document.createElement("DIV");
     if (key == "ec" || key == "err" || key == "cp" || key == "csv" || (key == "st" && val == "ALARM")) {
       boxDiv.className = "value-box value-box-clickable";
-    } else if (key == "v" || key == "p") {
+    } else if (key == "v" || key == "p" || key == "eh") {
       boxDiv.className = "value-box value-box-double";
     } else {
       boxDiv.className = "value-box";
@@ -75,7 +75,7 @@ function showValues(jsonData) {
     } else if (key == "eh") {
       boxDiv.appendChild(createDropDownListDiv(extHeaterPlanLabels, val, "W"));
     } else {
-    boxDiv.appendChild(createTextDiv("value-value", val + unit));
+      boxDiv.appendChild(createTextDiv("value-value", val + unit));
     }
     if (key == 'ec' || key == 'err') {
       boxDiv.onclick = function() {
@@ -281,7 +281,7 @@ function createButton(text, command) {
 
 function createDropDownListDiv(values, index, command) {
   var div = document.createElement("DIV");
-  div.className = "value-value";
+  div.className = "value-control";
   var select = document.createElement("SELECT");
   var l;
   for (l of values) {
@@ -302,7 +302,7 @@ function createCommandBox(title, label, command) {
   boxDiv.className = "value-box";
   boxDiv.appendChild(createTextDiv("value-label", title));
   var div = document.createElement("DIV");
-  div.className = "value-value";
+  div.className = "value-control";
   div.appendChild(createButton(label, command));
   boxDiv.appendChild(div);
   return boxDiv;
