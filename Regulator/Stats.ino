@@ -65,7 +65,7 @@ void statsLoop() {
       return;
     lastPowerChangeMillis = loopStartMillis; // relay is on, start counting
     statsSaveTimer = loopStartMillis;
-    statsManualRunFlag = (state == RegulatorState::MANUAL_RUN);
+    statsManualRunFlag = (state == RegulatorState::MANUAL_RUN || manualRunRequest);
   }
   time_t t = statsData.timestamp;
   if (day(now()) != day(t)) {

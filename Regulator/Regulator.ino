@@ -49,10 +49,12 @@ RegulatorState state = RegulatorState::MONITORING;
 AlarmCause alarmCause = AlarmCause::NOT_IN_ALARM;
 
 boolean buttonPressed = false;
+boolean manualRunRequest = false; // manual run start or stop request
+unsigned long valvesOpeningStartMillis;
 
 boolean mainRelayOn = false;
 boolean bypassRelayOn = false;
-boolean valvesRelayOn = false;
+boolean valvesBackRelayOn = false;
 boolean balboaRelayOn = false;
 
 int freeMem;
@@ -81,10 +83,10 @@ int elsensPower; // power calculation
 int measuredPower;
 
 // additional heater control over Wemo Inside smart socket
-byte extHeaterPlan = EXT_HEATER_NORMAL;
+byte extHeaterPlan = EXT_HEATER_DISABLED;
 bool extHeaterIsOn = true; // assume is on to turn it off in loop
 
-char msgBuff[32];
+char msgBuff[256];
 CStringBuilder msg(msgBuff, sizeof(msgBuff));
 
 bool sdCardAvailable = false;
@@ -142,7 +144,7 @@ void setup() {
   IPAddress ip(192, 168, 1, 6);
   Ethernet.init(NET_SS_PIN);
   Ethernet.begin(mac, ip);
-  delay(150);
+  delay(500);
   // connection is checked in loop
 
   ArduinoOTA.beforeApply(shutdown);
@@ -157,6 +159,8 @@ void setup() {
 #endif
 
   msg.print(F("start"));
+
+  beep();
 
   valvesBackSetup();
   telnetSetup();
@@ -177,7 +181,7 @@ void loop() {
   loopStartMillis = millis();
   hourNow = hour();
 
-  handleSuspendAndOff();
+  handleRelaysOnStates();
   statsLoop();
 
   watchdogLoop();
@@ -237,14 +241,18 @@ void shutdown() {
   watchdogLoop();
 }
 
-void handleSuspendAndOff() {
+void handleRelaysOnStates() {
 
   static unsigned long lastOn = 0; // millis for the cool-down timer
 
+  if (state == RegulatorState::OPENING_VALVES && loopStartMillis - valvesOpeningStartMillis > VALVE_ROTATION_TIME) {
+    state = RegulatorState::MONITORING;
+    turnPumpRelayOn();
+  }
   if (state != RegulatorState::REGULATING && state != RegulatorState::MANUAL_RUN) {
     heatingPower = 0;
   }
-  if (heatingPower > 0) {
+  if (heatingPower > 0 || state == RegulatorState::OPENING_VALVES) {
     lastOn = loopStartMillis;
   } else if (mainRelayOn) { // && heatingPower == 0
     powerPilotStop();
@@ -345,20 +353,34 @@ boolean restHours() {
     state = RegulatorState::REST;
     clearData();
     powerPilotSetPlan(BATTERY_PRIORITY);
-    extHeaterPlan = EXT_HEATER_NORMAL;
+    extHeaterPlan = EXT_HEATER_DISABLED;
   }
   return true;
 }
 
 boolean turnMainRelayOn() {
+  if (state == RegulatorState::OPENING_VALVES)
+    return false;
   if (mainRelayOn)
     return true;
-  watchdogLoop();
+  bool valvesAreOpen = !valvesBackExecuted(); // before valvesBackReset()
   valvesBackReset();
   msg.print(F(" MR_on"));
   digitalWrite(MAIN_RELAY_PIN, HIGH);
   mainRelayOn = true;
-  delay(1000); // valves rotation start
+  if (valvesAreOpen)
+    return turnPumpRelayOn();
+  state = RegulatorState::OPENING_VALVES;
+  valvesOpeningStartMillis = loopStartMillis;
+  return false;
+}
+
+bool turnPumpRelayOn() {
+  if (!mainRelayOn) {
+    msg.print(F(" PR_err"));
+    return false;
+  }
+  msg.print(F(" PR_on"));
   waitZeroCrossing();
   digitalWrite(PUMP_RELAY_PIN, HIGH);
   return elsensCheckPump();

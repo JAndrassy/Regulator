@@ -31,7 +31,7 @@ void buttonLoop() {
       alarmSound();
     } else if (!longPressDone && d > LONG_PRESS_INTERVAL) { // long press detected
       beep();
-      manualRunRequest();
+      manualRunRequest = !manualRunRequest;
       longPressDone = true;
     }
   }

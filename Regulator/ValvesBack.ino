@@ -7,16 +7,15 @@ void valvesBackSetup() {
 }
 
 void valvesBackReset() {
-  if (valvesRelayOn) {
+  if (valvesBackRelayOn) {
     digitalWrite(VALVES_RELAY_PIN, LOW);
-    valvesRelayOn = false;
+    valvesBackRelayOn = false;
   }
   valvesBackTime = 0;
 }
 
 void valvesBackLoop() {
 
-  const unsigned int VALVE_ROTATION_TIME = 30000; // 30 sec
   const int BOILER_TEMP_WARM = 25;
   const int BOILER_TEMP_HOT = 65;
   const byte VALVES_BACK_HOUR = 5;
@@ -27,10 +26,10 @@ void valvesBackLoop() {
       valvesBackStart(v);
     }
   }
-  if (valvesRelayOn && (loopStartMillis - valvesBackTime) > VALVE_ROTATION_TIME) {
+  if (valvesBackRelayOn && (loopStartMillis - valvesBackTime) > VALVE_ROTATION_TIME) {
     msg.print(" VR_off");
     digitalWrite(VALVES_RELAY_PIN, LOW);
-    valvesRelayOn = false;
+    valvesBackRelayOn = false;
   }
 }
 
@@ -39,7 +38,7 @@ void valvesBackStart(int v) {
     return;
   msg.print(" VR_on");
   digitalWrite(VALVES_RELAY_PIN, HIGH);
-  valvesRelayOn = true;
+  valvesBackRelayOn = true;
   valvesBackTime = loopStartMillis;
   eventsWrite(VALVES_BACK_EVENT, v, 0);
 }

@@ -37,6 +37,7 @@ const byte STATUS_LED_PIN = 99; // status led not used
 const int MAX_POWER = 2050;
 const int BYPASS_POWER = 2050;
 const unsigned long PUMP_STOP_MILLIS = 10 * 60000; // 10 min
+const unsigned long VALVE_ROTATION_TIME = 30000; // 30 sec
 
 const int EXT_HEATER_POWER = 1000;
 
@@ -49,6 +50,7 @@ enum struct RegulatorState {
   REGULATING = 'R', // PowerPilot.ino
   OVERHEATED = 'O', // ElSesns.ino heater safety thermostat triggered
   MANUAL_RUN = 'H', // ManualRun.ino - H as 'by hand'
+  OPENING_VALVES = 'V'
 };
 
 enum struct AlarmCause {

@@ -86,7 +86,8 @@ void webServerRestRequest(char cmd, char param, ChunkedPrint& chunked) {
       printAlarmJson(chunked);
       break;
     case RestRequest::MANUAL_RUN:
-      manualRunRequest();
+      manualRunRequest = !manualRunRequest;
+      manualRunLoop();
       printValuesJson(chunked);
       break;
     case RestRequest::VALVES_BACK:
@@ -170,7 +171,7 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
 
 void printValuesJson(FormattedPrint& client) {
   client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d %d\",\"p\":%d,\"ec\":%d,\"ts\":%d,\"cp\":%d,\"eh\":%d"),
-      state, version, mainRelayOn, bypassRelayOn, extHeaterIsOn, balboaRelayOn, valvesRelayOn, powerPilotPlan,
+      state, version, mainRelayOn, bypassRelayOn, extHeaterIsOn, balboaRelayOn, valvesBackRelayOn, powerPilotPlan,
       eventsRealCount(false), valvesBackBoilerTemperature(), statsConsumedPowerToday(), extHeaterPlan);
   byte errCount = eventsRealCount(true);
   if (errCount) {

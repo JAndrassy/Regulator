@@ -30,7 +30,7 @@ BLYNK_READ(GAUGE_WIDGET) {
 }
 
 BLYNK_WRITE(MANUAL_RUN_BUTTON) {
-  manualRunRequest();
+  manualRunRequest = !manualRunRequest;
   updateWidgets();
 }
 
@@ -84,7 +84,7 @@ void updateWidgets() {
   Blynk.virtualWrite(VALVES_BACK_WIDGET, valvesBackExecuted() ? 0xFF : 0);
   Blynk.virtualWrite(BOILER_TEMP_WIDGET, valvesBackBoilerTemperature());
   Blynk.virtualWrite(MANUAL_RUN_WIDGET, (short) manualRunMinutesLeft());
-  Blynk.virtualWrite(MANUAL_RUN_BUTTON, state == RegulatorState::MANUAL_RUN);
+  Blynk.virtualWrite(MANUAL_RUN_BUTTON, state == RegulatorState::MANUAL_RUN || manualRunRequest);
   Blynk.virtualWrite(BALBOA_PAUSE_BUTTON, balboaRelayOn);
   Blynk.virtualWrite(POWERPILOT_PLAN_SELECTOR, powerPilotPlan + 1);
   Blynk.virtualWrite(EXT_HEATER_WIDGET, extHeaterIsOn ? 0xFF : 0);
@@ -109,6 +109,9 @@ void updateWidgets() {
       break;
     case RegulatorState::ALARM:
       sb.printf(F("ALARM! cause: %c"), alarmCause);
+      break;
+    case RegulatorState::OPENING_VALVES:
+      sb.print(F("Opening valves"));
       break;
   }
   Blynk.virtualWrite(STATE_WIDGET, buff);

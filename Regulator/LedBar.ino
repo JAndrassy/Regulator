@@ -59,7 +59,7 @@ void ledBarLoop() {
     ledBar.setLed(BYPASS_LED, state == RegulatorState::MANUAL_RUN && blinkLedState ? 0.5 : 1);
   }
   if (valvesBackExecuted()) {
-    ledBar.setLed(5, valvesRelayOn ? 1 : 0.25);
+    ledBar.setLed(5, valvesBackRelayOn ? 1 : 0.25);
   }
   if (state == RegulatorState::ALARM) {
     ledBar.setLed(ALARM_LED, 1);
