@@ -2,8 +2,8 @@
 #include <StreamLib.h>
 #include <TimeLib.h>
 #include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
+//#include <WiFiNINA.h>
 #include <Ethernet.h> //Ethernet 2.00 for all W5000
-//#include <EthernetENC.h> // for ENC28j60
 byte mac[] = SECRET_MAC;
 #define ETHERNET
 #include <SD.h>
@@ -23,7 +23,11 @@ byte mac[] = SECRET_MAC;
 #define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
 #define BLYNK_MAX_SENDBYTES 256
 #define BLYNK_USE_128_VPINS
+#ifdef ETHERNET
 #include <BlynkSimpleEthernet.h>
+#else
+#include <BlynkSimpleWifi.h>
+#endif
 
 #ifdef ARDUINO_ARCH_SAMD
 #include <RTCZero.h>
@@ -83,7 +87,7 @@ int elsensPower; // power calculation
 int measuredPower;
 
 // additional heater control over Wemo Inside smart socket
-byte extHeaterPlan = EXT_HEATER_DISABLED;
+byte extHeaterPlan = EXT_HEATER_NORMAL;
 bool extHeaterIsOn = true; // assume is on to turn it off in loop
 
 char msgBuff[256];
@@ -125,8 +129,10 @@ void setup() {
   Serial.println(freeMemory());
 
 #ifdef __SD_H__
+#ifdef NET_SS_PIN
   pinMode(NET_SS_PIN, OUTPUT);
   digitalWrite(NET_SS_PIN, HIGH); // unselect network device on SPI bus
+#endif
   if (!SD.begin(SD_SS_PIN)) {
     alarmSound();
   } else {
@@ -142,20 +148,22 @@ void setup() {
 #endif
 
   IPAddress ip(192, 168, 1, 6);
+#ifdef ETHERNET
   Ethernet.init(NET_SS_PIN);
   Ethernet.begin(mac, ip);
   delay(500);
+#else
+  WiFi.config(ip);
+  WiFi.begin(SECRET_SSID, SECRET_PASS);
+  WiFi.setFeedWatchdogFunc([]() {watchdogLoop();});
+#endif
   // connection is checked in loop
 
   ArduinoOTA.beforeApply(shutdown);
-#if defined(ARDUINO_AVR_ATMEGA1284) // app binary is larger then half of the flash
+#if defined(ARDUINO_AVR_ATMEGA1284) // app binary is larger than half of the flash
   ArduinoOTA.begin(ip, "regulator", "password", SDStorage);
 #else
   ArduinoOTA.begin(ip, "regulator", "password", InternalStorage);
-#endif
-
-#if defined(ARDUINO_ARCH_SAMD)
-  analogWriteResolution(10);
 #endif
 
   msg.print(F("start"));
@@ -218,24 +226,30 @@ void loop() {
   if (!modbusLoop()) // returns true if data-set is ready
     return;
 
-  susCalibLoop();
-
   elsensLoop();
-//  wemoLoop();
-  consumptionMeterLoop();
 
   extHeaterLoop();
   pilotLoop();
 
+//  wemoLoop();
+  consumptionMeterLoop();
   battSettLoop();
   balboaLoop();
 
   telnetLoop(true); // logs modbus and heating data
   csvLogLoop();
   blynkChartData();
+
+  susCalibLoop();
 }
 
 void shutdown() {
+#ifdef UIP_PERIODIC_TIMER
+  for (int i = 0; i < 4; i++) {
+    Ethernet.maintain();
+    delay(UIP_PERIODIC_TIMER);
+  }
+#endif
   eventsSave();
   statsSave();
   watchdogLoop();
@@ -353,7 +367,6 @@ boolean restHours() {
     state = RegulatorState::REST;
     clearData();
     powerPilotSetPlan(BATTERY_PRIORITY);
-    extHeaterPlan = EXT_HEATER_DISABLED;
   }
   return true;
 }

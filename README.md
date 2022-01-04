@@ -41,7 +41,7 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 ### Electronics
 * Arduino with some shield or module for networking and optional SD card reader for static web files and csv logging
 * [Seeed Grove Base Shield](https://www.seeedstudio.com/Base-Shield-V2-p-1378.html) - the Grove connectors ensure firm connection of wires with simple assemble and disassemble and the shield supplies 5 V VCC for the Grove modules.
-* [Robotdyn AC Light Dimmer Module](https://robotdyn.com/catalog/new-products/ac-light-dimmer-module-2-channel-3-3v-5v-logic-ac-50-60hz-220v-110v.html) - Triac and zero crossing detector for direct AC phase cutting. I use the double dimmer for larger cooler. For 2 kW the single dimmer overheated. First I added a fan. It helped but it was noisy. For 1.5 kW or less it should be good.
+* [Robotdyn AC Light Dimmer Module](https://robotdyn.com/catalog/new-products/ac-light-dimmer-module-2-channel-3-3v-5v-logic-ac-50-60hz-220v-110v.html) - Triac and zero crossing detector for direct AC phase cutting. I use additional heat sink, because for 2 kW the dimmer overheated. For 1.5 kW or less it should be good.
 * [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) 2pcs
 * ACS712 current sensor module
 * [Grove SSR V2](https://wiki.seeedstudio.com/Grove-Solid_State_Relay_V2/) for circulation pump
@@ -155,3 +155,5 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 2021/02 I added extra relay for circ. pump to solve interference from the pump motor at main relay switching
 
 2021/03 ExtHeater.ino for more surplus consumption
+
+<a href="https://www.buymeacoffee.com/jurajandraY" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>

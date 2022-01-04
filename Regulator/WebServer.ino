@@ -28,7 +28,7 @@ void webServerLoop() {
   if (client.connected()) {
     if (client.find(' ')) { // GET /fn HTTP/1.1
       char fn[20];
-      int l = client.readBytesUntil(' ', fn, sizeof(fn));
+      int l = client.readBytesUntil(' ', fn, sizeof(fn) - 1);
       fn[l] = 0;
       while (client.read() != -1);
       if (l == 1) {

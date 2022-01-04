@@ -57,7 +57,7 @@ BLYNK_WRITE(EXT_HEATER_PLAN_SELECTOR) {
 }
 
 void blynkSetup() {
-#ifndef UIP_CONNECT_TIMEOUT
+#if defined(ETHERNET) && !defined(UIP_CONNECT_TIMEOUT)
   _blynkEthernetClient.setConnectionTimeout(4000);
 #endif
   Blynk.config(SECRET_BLYNK_TOKEN, BLYNK_DEFAULT_DOMAIN, BLYNK_DEFAULT_PORT);
@@ -145,7 +145,7 @@ void blynkChartData() {
   usedProductionSum += production - toGrid;
   inverterConsumedSum += inverterAC - toGrid;
   hhConsumptionSum += inverterAC - meterPower;
-  heaterConsumptionSum += elsensPower;
+  heaterConsumptionSum += measuredPower;
 
   short third = inverterAC / 3;
   powerPhaseASum += meterPowerPhaseA + third;

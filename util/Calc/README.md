@@ -5,7 +5,7 @@ The coefficients are determined and fine-tuned by comparing with power measured 
 
 # Power to period calculation
 
-Input for the triac period calculation is the surplus power available for heater. To consume the expected power a corresponding AC wave part must be cut out by setting the period to pulse the triac. The formula I use is an approximation function with coefficients found by comparing the function output with table of power measured with external meter for different triac periods.
+Input for the triac period calculation is the surplus power available for heater. To consume the expected power a corresponding AC wave part must be cut out by setting the period to pulse the triac. The AC voltage rises and falls within the period so the period to power releation is not linear, it is an inclined cosine wave. To remove the wave, we use acos() and adjust the result with coefficients found by comparing the function output with table of power measured with external meter for different triac periods.
 
 The PowerPilot algorithm works good without fine-tuned coefficients or even with a simple `period = availablePower / MAX_POWER` formula because it calculates the new `heatingPower` relative to previous. The better period calculation is good for initial `heatingPower` value calculation and for more realistic values of `heatingPower` variable in CSV logs.
 

@@ -20,11 +20,7 @@ void telnetLoop(boolean log) {
     Serial.println(msgBuff);
   }
   if (!telnetClient) {
-#ifdef ETHERNET
     telnetClient = telnetServer.accept();
-#else
-    telnetClient = telnetServer.available();
-#endif
     if (telnetClient.connected()) {
       telnetClient.println(F("Regulator\r\n"));
     }

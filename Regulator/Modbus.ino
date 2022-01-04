@@ -224,25 +224,33 @@ int modbusRequest(byte uid, unsigned int addr, byte len, short *regs) {
 
   int respDataLen = len * 2;
   byte response[max((int) DATA_IX, respDataLen)];
-  int readLen = modbus.readBytes(response, DATA_IX);
-  if (readLen < DATA_IX) {
-    return MODBUS_NO_RESPONSE;
+
+  while (true) {
+    int readLen = modbus.readBytes(response, DATA_IX);
+    if (readLen < DATA_IX) {
+      return MODBUS_NO_RESPONSE;
+    }
+    switch (response[CODE_IX]) {
+      case FNC_READ_REGS:
+        break;
+      case (FNC_ERR_FLAG | FNC_READ_REGS):
+        return response[ERR_CODE_IX]; // 0x01, 0x02, 0x03 or 0x11
+      default:
+        return -3;
+    }
+    if ((uint8_t)(requestId - 1) != response[0]) {
+      msg.printf(F(" %d!=%d"), requestId - 1, (int) response[0]);
+      int l = response[LENGTH_IX];
+      while (l > 0 && modbus.read() != -1) {
+        l--;
+      }
+      continue; // while
+    }
+    readLen = modbus.readBytes(response, respDataLen);
+    if (readLen < respDataLen)
+      return -4;
+    break;
   }
-  switch (response[CODE_IX]) {
-    case FNC_READ_REGS:
-      break;
-    case (FNC_ERR_FLAG | FNC_READ_REGS):
-      return response[ERR_CODE_IX]; // 0x01, 0x02, 0x03 or 0x11
-    default:
-      return -3;
-  }
-  if ((uint8_t)(requestId - 1) != response[0]) {
-    msg.printf(F(" %d!=%d"), requestId - 1, (int) response[0]);
-    return -2;
-  }
-  readLen = modbus.readBytes(response, respDataLen);
-  if (readLen < respDataLen)
-    return -4;
   for (int i = 0, j = 0; i < len; i++, j += 2) {
     regs[i] = response[j] * 256 + response[j + 1];
   }
@@ -283,14 +291,13 @@ int modbusWriteSingle(unsigned int address, int val) {
 }
 
 int modbusConnection() {
+  while (modbus.read() != -1); // clean the buffer
   if (!modbus.connected()) {
     modbus.stop();
     if (!modbus.connect(symoAddress, 502))
       return MODBUS_CONNECT_ERROR;
     modbus.setTimeout(2000);
     msg.print(F(" MB_reconnect"));
-  } else {
-    while (modbus.read() != -1); // clean the buffer
   }
   return 0;
 }

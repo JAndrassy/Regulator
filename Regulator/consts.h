@@ -15,7 +15,7 @@ const byte NET_SS_PIN = 10; // Ethernet shield
 // const byte PUMP_RELAY_PIN = ??;
 #elif defined(PROBADIO)
 const byte ZC_EI_PIN = 3; // INT1 pin. on one Grove connector with TRIAC_PIN
-const byte TRIAC_PIN = 4; // TIMER1 OC2A
+const byte TRIAC_PIN = 4; // TIMER1 OC1B
 const byte MAIN_RELAY_PIN = 5;
 const byte PUMP_RELAY_PIN = 6;
 const byte SD_SS_PIN = 10;  // Adafruit SD card adapter directly on pins 10 to 13

@@ -140,12 +140,12 @@ void powerPilotStop() {
 
 float power2TriacPeriod(int power) {
   const float POWER2PERIOD_SHIFT = 0.08;
-  const float POWER2PERIOD_KOEF = 0.5;
+  const float POWER2PERIOD_KOEF = 0.25;
 
   if (power < MIN_POWER)
     return 0.0;
   if (power >= MAX_POWER)
     return 0.95;
   float ratio = (float) power / MAX_POWER;
-  return POWER2PERIOD_SHIFT + POWER2PERIOD_KOEF * asin(sqrt(ratio));
+  return POWER2PERIOD_SHIFT + POWER2PERIOD_KOEF * acos(1 - 2 * ratio);
 }
