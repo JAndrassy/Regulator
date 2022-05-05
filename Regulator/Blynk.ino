@@ -110,9 +110,6 @@ void updateWidgets() {
     case RegulatorState::ALARM:
       sb.printf(F("ALARM! cause: %c"), alarmCause);
       break;
-    case RegulatorState::OPENING_VALVES:
-      sb.print(F("Opening valves"));
-      break;
   }
   Blynk.virtualWrite(STATE_WIDGET, buff);
   eventsBlynk();

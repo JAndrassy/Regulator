@@ -31,7 +31,7 @@ function onLoad(cmd) {
 var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", 
     "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Boiler temp.", 
     "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan", "eh" : "Ext. Heater Plan"};
-var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM", "V" : "VALVES"};
+var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "N" : "Network", "P" : "Pump", "M" : "MODBUS"};
 var planLabels  = ["Battery has priority (default)", "Heating has priority AM", "Disable heating AM", "Disable heating"];
 var extHeaterPlanLabels  = ["Ext. heater disabled", "Use ext. heater"];

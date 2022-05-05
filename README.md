@@ -42,10 +42,9 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * Arduino with some shield or module for networking and optional SD card reader for static web files and csv logging
 * [Seeed Grove Base Shield](https://www.seeedstudio.com/Base-Shield-V2-p-1378.html) - the Grove connectors ensure firm connection of wires with simple assemble and disassemble and the shield supplies 5 V VCC for the Grove modules.
 * [Robotdyn AC Light Dimmer Module](https://robotdyn.com/catalog/new-products/ac-light-dimmer-module-2-channel-3-3v-5v-logic-ac-50-60hz-220v-110v.html) - Triac and zero crossing detector for direct AC phase cutting. I use additional heat sink, because for 2 kW the dimmer overheated. For 1.5 kW or less it should be good.
-* [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) 2pcs
-* ACS712 current sensor module
-* [Grove SSR V2](https://wiki.seeedstudio.com/Grove-Solid_State_Relay_V2/) for circulation pump
-* [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) or Grove Solid State Relay V2 - for 'valves back' circuit
+* [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) for Triac bypass at full power
+* ACS712 20 A current sensor module
+* [Grove SSR V2](https://wiki.seeedstudio.com/Grove-Solid_State_Relay_V2/) 2 pcs for circulation pump and valves
 * [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) is for Balboa hot tub heating suspend activation
 * [Grove Speaker](https://www.seeedstudio.com/Grove-Speaker-p-1445.html) - Speaker module with amplifier for strong beeps
 * [Grove LED Bar](https://www.seeedstudio.com/Grove-LED-Bar-v2.0-p-2474.html) - 10 LEDs with individual dimming requiring only any two digital pins 
@@ -55,16 +54,14 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 
 #### Removed components
 
-* Kemo M028N with [Kemo M150](https://www.kemo-electronic.de/en/Transformer-Dimmer/Converter/M150-DC-pulse-converter.php) - to regulate the heating power with PWM signal. The high VA rating is necessary because the system can run hours on maximum.
-* [Grove Screw Terminal](https://www.seeedstudio.com/Grove-Screw-Terminal-p-996.html) - to connect Grove connector to M150
-* [Grove Mosfet](https://www.seeedstudio.com/Grove-MOSFET-p-1594.html) - instead of Screw Terminal for 5 V PWM with 3.3 V boards  
-* [Grove I2C ADC module](https://www.seeedstudio.com/grove-i2c-adc-p-1580.html) - to read the electricity sensor with esp8266
+* Kemo M028N with [Kemo M150](https://www.kemo-electronic.de/en/Transformer-Dimmer/Converter/M150-DC-pulse-converter.php) - to regulate the heating power with PWM signal. 
+* [Grove Mosfet](https://www.seeedstudio.com/Grove-MOSFET-p-1594.html) - for 5 V PWM with 3.3 V boards  
+* [Grove I2C ADC module](https://www.seeedstudio.com/grove-i2c-adc-p-1580.html) - to read the current sensor with esp8266
 * [Grove Temperature Sensor](https://www.seeedstudio.com/Grove-Temperature-Sensor-p-774.html) - it was measuring  the next heating distributor to determine if the main heating is running
-
+* [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) - for 'valves back' circuit replaced with or Grove SSR V2
 
 ### MCU options
-* [Arduino Uno WiFi](https://github.com/jandrassy/UnoWiFiDevEdSerial1/wiki) 
-* any AVR Arduino in Uno or Mega format with some shield or module for networking
+* any classic AVR Arduino in Uno or Mega format with some shield or module for networking
 * Arduino Zero or M0 in Uno format with some shield or module for networking and with SD card to save events (no EEPROM)
 * Arduino MKR board on Arduino MKR Connector Carrier (Grove compatible) with on-board WiFi, ETH Shield or other networking module  
 * Nano 33 IoT with [Nano Grove shield](https://www.seeedstudio.com/Grove-Shield-for-Arduino-Nano-p-4112.html)
@@ -152,8 +149,10 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 
 2020/-- GitHub user stealth-ultd built [his version](https://github.com/jandrassy/Regulator/discussions/1#discussioncomment-282050) of Regulator.
 
-2021/02 I added extra relay for circ. pump to solve interference from the pump motor at main relay switching
+2021/02 I added extra relay for circ. pump to solve EMI from the pump motor at main relay switching
 
 2021/03 ExtHeater.ino for more surplus consumption
+
+2022/04 Removed separate circulation pump relay. It didn't solve EMI, which caused resets. 'Main' relay now controls only pump and valves so Triac module's ZC detector can detect zero crossing to time switching of the 'main' relay. The 2A Grove SSR module can now be the 'main' relay. EMI is solved.
 
 <a href="https://www.buymeacoffee.com/jurajandraY" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>

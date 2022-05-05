@@ -104,7 +104,6 @@ void sdTimeCallback(uint16_t* date, uint16_t* time) {
 
 void setup() {
   pinMode(MAIN_RELAY_PIN, OUTPUT);
-  pinMode(PUMP_RELAY_PIN, OUTPUT);
   pinMode(BYPASS_RELAY_PIN, OUTPUT);
   digitalWrite(BYPASS_RELAY_PIN, LOW);
 
@@ -189,7 +188,7 @@ void loop() {
   loopStartMillis = millis();
   hourNow = hour();
 
-  handleRelaysOnStates();
+  handleSuspendAndOff();
   statsLoop();
 
   watchdogLoop();
@@ -255,23 +254,18 @@ void shutdown() {
   watchdogLoop();
 }
 
-void handleRelaysOnStates() {
+void handleSuspendAndOff() {
 
   static unsigned long lastOn = 0; // millis for the cool-down timer
 
-  if (state == RegulatorState::OPENING_VALVES && loopStartMillis - valvesOpeningStartMillis > VALVE_ROTATION_TIME) {
-    state = RegulatorState::MONITORING;
-    turnPumpRelayOn();
-  }
   if (state != RegulatorState::REGULATING && state != RegulatorState::MANUAL_RUN) {
     heatingPower = 0;
   }
-  if (heatingPower > 0 || state == RegulatorState::OPENING_VALVES) {
+  if (heatingPower > 0) {
     lastOn = loopStartMillis;
   } else if (mainRelayOn) { // && heatingPower == 0
     powerPilotStop();
     if (bypassRelayOn) {
-      msg.print(F(" BR_off"));
       waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, LOW);
       bypassRelayOn = false;
@@ -279,9 +273,6 @@ void handleRelaysOnStates() {
     if (loopStartMillis - lastOn > PUMP_STOP_MILLIS) {
       msg.print(F(" MR_off"));
       waitZeroCrossing();
-      digitalWrite(PUMP_RELAY_PIN, LOW);
-      waitZeroCrossing();
-      delay(5);
       digitalWrite(MAIN_RELAY_PIN, LOW);
       mainRelayOn = false;
     }
@@ -372,30 +363,12 @@ boolean restHours() {
 }
 
 boolean turnMainRelayOn() {
-  if (state == RegulatorState::OPENING_VALVES)
-    return false;
   if (mainRelayOn)
     return true;
-  bool valvesAreOpen = !valvesBackExecuted(); // before valvesBackReset()
   valvesBackReset();
   msg.print(F(" MR_on"));
   digitalWrite(MAIN_RELAY_PIN, HIGH);
   mainRelayOn = true;
-  if (valvesAreOpen)
-    return turnPumpRelayOn();
-  state = RegulatorState::OPENING_VALVES;
-  valvesOpeningStartMillis = loopStartMillis;
-  return false;
-}
-
-bool turnPumpRelayOn() {
-  if (!mainRelayOn) {
-    msg.print(F(" PR_err"));
-    return false;
-  }
-  msg.print(F(" PR_on"));
-  waitZeroCrossing();
-  digitalWrite(PUMP_RELAY_PIN, HIGH);
   return elsensCheckPump();
 }
 

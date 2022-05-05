@@ -12,20 +12,18 @@ const byte SD_SS_PIN = 4;  // Ethernet shield
 const byte ZC_EI_PIN = 5;  // on one Grove connector with TRIAC_PIN
 const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
 const byte NET_SS_PIN = 10; // Ethernet shield
-// const byte PUMP_RELAY_PIN = ??;
 #elif defined(PROBADIO)
 const byte ZC_EI_PIN = 3; // INT1 pin. on one Grove connector with TRIAC_PIN
 const byte TRIAC_PIN = 4; // TIMER1 OC1B
 const byte MAIN_RELAY_PIN = 5;
-const byte PUMP_RELAY_PIN = 6;
+const byte BYPASS_RELAY_PIN = 6;
 const byte SD_SS_PIN = 10;  // Adafruit SD card adapter directly on pins 10 to 13
 //pin 10-13 SPI (Ethernet, SD)
 const byte NET_SS_PIN = A5; // is close to SPI header
 #endif
-const byte BYPASS_RELAY_PIN = 7;
+const byte BUTTON_PIN = 7;
 const byte LEDBAR_DATA_PIN = 8;
 const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
-const byte BUTTON_PIN = SCL; // Grove Base shield I2C connector
 
 // A0 free
 const byte ELSENS_PIN = A1;
@@ -49,8 +47,7 @@ enum struct RegulatorState {
   MONITORING = 'M', // SoC < xx%
   REGULATING = 'R', // PowerPilot.ino
   OVERHEATED = 'O', // ElSesns.ino heater safety thermostat triggered
-  MANUAL_RUN = 'H', // ManualRun.ino - H as 'by hand'
-  OPENING_VALVES = 'V'
+  MANUAL_RUN = 'H'  // ManualRun.ino - H as 'by hand'
 };
 
 enum struct AlarmCause {
