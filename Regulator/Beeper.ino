@@ -1,6 +1,6 @@
 
-const int BEEP_1 = 4186;
-const int BEEP_2 = 4699;
+const int BEEP_1 = 2637;
+const int BEEP_2 = 2794;
 
 void beeperLoop() {
 
@@ -24,19 +24,15 @@ void beeperLoop() {
 
 void alarmSound() {
   Serial.println("ALARM");
-  pinMode(TONE_PIN, OUTPUT);
   for (int i = 0; i < 3; i++) {
     beeperTone(BEEP_1, 200);
     beeperTone(BEEP_2, 200);
   }
-  pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
 }
 
 void beep() {
   Serial.println("beep");
-  pinMode(TONE_PIN, OUTPUT);
   beeperTone(BEEP_1, 200);
-  pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
 }
 
 void beeperTone(int freq, uint32_t time) {

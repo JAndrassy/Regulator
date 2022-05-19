@@ -46,7 +46,7 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * ACS712 20 A current sensor module
 * [Grove SSR V2](https://wiki.seeedstudio.com/Grove-Solid_State_Relay_V2/) 2 pcs for circulation pump and valves
 * [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) is for Balboa hot tub heating suspend activation
-* [Grove Speaker](https://www.seeedstudio.com/Grove-Speaker-p-1445.html) - Speaker module with amplifier for strong beeps
+* [Grove Passive Buzzer](https://www.seeedstudio.com/Grove-Passive-Buzzer-p-4525.html) - buzzer module for strong melody beeps
 * [Grove LED Bar](https://www.seeedstudio.com/Grove-LED-Bar-v2.0-p-2474.html) - 10 LEDs with individual dimming requiring only any two digital pins 
 * 5 mm status LED with resistor as simple alternative to LED Bar
 * Button - plain momentary push-button to be used with internal pin pull-up (do not use the Grove button module, it has a pull-down and when you disconnected it, the pin floats.
