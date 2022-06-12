@@ -243,6 +243,7 @@ void loop() {
 }
 
 void shutdown() {
+  watchdogLoop();
 #ifdef UIP_PERIODIC_TIMER
   for (int i = 0; i < 4; i++) {
     Ethernet.maintain();
@@ -251,7 +252,6 @@ void shutdown() {
 #endif
   eventsSave();
   statsSave();
-  watchdogLoop();
 }
 
 void handleSuspendAndOff() {

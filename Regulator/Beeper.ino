@@ -23,7 +23,6 @@ void beeperLoop() {
 }
 
 void alarmSound() {
-  Serial.println("ALARM");
   for (int i = 0; i < 3; i++) {
     beeperTone(BEEP_1, 200);
     beeperTone(BEEP_2, 200);
@@ -31,7 +30,6 @@ void alarmSound() {
 }
 
 void beep() {
-  Serial.println("beep");
   beeperTone(BEEP_1, 200);
 }
 

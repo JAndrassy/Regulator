@@ -16,8 +16,8 @@ void elsensLoop() {
   const int PUMP_POWER = 40;
 
   // system's power factor characteristics
-  const float PF_ANGLE_INTERVAL = PI * 0.33;
-  const float PF_ANGLE_SHIFT = PI * 0.22;
+  const float PF_ANGLE_INTERVAL = PI * 0.34;
+  const float PF_ANGLE_SHIFT = PI * 0.21;
 
 #ifdef ARDUINO_SAMD_MKRZERO
   // ACS712 20A analogReadFast over MKR Connector Carrier A pin's voltage divider with capacitor removed
@@ -98,18 +98,6 @@ int readElSens() {
     n = n / 2; // half of the values are zeros for removed negative voltages
   }
   return sqrt((double) sum / n) * RMS_INT_SCALE;
-}
-
-void elsensWaitZeroCrossing() {
-
-  const int ZC_BAND = 10;
-
-  unsigned long startMillis = millis();
-  while (millis() - startMillis < 10) { // 10 milliseconds of AC half wave
-    short v = elsensAnalogRead();
-    if (v > ELSENS_ANALOG_MIDDLE_VALUE - ZC_BAND && v < ELSENS_ANALOG_MIDDLE_VALUE + ZC_BAND)
-      break;
-  }
 }
 
 unsigned short elsensAnalogRead() {

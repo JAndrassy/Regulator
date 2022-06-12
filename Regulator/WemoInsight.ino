@@ -79,7 +79,7 @@ int wemoRequest(const char* service, const char* action, const char* param, cons
   int l = -2;
   client.setTimeout(1000);
   if (client.find(sbBuff)) {
-    l = client.readBytesUntil('<', response, size);
+    l = client.readBytesUntil('<', response, size - 1);
     if (l >= 0) {
       response[l] = 0;
     }

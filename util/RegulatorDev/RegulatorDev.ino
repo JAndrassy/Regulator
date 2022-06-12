@@ -1,23 +1,11 @@
 
-#define TRIAC
-
-#ifdef TRIAC
 #include <TriacLib.h>
-#endif
 
-#ifdef ESP8266
-#include <ESP8266WiFi.h>
-#include <ArduinoOTA.h>
-#elif defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
-#include <WiFiLink.h>
-#include <UnoWiFiDevEdSerial1.h>
-#else
 #include <Ethernet.h>
 #include <SD.h>
 #define NO_OTA_PORT
 #include <ArduinoOTA.h>
 byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
-#endif
 
 #if defined(ethernet_h_) || defined(UIPETHERNET_H)
 #define NetServer EthernetServer
@@ -27,17 +15,7 @@ byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 #define NetClient WiFiClient
 #endif
 
-#ifdef ESP8266
-const byte MAIN_RELAY_PIN = 16; //GBS_D2_io16;
-// GBS_D3 and D4 I2C
-const byte BYPASS_PIN = 0; //GBS_D5_io0_PULLUP;
-const byte TONE_PIN = 2; //GBS_D6_io2_PULLUP;
-const byte PWM_PIN = 14; // GBS_D7_io14;
-const byte TEMSENS_PIN = A0;
-const byte BALBOA_RELAY_PIN = 10; // GBS_A2_io15_PULLDOWN; // jumper wire from pin 10 to unused A2
-const byte VALVES_RELAY_PIN = 3; // GBS_A3_io3_TX0; // jumper wire from pin TX to unused A3
-
-#elif ARDUINO_SAMD_MKRZERO // on MKR Connector Carrier
+#ifdef ARDUINO_SAMD_MKRZERO // on MKR Connector Carrier
 
 const byte TONE_PIN = 0;
 const byte BALBOA_RELAY_PIN = 1;
@@ -60,28 +38,21 @@ const byte SD_SS_PIN = SDCARD_SS_PIN; // internal pin of MKR ZERO
 #else
 
 const byte TONE_PIN = 2;
-#ifdef TRIAC
 #ifdef ARDUINO_SAMD_ZERO
 const byte MAIN_RELAY_PIN = 3;
 const byte SD_SS_PIN = 4;  // Ethernet shield
 const byte ZC_EI_PIN = 5;  // on one Grove connector with TRIAC_PIN
 const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
 const byte NET_SS_PIN = 10; // Ethernet shield
-// const byte PUMP_RELAY_PIN = ??;
-#elif defined(PROBADIO)
+#elif defined(ARDUINO_AVR_ATMEGA1284)
 const byte ZC_EI_PIN = 3; // INT1 pin. on one Grove connector with TRIAC_PIN
 const byte TRIAC_PIN = 4; // TIMER1 OC2A
 const byte MAIN_RELAY_PIN = 5;
-const byte PUMP_RELAY_PIN = 6;
+const byte BYPASS_RELAY_PIN = 6;
 const byte SD_SS_PIN = 10;  // Adafruit SD card adapter directly on pins 10 to 13
 //pin 10-13 SPI (Ethernet, SD)
 const byte NET_SS_PIN = A5; // is close to SPI header
 #endif
-#else
-const byte MAIN_RELAY_PIN = 3;
-const byte PWM_PIN = 6;
-#endif
-const byte BYPASS_RELAY_PIN = 7;
 
 // A0 free
 const byte ELSENS_PIN = A1;
@@ -89,9 +60,8 @@ const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
 #endif
 
-const int START_BEEP = 4186;
-const int BEEP_1 = 4186;
-const int BEEP_2 = 4699;
+const int BEEP_1 = 2637;
+const int BEEP_2 = 2794;
 
 NetServer telnetServer(2323);
 
@@ -119,12 +89,9 @@ void setup() {
   Wire.setClock(400000);
 #endif
 
-#ifdef TRIAC
   Triac::setup(ZC_EI_PIN, TRIAC_PIN);
-#endif
 
   pinMode(BYPASS_RELAY_PIN, OUTPUT);
-  pinMode(PUMP_RELAY_PIN, OUTPUT);
   pinMode(MAIN_RELAY_PIN, OUTPUT);
   pinMode(VALVES_RELAY_PIN, OUTPUT);
   pinMode(BALBOA_RELAY_PIN, OUTPUT);
@@ -145,38 +112,14 @@ void setup() {
   }
 #endif
 
-#ifdef ESP8266
-  ArduinoOTA.begin();
-  WiFi.mode(WIFI_STA);
-  IPAddress ip(192, 168, 1, 8);
-  IPAddress gw(192, 168, 1, 1);
-  IPAddress sn(255, 255, 255, 0);
-  WiFi.config(ip, gw, sn);
-  WiFi.begin("", "");
-  Serial.println(WiFi.waitForConnectResult());
-  Serial.println(WiFi.localIP());
-#elif defined(ethernet_h_) || defined(UIPETHERNET_H)
   Ethernet.init(NET_SS_PIN);
   IPAddress ip(192, 168, 1, 6);
   Ethernet.begin(mac, ip);
-#else
-  Serial1.begin(115200);
-  Serial1.resetESP();
-  WiFi.init(&Serial1);
-  delay(3000);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(10);
-  }
-#endif
 
 #if defined(ARDUINO_AVR_ATMEGA1284)
   ArduinoOTA.begin(ip, "regulator", "password", SDStorage);
 #else
   ArduinoOTA.begin(ip, "regulator", "password", InternalStorage);
-#endif
-
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_NRF5)
-  analogWriteResolution(10);
 #endif
 
   telnetServer.begin();
@@ -194,7 +137,6 @@ void setup() {
   beep();
 
   digitalWrite(BYPASS_RELAY_PIN, LOW);
-  digitalWrite(PUMP_RELAY_PIN, LOW);
   digitalWrite(MAIN_RELAY_PIN, LOW);
   Serial.println("READY");
 }
@@ -207,7 +149,7 @@ void loop() {
   ArduinoOTA.handle();
 
   if (!client) {
-    client = telnetServer.available();
+    client = telnetServer.accept();
     if (!client)
       return;
   }
@@ -232,7 +174,6 @@ void loop() {
 
     if (v == -1) { // main relay off
       if (mainRelayOn) {
-        digitalWrite(PUMP_RELAY_PIN, LOW);
         Triac::waitZeroCrossing();
         digitalWrite(MAIN_RELAY_PIN, LOW);
         mainRelayOn = false;
@@ -243,12 +184,8 @@ void loop() {
         digitalWrite(MAIN_RELAY_PIN, HIGH);
         mainRelayOn = true;
       }
-    } else if (v == -3) { // pump relay on
-      digitalWrite(PUMP_RELAY_PIN, HIGH);
-
     } else if (v == -4) { // valves back on
       if (mainRelayOn) {
-        digitalWrite(PUMP_RELAY_PIN, LOW);
         Triac::waitZeroCrossing();
         digitalWrite(MAIN_RELAY_PIN, LOW);
         mainRelayOn = false;
@@ -256,39 +193,26 @@ void loop() {
       digitalWrite(VALVES_RELAY_PIN, HIGH);
 
     } else if (v == -5) { // bypass on
-#ifdef TRIAC
       pilotTriacPeriod(0);
-#else
-      analogWrite(PWM_PIN, 0);
-#endif
       if (!mainRelayOn) {
+        Triac::waitZeroCrossing();
         digitalWrite(MAIN_RELAY_PIN, HIGH);
         mainRelayOn = true;
-        delay(1000); // valves rotation start
-        digitalWrite(PUMP_RELAY_PIN, HIGH);
+        delay(1000);
       }
       Triac::waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, HIGH);
     } else if (v == 0) {
-#ifdef TRIAC
       pilotTriacPeriod(0);
-#else
-      analogWrite(PWM_PIN, 0);
-#endif
       Triac::waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, LOW);
     } else {
       if (!mainRelayOn) {
         digitalWrite(MAIN_RELAY_PIN, HIGH);
         mainRelayOn = true;
-        delay(1000); // valves rotation start
-        digitalWrite(PUMP_RELAY_PIN, HIGH);
+        delay(1000);
       }
-#ifdef TRIAC
       pilotTriacPeriod((float) v / 10000);
-#else
-      analogWrite(PWM_PIN, v);
-#endif
       Triac::waitZeroCrossing();
       digitalWrite(BYPASS_RELAY_PIN, LOW);
     }
@@ -351,9 +275,7 @@ void beeperTone(int freq, uint32_t time) {
 
 void beep() {
   Serial.println("beep");
-  pinMode(TONE_PIN, OUTPUT);
   beeperTone(BEEP_1, 200);
-  pinMode(TONE_PIN, INPUT); // to reduce noise from amplifier
 }
 
 void sampleAC(unsigned long start) {

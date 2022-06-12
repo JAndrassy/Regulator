@@ -67,6 +67,8 @@ void zeroCrossing() {
 
 void setup(byte zcPin, byte triacPin) {
 
+  pinMode(zcPin, INPUT_PULLUP); // instead of wire to Vcc of the module
+
 #ifdef ARDUINO_ARCH_AVR
   attachInterrupt(digitalPinToInterrupt(zcPin), zeroCrossing, RISING);
 

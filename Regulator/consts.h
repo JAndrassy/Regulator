@@ -32,8 +32,8 @@ const byte VALVES_RELAY_PIN = A3;
 
 const byte STATUS_LED_PIN = 99; // status led not used
 
-const int MAX_POWER = 2050;
-const int BYPASS_POWER = 2050;
+const int MAX_POWER = 2100;
+const int BYPASS_POWER = 2100;
 const unsigned long PUMP_STOP_MILLIS = 10 * 60000; // 10 min
 const unsigned long VALVE_ROTATION_TIME = 30000; // 30 sec
 

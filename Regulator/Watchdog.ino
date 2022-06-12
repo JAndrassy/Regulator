@@ -21,6 +21,10 @@ void watchdogLoop() {
   wdt_reset();
 }
 
+void watchdogStop() {
+  wdt_disable();
+}
+
 ISR(WDT_vect) {
   wdt_counter++;
   if (wdt_counter < WDT_COUNT) {
@@ -49,6 +53,9 @@ void watchdogSetup() {
 
 void watchdogLoop() {
   wdt.clear();
+}
+
+void watchdogStop() {
 }
 
 void watchdogShutdown() {
