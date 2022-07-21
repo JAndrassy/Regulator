@@ -28,13 +28,9 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 
 <img src="img/schemaAC-triac.png" width="700">
 
-### Regulator box versions with Kemo modules
+### Project history
 
-* [with Arduino Uno WiFi](img/regulator-labeled.png)
-* [with Wemos D1 R2](img/regulator-d1-labeled.png)
-* [AC schematics](img/schemaAC.png)
-* [AC schematics without valves control](img/schemaACsimple.png)
-
+[Gallery](img/GALLERY.MD)
 
 ## Hardware
 
