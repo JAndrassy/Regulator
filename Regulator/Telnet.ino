@@ -16,8 +16,10 @@ void telnetLoop(boolean log) {
         freeMem, (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn, extHeaterIsOn,
         heatingPower, meterPower, pvSOC, pvChargingPower,
         powerPilotRaw, elsens, elsensPower, inverterAC, voltage, measuredPower);
-    Serial.print(buff);
-    Serial.println(msgBuff);
+#ifdef SERIAL_DEBUG
+    SERIAL_DEBUG.print(buff);
+    SERIAL_DEBUG.println(msgBuff);
+#endif
   }
   if (!telnetClient) {
     telnetClient = telnetServer.accept();

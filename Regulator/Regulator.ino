@@ -3,9 +3,10 @@
 #include <TimeLib.h>
 #include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
 //#include <WiFiNINA.h>
-#include <Ethernet.h> //Ethernet 2.00 for all W5000
-byte mac[] = SECRET_MAC;
-#define ETHERNET
+#include <WiFiEspAT.h> // with https://github.com/JiriBilek/ESP_ATMod for more than 1 server
+//#include <Ethernet.h> //Ethernet 2.00 for all W5000
+//byte mac[] = SECRET_MAC;
+//#define ETHERNET
 #include <SD.h>
 #define FS SD
 #define NO_OTA_PORT
@@ -19,7 +20,10 @@ byte mac[] = SECRET_MAC;
 
 #include <TriacLib.h>
 
-#define BLYNK_PRINT Serial
+#define SERIAL_AT Serial
+//#define SERIAL_DEBUG Serial
+
+//#define BLYNK_PRINT SERIAL_DEBUG
 #define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
 #define BLYNK_MAX_SENDBYTES 256
 #define BLYNK_USE_128_VPINS
@@ -114,8 +118,6 @@ void setup() {
 //  statusLedSetup();
   balboaSetup();
 
-  Serial.begin(115200);
-
   beep();
 
 #ifdef ARDUINO_ARCH_SAMD
@@ -123,9 +125,12 @@ void setup() {
   setTime(rtc.getEpoch());
 #endif
 
-  Serial.println(version);
-  Serial.print(F("mem "));
-  Serial.println(freeMemory());
+#ifdef SERIAL_DEBUG
+  SERIAL_DEBUG.begin(115200);
+  SERIAL_DEBUG.println(version);
+  SERIAL_DEBUG.print(F("mem "));
+  SERIAL_DEBUG.println(freeMemory());
+#endif
 
 #ifdef __SD_H__
 #ifdef NET_SS_PIN
@@ -137,7 +142,9 @@ void setup() {
   } else {
     SdFile::dateTimeCallback(sdTimeCallback);
     sdCardAvailable = true;
-    Serial.println(F("SD card initialized"));
+#ifdef SERIAL_DEBUG
+    SERIAL_DEBUG.println(F("SD card initialized"));
+#endif
 #if defined(ARDUINO_AVR_ATMEGA1284)
     // clear the update file as soon as possible
     SDStorage.setUpdateFileName("FIRMWARE.BIN");
@@ -151,6 +158,11 @@ void setup() {
   Ethernet.init(NET_SS_PIN);
   Ethernet.begin(mac, ip);
   delay(500);
+#elif defined(_WIFI_ESP_AT_H_)
+  SERIAL_AT.begin(250000);
+  SERIAL_AT.setTimeout(2000);
+  WiFi.init(SERIAL_AT);
+  delay(2000); // the AP is remembered in the firmware and start automatically
 #else
   WiFi.config(ip);
   WiFi.begin(SECRET_SSID, SECRET_PASS);
@@ -158,6 +170,7 @@ void setup() {
 #endif
   // connection is checked in loop
 
+  ArduinoOTA.onStart([]() {watchdogStop();});
   ArduinoOTA.beforeApply(shutdown);
 #if defined(ARDUINO_AVR_ATMEGA1284) // app binary is larger than half of the flash
   ArduinoOTA.begin(ip, "regulator", "password", SDStorage);
