@@ -154,3 +154,5 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 <a href="https://www.buymeacoffee.com/jurajandraY" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 2022/07 Networking with Grove UART WiFi (esp8266) on Serial with my WiFiEspAT library and ESP_ATMod sketch as firmware.
+
+2022/08 Arduino Nano 33 IoT experiment

@@ -2,7 +2,11 @@
 #include <avdweb_AnalogReadFast.h>
 #endif
 
+#ifdef ARDUINO_SAMD_NANO_33_IOT
+const int ELSENS_ANALOG_MIDDLE_VALUE = 533; // over voltage divider
+#else
 const int ELSENS_ANALOG_MIDDLE_VALUE = 512;
+#endif
 
 const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resume 30 sec before pump stops
 
@@ -23,12 +27,18 @@ void elsensLoop() {
   // ACS712 20A analogReadFast over MKR Connector Carrier A pin's voltage divider with capacitor removed
   const int ELSENS_MAX_VALUE = 1500;
   const float ELSENS_VALUE_COEF = 1.86;
+  const int ELSENS_VALUE_SHIFT = 100;
+#elif ARDUINO_SAMD_NANO_33_IOT
+  // ACS712 20A analogReadFast voltage divider
+  const int ELSENS_MAX_VALUE = 1700;
+  const float ELSENS_VALUE_COEF = 1.6;
+  const int ELSENS_VALUE_SHIFT = 50;
 #else
   // 5 V ATmega 'analog' pin and ACS712 sensor 20A version
   const int ELSENS_MAX_VALUE = 2000;
   const float ELSENS_VALUE_COEF = 1.31;
-#endif
   const int ELSENS_VALUE_SHIFT = 100;
+#endif
   const int ELSENS_MIN_HEATING_VALUE = 250;
 
   // waiting for water to cooldown

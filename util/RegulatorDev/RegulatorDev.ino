@@ -1,21 +1,45 @@
 
 #include <TriacLib.h>
 
-#include <Ethernet.h>
+//#include <Ethernet.h>
+#include <WiFiNINA.h>
 #include <SD.h>
 #define NO_OTA_PORT
 #include <ArduinoOTA.h>
+
+#include "arduino_secrets.h"
 byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 
 #if defined(ethernet_h_) || defined(UIPETHERNET_H)
 #define NetServer EthernetServer
 #define NetClient EthernetClient
+#define ETHERNET
 #else
 #define NetServer WiFiServer
 #define NetClient WiFiClient
 #endif
 
-#ifdef ARDUINO_SAMD_MKRZERO // on MKR Connector Carrier
+#ifdef ARDUINO_SAMD_NANO_33_IOT // on Nano Grove Shield
+const byte MAIN_RELAY_PIN = 0; // D0+D1 connector (Serial1)
+const byte BYPASS_RELAY_PIN = 1; //
+const byte BALBOA_RELAY_PIN = 2;  // D2+D3
+const byte VALVES_RELAY_PIN = 3;
+const byte ZC_EI_PIN = 4; // D4+D5
+const byte TRIAC_PIN = 5;
+const byte TONE_PIN = 6; // D6+D7
+
+const byte ELSENS_PIN = A0; // A0+A1 connector
+const byte BUTTON_PIN = A2; //A2+A3
+// A4,A5 I2C
+const byte LEDBAR_CLOCK_PIN = A6; // A6+A7
+const byte LEDBAR_DATA_PIN = A7;
+
+// not on Grove Shield:
+// 8 and 9 // free
+const byte SD_SS_PIN = 10;
+// SPI 11, 12, 13
+
+#elif defined(ARDUINO_SAMD_MKRZERO) // on MKR Connector Carrier
 
 const byte TONE_PIN = 0;
 const byte BALBOA_RELAY_PIN = 1;
@@ -35,7 +59,7 @@ const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
 
 const byte SD_SS_PIN = SDCARD_SS_PIN; // internal pin of MKR ZERO
 
-#else
+#else // boards with Grove Uno base shield
 
 const byte TONE_PIN = 2;
 #ifdef ARDUINO_SAMD_ZERO
@@ -101,8 +125,10 @@ void setup() {
   Serial.println(version);
 
 #ifdef __SD_H__
+#ifdef NET_SS_PIN
   pinMode(NET_SS_PIN, OUTPUT);
   digitalWrite(NET_SS_PIN, HIGH);
+#endif
   if (SD.begin(SD_SS_PIN)) {
     Serial.println(F("SD card initialized"));
 #if defined(ARDUINO_AVR_ATMEGA1284)
@@ -112,9 +138,14 @@ void setup() {
   }
 #endif
 
-  Ethernet.init(NET_SS_PIN);
   IPAddress ip(192, 168, 1, 6);
+#ifdef ETHERNET
+  Ethernet.init(NET_SS_PIN);
   Ethernet.begin(mac, ip);
+#else
+  WiFi.config(ip);
+  WiFi.begin(SECRET_SSID, SECRET_PASS);
+#endif
 
 #if defined(ARDUINO_AVR_ATMEGA1284)
   ArduinoOTA.begin(ip, "regulator", "password", SDStorage);
@@ -242,12 +273,18 @@ void pilotTriacPeriod(float p) {
 
 int readElSens() {
 
+#ifdef ARDUINO_SAMD_NANO_33_IOT
+  const int ELSENS_ANALOG_MIDDLE_VALUE = 530; // over voltage divider
+#else
+  const int ELSENS_ANALOG_MIDDLE_VALUE = 512;
+#endif
+
   // sample AC
   unsigned long long sum = 0;
   int n = 0;
   unsigned long start_time = millis();
   while (millis() - start_time < 200) { // in 200 ms measures 10 50Hz AC oscillations
-    long v = (short) elsensAnalogRead() - 512;
+    long v = (short) elsensAnalogRead() - ELSENS_ANALOG_MIDDLE_VALUE;
     sum += v * v;
     n++;
   }
@@ -283,6 +320,7 @@ void sampleAC(unsigned long start) {
   unsigned long ts[size];
   unsigned short data[size];
   Triac::zeroCrossingFlag = false;
+  Triac::waitZeroCrossing();
   for (int i = 0; i < size; i++) {
 //    if (Triac::zeroCrossingFlag) {
 //      Triac::zeroCrossingFlag = false;

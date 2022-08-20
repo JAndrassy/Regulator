@@ -5,6 +5,28 @@ const char version[] = "build "  __DATE__ " " __TIME__;
 
 #define FILE_NEW (O_READ | O_WRITE | O_CREAT)
 
+#ifdef ARDUINO_SAMD_NANO_33_IOT // on Nano Grove Shield
+const byte MAIN_RELAY_PIN = 0; // D0+D1 connector (Serial1)
+const byte BYPASS_RELAY_PIN = 1; //
+const byte BALBOA_RELAY_PIN = 2;  // D2+D3
+const byte VALVES_RELAY_PIN = 3;
+const byte ZC_EI_PIN = 4; // D4+D5
+const byte TRIAC_PIN = 5;
+const byte TONE_PIN = 6; // D6+D7
+
+const byte ELSENS_PIN = A0; // A0+A1 connector
+const byte BUTTON_PIN = A2; //A2+A3
+// A4,A5 I2C
+const byte LEDBAR_DATA_PIN = A6; // A6+A7
+const byte LEDBAR_CLOCK_PIN = A7;
+
+// not on Grove Shield:
+// 8 and 9 // free
+const byte SD_SS_PIN = 10;
+// SPI 11, 12, 13
+
+#else // boards with Grove Uno base shield
+
 const byte TONE_PIN = 2;
 #ifdef ARDUINO_SAMD_ZERO
 const byte MAIN_RELAY_PIN = 3;
@@ -29,6 +51,8 @@ const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
 const byte ELSENS_PIN = A1;
 const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
+
+#endif
 
 const byte STATUS_LED_PIN = 99; // status led not used
 

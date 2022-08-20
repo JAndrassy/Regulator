@@ -48,7 +48,7 @@ WDTZero wdt;
 
 void watchdogSetup() {
   wdt.attachShutdown(watchdogShutdown);
-  wdt.setup(WDT_SOFTCYCLE16S);
+  wdt.setup(WDT_SOFTCYCLE32S); // 32s because WiFiNINA connection timeout is 18 seconds
 }
 
 void watchdogLoop() {

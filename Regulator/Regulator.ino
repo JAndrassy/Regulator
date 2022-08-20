@@ -2,8 +2,9 @@
 #include <StreamLib.h>
 #include <TimeLib.h>
 #include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
-//#include <WiFiNINA.h>
-#include <WiFiEspAT.h> // with https://github.com/JiriBilek/ESP_ATMod for more than 1 server
+#include <WiFiNINA.h>
+//#include <WiFi101.h>
+//#include <WiFiEspAT.h> // with https://github.com/JiriBilek/ESP_ATMod for more than 1 server
 //#include <Ethernet.h> //Ethernet 2.00 for all W5000
 //byte mac[] = SECRET_MAC;
 //#define ETHERNET
@@ -20,8 +21,8 @@
 
 #include <TriacLib.h>
 
-#define SERIAL_AT Serial
-//#define SERIAL_DEBUG Serial
+//#define SERIAL_AT Serial
+#define SERIAL_DEBUG Serial
 
 //#define BLYNK_PRINT SERIAL_DEBUG
 #define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
@@ -166,7 +167,6 @@ void setup() {
 #else
   WiFi.config(ip);
   WiFi.begin(SECRET_SSID, SECRET_PASS);
-  WiFi.setFeedWatchdogFunc([]() {watchdogLoop();});
 #endif
   // connection is checked in loop
 
@@ -256,7 +256,6 @@ void loop() {
 }
 
 void shutdown() {
-  watchdogLoop();
 #ifdef UIP_PERIODIC_TIMER
   for (int i = 0; i < 4; i++) {
     Ethernet.maintain();
