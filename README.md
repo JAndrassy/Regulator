@@ -59,8 +59,13 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 ### MCU options
 * any classic AVR Arduino in Uno or Mega format with some shield or module for networking
 * Arduino Zero or M0 in Uno format with some shield or module for networking and with SD card to save events (no EEPROM)
-* Arduino MKR board on Arduino MKR Connector Carrier (Grove compatible) with on-board WiFi, ETH Shield or other networking module  
-* Nano 33 IoT with [Nano Grove shield](https://www.seeedstudio.com/Grove-Shield-for-Arduino-Nano-p-4112.html)
+* Arduino MKR board on Arduino MKR Connector Carrier (Grove compatible) with on-board WiFi, ETH Shield or other networking module
+    * It is neccessary for good current sensor readings to remove a capacitor on the A connector of Carier
+    * The An connectors have a very limited use so it doesn't have enough connectors for me.
+* Nano 33 IoT with [Nano Grove shield](https://www.seeedstudio.com/Grove-Shield-for-Arduino-Nano-p-4112.html). 
+    * Advantage of Nano IoT could be the small size and it can be used with Arduino IoT Cloud.
+    * The Nano IoT doesn't have external crystal oscillator. It runs on internal oscillator so millis() function and the RTC peripheral are not accurate. My looses 27 seconds in an hour. 
+    * Additionally it would require to make an SD shield for Nano. 
 
 ### Heating system
 * [TEZA2000 heating](https://www.teza-eshop.sk/products/produkt-1/) - this small electric heating is a local 'invention'
@@ -151,8 +156,9 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 
 2022/04 Removed separate circulation pump relay. It didn't solve EMI, which caused resets. 'Main' relay now controls only pump and valves so Triac module's ZC detector can detect zero crossing to time switching of the 'main' relay. The 2A Grove SSR module can now be the 'main' relay. EMI is solved.
 
-<a href="https://www.buymeacoffee.com/jurajandraY" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
-
 2022/07 Networking with Grove UART WiFi (esp8266) on Serial with my WiFiEspAT library and ESP_ATMod sketch as firmware.
 
-2022/08 Arduino Nano 33 IoT experiment
+2022/08 Arduino Nano 33 IoT experiment.
+
+2022/09 MKR Connector Carrier experiment with MKR1000 with WiFi101 library. 
+

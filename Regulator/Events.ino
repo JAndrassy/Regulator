@@ -48,7 +48,12 @@ void eventsSetup() {
       powerPilotPlan = events[POWERPILOT_PLAN_EVENT].value1; // to restore the value after reset
     }
   }
-  eventsWrite(RESTART_EVENT, 0, 0);
+  short hours = (now() - events[RESTART_EVENT].timestamp) / (60 * 60);
+  if (hours) {
+    eventsWrite(RESTART_EVENT, hours, events[RESTART_EVENT].value1);
+  } else {
+    eventsWrite(RESTART_EVENT, events[RESTART_EVENT].value1, events[RESTART_EVENT].value2);
+  }
 }
 
 void eventsLoop() {

@@ -1,8 +1,5 @@
-#ifdef ARDUINO_ARCH_SAMD
-#include <avdweb_AnalogReadFast.h>
-#endif
 
-#ifdef ARDUINO_SAMD_NANO_33_IOT
+#ifdef ARDUINO_ARCH_SAMD
 const int ELSENS_ANALOG_MIDDLE_VALUE = 533; // over voltage divider
 #else
 const int ELSENS_ANALOG_MIDDLE_VALUE = 512;
@@ -13,6 +10,11 @@ const unsigned long OVERHEATED_COOLDOWN_TIME = PUMP_STOP_MILLIS - 30000; // resu
 unsigned long overheatedStart = 0;
 
 void elsensSetup() {
+#ifdef ARDUINO_ARCH_SAMD
+  // changing Arduino defaults (wiring.c)
+  while (ADC->STATUS.bit.SYNCBUSY == 1); // wait for synchronization
+  ADC->SAMPCTRL.reg = 0x00;
+#endif
 }
 
 void elsensLoop() {
@@ -23,21 +25,16 @@ void elsensLoop() {
   const float PF_ANGLE_INTERVAL = PI * 0.34;
   const float PF_ANGLE_SHIFT = PI * 0.21;
 
-#ifdef ARDUINO_SAMD_MKRZERO
-  // ACS712 20A analogReadFast over MKR Connector Carrier A pin's voltage divider with capacitor removed
-  const int ELSENS_MAX_VALUE = 1500;
-  const float ELSENS_VALUE_COEF = 1.86;
+#ifdef ARDUINO_ARCH_SAMD
+  // ACS712 20A with voltage divider
+  const int ELSENS_MAX_VALUE = 2000;
+  const float ELSENS_VALUE_COEF = 1.4;
   const int ELSENS_VALUE_SHIFT = 100;
-#elif ARDUINO_SAMD_NANO_33_IOT
-  // ACS712 20A analogReadFast voltage divider
-  const int ELSENS_MAX_VALUE = 1700;
-  const float ELSENS_VALUE_COEF = 1.6;
-  const int ELSENS_VALUE_SHIFT = 50;
 #else
   // 5 V ATmega 'analog' pin and ACS712 sensor 20A version
   const int ELSENS_MAX_VALUE = 2000;
-  const float ELSENS_VALUE_COEF = 1.31;
-  const int ELSENS_VALUE_SHIFT = 100;
+  const float ELSENS_VALUE_COEF = 1.41;
+  const int ELSENS_VALUE_SHIFT = 0;
 #endif
   const int ELSENS_MIN_HEATING_VALUE = 250;
 
@@ -74,7 +71,6 @@ boolean elsensCheckPump() {
   delay(1000); // pump run-up
   int v = readElSens();
   if (v < ELSENS_MIN_ON_VALUE) {
-    waitZeroCrossing();
     digitalWrite(MAIN_RELAY_PIN, LOW);
     mainRelayOn = false;
     alarmCause = AlarmCause::PUMP;
@@ -100,7 +96,7 @@ int readElSens() {
   int n = 0;
   unsigned long start_time = millis();
   while (millis() - start_time < 200) { // in 200 ms measures 10 50Hz AC oscillations
-    long v = (short) elsensAnalogRead() - ELSENS_ANALOG_MIDDLE_VALUE;
+    long v = analogRead(ELSENS_PIN) - ELSENS_ANALOG_MIDDLE_VALUE;
     sum += v * v;
     n++;
   }
@@ -109,12 +105,3 @@ int readElSens() {
   }
   return sqrt((double) sum / n) * RMS_INT_SCALE;
 }
-
-unsigned short elsensAnalogRead() {
-#if ARDUINO_ARCH_SAMD
-  return analogReadFast(ELSENS_PIN);
-#else
-  return analogRead(ELSENS_PIN);
-#endif
-}
-

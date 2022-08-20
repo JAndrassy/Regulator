@@ -83,6 +83,7 @@ boolean modbusLoop() {
 }
 
 void modbusClearData() {
+  modbus.stop();
   pvChargingPower = 0;
   pvSOC = 0;
   meterPower = 0;

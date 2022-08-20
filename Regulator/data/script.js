@@ -105,10 +105,10 @@ function showValues(jsonData) {
     }
   }
   var s = data["r"];
-  if (s.charAt(0) == "0" && s.charAt(6) == "0") {
+  if (s.charAt(0) == "0" && s.charAt(8) == "0") { // "0 0 0 1 0"
     contentDiv.appendChild(createCommandBox("Valves", "Back", "V"));
   }
-  var balboaRelayOn = (s.charAt(4) == "1");
+  var balboaRelayOn = (s.charAt(6) == "1"); // "0 0 0 1 0"
   contentDiv.appendChild(createCommandBox("Balboa pause", balboaRelayOn ? "Off" : "On", "B"));
 }
 

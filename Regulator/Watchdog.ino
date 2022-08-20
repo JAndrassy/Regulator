@@ -56,6 +56,7 @@ void watchdogLoop() {
 }
 
 void watchdogStop() {
+  wdt.setup(WDT_OFF);
 }
 
 void watchdogShutdown() {

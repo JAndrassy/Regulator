@@ -58,7 +58,7 @@ void pilotLoop() {
   // * the Symo regulates the distribution of energy while the battery is charging.
   // usually we don't want to interfere with that (unless heating has priority),
   // but we must enter the regulation algorithm if heating is on.
-  // * if the production is larger then the battery can use for charging, surplus can occur
+  // * if the production is larger than the battery can use for charging, surplus can occur
   if (powerPilotPlan != HEATING_PRIORITY_AM && pvSOC < MONITORING_UNTIL_SOC
       && heatingPower == 0 && pvChargingPower < BATTERY_MAX_CHARGING_POWER)
     return;
@@ -106,7 +106,7 @@ void pilotLoop() {
       return;
     bypass = false;
   } else {
-  waitForItCounter = 0;
+    waitForItCounter = 0;
   }
 
   if (!turnMainRelayOn())
@@ -139,7 +139,11 @@ void powerPilotStop() {
 }
 
 float power2TriacPeriod(int power) {
+#if defined(ARDUINO_SAMD_NANO_33_IOT) || defined(ARDUINO_SAMD_ZERO) // 3.3V to Triac, 5V pulse for ZC
   const float POWER2PERIOD_SHIFT = 0.08;
+#else
+  const float POWER2PERIOD_SHIFT = 0.065;
+#endif
   const float POWER2PERIOD_KOEF = 0.26;
 
   if (power < MIN_POWER)

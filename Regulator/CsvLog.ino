@@ -3,6 +3,9 @@ const char* CSV_DIR = "/CSV/";
 
 void csvLogSetup() {
 
+  if (!sdCardAvailable)
+    return;
+
   time_t t = now() - SECS_PER_WEEK;
   char fn0[15];
   sprintf(fn0, "%02d-%02d-%02d.CSV", year(t) - 2000, month(t), day(t));
@@ -31,6 +34,9 @@ void csvLogSetup() {
 }
 
 void csvLogLoop() {
+
+  if (!sdCardAvailable)
+    return;
 
 #ifdef FS
   static char buff[2000];

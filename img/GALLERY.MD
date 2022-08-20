@@ -50,3 +50,12 @@ Single Triac module with a large heatsink.
 End of circ. pump experiment. SSR relays.
 
 <img src="https://raw.githubusercontent.com/JAndrassy/Regulator/27ee60dba1ed56c04d2fcf800b52403feb44ca85/img/regulator-triac-labeled.png" width="500">
+
+Nano 33 IoT experiment with a temporary voltage divider on a mini breadboard.
+
+<img src="regulator-nanoiot.jpg" width="500">
+
+MKR Connector Carrier experiment with a MKR1000 WiFi.
+
+<img src="regulator-mkr.jpg" width="500">
+

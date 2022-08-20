@@ -2,9 +2,9 @@
 #include <StreamLib.h>
 #include <TimeLib.h>
 #include <MemoryFree.h> // https://github.com/mpflaga/Arduino-MemoryFree
-#include <WiFiNINA.h>
+//#include <WiFiNINA.h>
 //#include <WiFi101.h>
-//#include <WiFiEspAT.h> // with https://github.com/JiriBilek/ESP_ATMod for more than 1 server
+#include <WiFiEspAT.h> // with https://github.com/JiriBilek/ESP_ATMod for more than 1 server
 //#include <Ethernet.h> //Ethernet 2.00 for all W5000
 //byte mac[] = SECRET_MAC;
 //#define ETHERNET
@@ -21,8 +21,12 @@
 
 #include <TriacLib.h>
 
-//#define SERIAL_AT Serial
-#define SERIAL_DEBUG Serial
+#if defined(ARDUINO_AVR_ATMEGA1284)
+#define SERIAL_AT Serial
+#else
+#define SERIAL_AT Serial1
+#endif
+//#define SERIAL_DEBUG Serial
 
 //#define BLYNK_PRINT SERIAL_DEBUG
 #define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
@@ -59,7 +63,6 @@ AlarmCause alarmCause = AlarmCause::NOT_IN_ALARM;
 
 boolean buttonPressed = false;
 boolean manualRunRequest = false; // manual run start or stop request
-unsigned long valvesOpeningStartMillis;
 
 boolean mainRelayOn = false;
 boolean bypassRelayOn = false;
@@ -110,7 +113,6 @@ void sdTimeCallback(uint16_t* date, uint16_t* time) {
 void setup() {
   pinMode(MAIN_RELAY_PIN, OUTPUT);
   pinMode(BYPASS_RELAY_PIN, OUTPUT);
-  digitalWrite(BYPASS_RELAY_PIN, LOW);
 
   pilotSetup();
   elsensSetup();
@@ -154,8 +156,8 @@ void setup() {
   }
 #endif
 
-  IPAddress ip(192, 168, 1, 6);
 #ifdef ETHERNET
+  IPAddress ip(192, 168, 1, 6);
   Ethernet.init(NET_SS_PIN);
   Ethernet.begin(mac, ip);
   delay(500);
@@ -163,9 +165,10 @@ void setup() {
   SERIAL_AT.begin(250000);
   SERIAL_AT.setTimeout(2000);
   WiFi.init(SERIAL_AT);
+  WiFi.setHostname("regulator");
   delay(2000); // the AP is remembered in the firmware and start automatically
 #else
-  WiFi.config(ip);
+  WiFi.setHostname("regulator");
   WiFi.begin(SECRET_SSID, SECRET_PASS);
 #endif
   // connection is checked in loop
@@ -173,9 +176,9 @@ void setup() {
   ArduinoOTA.onStart([]() {watchdogStop();});
   ArduinoOTA.beforeApply(shutdown);
 #if defined(ARDUINO_AVR_ATMEGA1284) // app binary is larger than half of the flash
-  ArduinoOTA.begin(ip, "regulator", "password", SDStorage);
+  ArduinoOTA.begin(INADDR_NONE, "regulator", "password", SDStorage);
 #else
-  ArduinoOTA.begin(ip, "regulator", "password", InternalStorage);
+  ArduinoOTA.begin(INADDR_NONE, "regulator", "password", InternalStorage);
 #endif
 
   msg.print(F("start"));
@@ -284,7 +287,6 @@ void handleSuspendAndOff() {
     }
     if (loopStartMillis - lastOn > PUMP_STOP_MILLIS) {
       msg.print(F(" MR_off"));
-      waitZeroCrossing();
       digitalWrite(MAIN_RELAY_PIN, LOW);
       mainRelayOn = false;
     }
@@ -323,6 +325,9 @@ boolean handleAlarm() {
 #ifdef ETHERNET
       stopAlarm = (Ethernet.linkStatus() != LinkOFF);
 #else
+#ifndef _WIFI_ESP_AT_H_ // AT fw attempts reconnect by itself
+      WiFi.begin(SECRET_SSID, SECRET_PASS); // for WiFiNINA and WiFi101
+#endif
       stopAlarm = (WiFi.status() == WL_CONNECTED);
 #endif
       break;

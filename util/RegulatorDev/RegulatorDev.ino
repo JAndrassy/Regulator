@@ -1,8 +1,8 @@
 
 #include <TriacLib.h>
 
-//#include <Ethernet.h>
-#include <WiFiNINA.h>
+//#include <Ethernet.h> // Ethernet or EthernetENC
+#include <WiFi.h> // WiFiNINA or WiFi101
 #include <SD.h>
 #define NO_OTA_PORT
 #include <ArduinoOTA.h>
@@ -39,8 +39,8 @@ const byte LEDBAR_DATA_PIN = A7;
 const byte SD_SS_PIN = 10;
 // SPI 11, 12, 13
 
-#elif defined(ARDUINO_SAMD_MKRZERO) // on MKR Connector Carrier
-
+#elif defined(ARDUINO_SAMD_MKRZERO) || defined(ARDUINO_SAMD_MKR1000) || defined(ARDUINO_SAMD_MKRWIFI1010)
+// on MKR Connector Carrier
 const byte TONE_PIN = 0;
 const byte BALBOA_RELAY_PIN = 1;
 const byte VALVES_RELAY_PIN = 2;
@@ -48,14 +48,17 @@ const byte MAIN_RELAY_PIN = 3;
 const byte BYPASS_RELAY_PIN = 4;
 const byte ZC_EI_PIN = 5;  // on same connector with 6
 const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
+
+#ifdef ARDUINO_SAMD_MKRZERO
 const byte NET_SS_PIN = 7;  // not on Carrier
+#else
+#undef SDCARD_SS_PIN
+#define SDCARD_SS_PIN 7
+#endif
 // SPI 8, 9, 10 not on Carrier
 // TWI 12, 11
-const byte TEMPSENS_PIN = A0;
 const byte ELSENS_PIN = A1;
 const byte BUTTON_PIN = A4;
-const byte LEDBAR_DATA_PIN = 13; // connector labeled Serial (it is for Serial1)
-const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
 
 const byte SD_SS_PIN = SDCARD_SS_PIN; // internal pin of MKR ZERO
 
@@ -94,8 +97,6 @@ NetServer telnetServer(2323);
 #include <Wire.h>
 const byte REG_ADDR_RESULT = 0x00;
 const byte REG_ADDR_CONFIG = 0x02;
-#elif ARDUINO_ARCH_SAMD
-#include <avdweb_AnalogReadFast.h>
 #endif
 
 const char version[] = "build "  __DATE__ " " __TIME__;
@@ -138,19 +139,20 @@ void setup() {
   }
 #endif
 
-  IPAddress ip(192, 168, 1, 6);
 #ifdef ETHERNET
+  IPAddress ip(192, 168, 1, 6);
   Ethernet.init(NET_SS_PIN);
   Ethernet.begin(mac, ip);
 #else
-  WiFi.config(ip);
+  WiFi.setHostname("regulator");
   WiFi.begin(SECRET_SSID, SECRET_PASS);
+  Serial.println(WiFi.localIP());
 #endif
 
 #if defined(ARDUINO_AVR_ATMEGA1284)
-  ArduinoOTA.begin(ip, "regulator", "password", SDStorage);
+  ArduinoOTA.begin(INADDR_NONE, "regulator", "password", SDStorage);
 #else
-  ArduinoOTA.begin(ip, "regulator", "password", InternalStorage);
+  ArduinoOTA.begin(INADDR_NONE, "regulator", "password", InternalStorage);
 #endif
 
   telnetServer.begin();
@@ -166,6 +168,13 @@ void setup() {
   Wire.endTransmission();
 #endif
   beep();
+
+#ifdef ARDUINO_ARCH_SAMD
+  while (ADC->STATUS.bit.SYNCBUSY == 1); // wait for synchronization
+//  ADC->CTRLB.reg &= 0b1111100011111111;          // mask PRESCALER bits
+//  ADC->CTRLB.reg |= ADC_CTRLB_PRESCALER_DIV256;   // divide Clock by 64
+  ADC->SAMPCTRL.reg = 0x00;                      // sampling Time Length = 0
+#endif
 
   digitalWrite(BYPASS_RELAY_PIN, LOW);
   digitalWrite(MAIN_RELAY_PIN, LOW);
@@ -273,7 +282,7 @@ void pilotTriacPeriod(float p) {
 
 int readElSens() {
 
-#ifdef ARDUINO_SAMD_NANO_33_IOT
+#ifdef ARDUINO_ARCH_SAMD
   const int ELSENS_ANALOG_MIDDLE_VALUE = 530; // over voltage divider
 #else
   const int ELSENS_ANALOG_MIDDLE_VALUE = 512;
@@ -297,8 +306,6 @@ unsigned short elsensAnalogRead() {
   byte buff[2];
   Wire.readBytes(buff, 2);
   return (buff[0] << 8) | buff[1];
-#elif ARDUINO_ARCH_SAMD
-  return analogReadFast(ELSENS_PIN);
 #else
   return analogRead(ELSENS_PIN);
 #endif
