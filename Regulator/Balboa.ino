@@ -48,8 +48,8 @@ void balboaLoop() {
   }
 }
 
-void balboaManualPause() {
-  manualBalboaPause = !manualBalboaPause;
+void balboaManualPause(bool pause) {
+  manualBalboaPause = pause;
   digitalWrite(BALBOA_RELAY_PIN, manualBalboaPause ? HIGH : LOW);
   balboaRelayOn = manualBalboaPause;
 }

@@ -188,7 +188,7 @@ void statsPrintJson(FormattedPrint& out) {
 #endif
    out.print('}');
 }
-
+/*
 void statsBlynk() {
   if (!updateBlynk)
     return;
@@ -212,3 +212,4 @@ void statsBlynkRow(byte i, const char *label, Stats &stats) {
   snprintf_P(buff, sizeof(buff), PSTR("%s %d:%02d"), label, h, m);
   Blynk.virtualWrite(STATS_TABLE_WIDGET, "add", i, buff, stats.consumedPower);
 }
+*/

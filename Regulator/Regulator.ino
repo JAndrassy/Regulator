@@ -31,7 +31,11 @@
 //#define BLYNK_PRINT SERIAL_DEBUG
 #define BLYNK_NO_BUILTIN // Blynk doesn't handle pins
 #define BLYNK_MAX_SENDBYTES 256
-#define BLYNK_USE_128_VPINS
+//#define BLYNK_USE_128_VPINS
+#define BLYNK_TEMPLATE_ID "TMPL97AKXy7c"
+#define BLYNK_DEVICE_NAME "Regulator"
+#define BLYNK_AUTH_TOKEN SECRET_BLYNK_TOKEN
+
 #ifdef ETHERNET
 #include <BlynkSimpleEthernet.h>
 #else
@@ -177,7 +181,9 @@ void setup() {
   ArduinoOTA.begin(INADDR_NONE, "regulator", "password", InternalStorage);
 #endif
 
-  msg.print(F("start"));
+#ifdef SERIAL_DEBUG
+  SERIAL_DEBUG.println(F("start"));
+#endif
 
   beep();
 
@@ -248,7 +254,7 @@ void loop() {
 
   telnetLoop(true); // logs modbus and heating data
   csvLogLoop();
-  blynkChartData();
+//  blynkChartData();
 
   susCalibLoop();
 }

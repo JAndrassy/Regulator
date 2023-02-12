@@ -94,7 +94,7 @@ void webServerRestRequest(char cmd, char param, ChunkedPrint& chunked) {
       printValuesJson(chunked);
       break;
     case RestRequest::BALBOA_PAUSE:
-      balboaManualPause();
+      balboaManualPause(!manualBalboaPause);
       printValuesJson(chunked);
       break;
     case RestRequest::PLAN_CHANGE:

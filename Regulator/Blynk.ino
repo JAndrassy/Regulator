@@ -1,9 +1,7 @@
 
-// https://github.com/jandrassy/Regulator/wiki/Blynk
-
 #define GAUGE_WIDGET V0
 #define STATE_WIDGET V1
-#define TABLE_WIDGET V2
+#define REFRESH_BUTTON V2
 #define MANUAL_RUN_BUTTON V3
 #define VALVES_BACK_BUTTON V4
 #define CONSUMED_WIDGET V5
@@ -21,14 +19,25 @@
 #define BOILER_TEMP_WIDGET V17
 #define BALBOA_PAUSE_BUTTON V18
 #define POWERPILOT_PLAN_SELECTOR V19
-#define STATS_TABLE_WIDGET V22
+//#define STATS_TABLE_WIDGET V20
 
-BLYNK_READ(GAUGE_WIDGET) {
-  updateWidgets();
+// REFRESH_BUTTON is a workaround for not working BLYNK_APP_CONNECTED/BLYNK_APP_DISCONNECTED
+
+unsigned long blynkRefreshStart = 0;
+
+BLYNK_CONNECTED() {
+  Blynk.syncVirtual(REFRESH_BUTTON);
+}
+
+BLYNK_WRITE(REFRESH_BUTTON) {
+  blynkRefreshStart = param.asInt() ? millis() : 0;
+  if (!blynkRefreshStart) {
+    clearWidgets();
+  }
 }
 
 BLYNK_WRITE(MANUAL_RUN_BUTTON) {
-  manualRunRequest = !manualRunRequest;
+  manualRunRequest = param.asInt();
   updateWidgets();
 }
 
@@ -36,16 +45,17 @@ BLYNK_WRITE(VALVES_BACK_BUTTON) {
   if (param.asInt()) {
     valvesBackStart(0);
     updateWidgets();
+    Blynk.virtualWrite(VALVES_BACK_BUTTON, 0);
   }
 }
 
 BLYNK_WRITE(BALBOA_PAUSE_BUTTON) {
-  balboaManualPause();
+  balboaManualPause(param.asInt());
   updateWidgets();
 }
 
 BLYNK_WRITE(POWERPILOT_PLAN_SELECTOR) {
-  powerPilotSetPlan(param.asInt() - 1); // Blynk Select index starts at 1
+  powerPilotSetPlan(param.asInt());
   updateWidgets();
 }
 
@@ -53,16 +63,31 @@ void blynkSetup() {
 #if defined(ETHERNET) && !defined(UIP_CONNECT_TIMEOUT)
   _blynkEthernetClient.setConnectionTimeout(4000);
 #endif
-  Blynk.config(SECRET_BLYNK_TOKEN, BLYNK_DEFAULT_DOMAIN, BLYNK_DEFAULT_PORT);
+  Blynk.config(SECRET_BLYNK_TOKEN);
  // we do not wait for connection. it is established later in loop
 }
 
 void blynkLoop() {
+  const unsigned long REFRESH_MILLIS = 5000; // 5 seconds
+  const unsigned long REFRESH_INTERVAL = 3UL * 60000; // 3 minutes
+  static unsigned long previousMillis = 0;
+
+  if (blynkRefreshStart) {
+    if (millis() - previousMillis > REFRESH_MILLIS) {
+      previousMillis = millis();
+      updateWidgets();
+    }
+    if (loopStartMillis - blynkRefreshStart > REFRESH_INTERVAL) {
+      blynkRefreshStart = 0;
+      clearWidgets();
+    }
+  }
   Blynk.run();
 }
 
 void updateWidgets() {
 //  msg.print(F("Blynk"));
+  Blynk.beginGroup();
   Blynk.virtualWrite(PV_PRODUCTION_WIDGET, inverterAC + pvChargingPower);
   Blynk.virtualWrite(HH_CONSUMPTION_WIDGET, inverterAC - meterPower - elsensPower);
   Blynk.virtualWrite(METER_WIDGET, meterPower);
@@ -79,7 +104,7 @@ void updateWidgets() {
   Blynk.virtualWrite(MANUAL_RUN_WIDGET, (short) manualRunMinutesLeft());
   Blynk.virtualWrite(MANUAL_RUN_BUTTON, state == RegulatorState::MANUAL_RUN || manualRunRequest);
   Blynk.virtualWrite(BALBOA_PAUSE_BUTTON, balboaRelayOn);
-  Blynk.virtualWrite(POWERPILOT_PLAN_SELECTOR, powerPilotPlan + 1);
+  Blynk.virtualWrite(POWERPILOT_PLAN_SELECTOR, powerPilotPlan);
   char buff[17];
   CStringBuilder sb(buff, sizeof(buff));
   switch (state) {
@@ -103,10 +128,34 @@ void updateWidgets() {
       break;
   }
   Blynk.virtualWrite(STATE_WIDGET, buff);
-  eventsBlynk();
-  statsBlynk();
+//  statsBlynk(); no Table widget in Blynk IoT yet
+  Blynk.endGroup();
 }
 
+void clearWidgets() {
+  Blynk.beginGroup();
+  Blynk.virtualWrite(REFRESH_BUTTON, 0);
+  Blynk.virtualWrite(PV_PRODUCTION_WIDGET, 0);
+  Blynk.virtualWrite(HH_CONSUMPTION_WIDGET, 0);
+  Blynk.virtualWrite(METER_WIDGET, 0);
+  Blynk.virtualWrite(CHARGING_WIDGET, 0);
+  Blynk.virtualWrite(CALIBRATING_WIDGET, 0);
+  Blynk.virtualWrite(BATT_SOC_WIDGET, 0);
+  Blynk.virtualWrite(GAUGE_WIDGET, 0);
+  Blynk.virtualWrite(CONSUMED_WIDGET, 0);
+  Blynk.virtualWrite(MAIN_RELAY_WIDGET, 0);
+  Blynk.virtualWrite(BYPASS_RELAY_WIDGET, 0);
+  Blynk.virtualWrite(BALBOA_RELAY_WIDGET, 0);
+  Blynk.virtualWrite(VALVES_BACK_WIDGET, 0);
+  Blynk.virtualWrite(BOILER_TEMP_WIDGET, 0);
+  Blynk.virtualWrite(MANUAL_RUN_WIDGET, 0);
+  Blynk.virtualWrite(MANUAL_RUN_BUTTON, 0);
+  Blynk.virtualWrite(BALBOA_PAUSE_BUTTON, 0);
+  Blynk.virtualWrite(POWERPILOT_PLAN_SELECTOR, 0);
+  Blynk.virtualWrite(STATE_WIDGET, "-");
+  Blynk.endGroup();
+}
+/*
 void blynkChartData() {
 
   const unsigned long PUSH_INTERVAL = 120000; // 2 minutes
@@ -157,6 +206,8 @@ void blynkChartData() {
       previousMillis += PUSH_INTERVAL;
     }
 
+    Blynk.beginGroup();
+
     Blynk.virtualWrite(V32, productionSum / n); // green line. energy produced by PV panels
     Blynk.virtualWrite(V33, usedProductionSum / n); // yellow fill. the green area above is "to grid"
     Blynk.virtualWrite(V34, inverterConsumedSum / n); // blue fill
@@ -184,6 +235,8 @@ void blynkChartData() {
     Blynk.virtualWrite(V42, powerPhaseCSum / n);
     Blynk.virtualWrite(V43, heaterConsumptionAvg);
 
+    Blynk.endGroup();
+
     n = 0;
     productionSum = 0;
     usedProductionSum = 0;
@@ -195,3 +248,4 @@ void blynkChartData() {
     powerPhaseCSum = 0;
   }
 }
+*/

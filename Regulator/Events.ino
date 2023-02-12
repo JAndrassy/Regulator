@@ -2,6 +2,8 @@
 const unsigned long EVENTS_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
 const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Network", "Pump", "Modbus",
     "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "PowerPilot plan", "Stat.save"};
+const char* blynkCode[EVENTS_SIZE] = {"events", "reset", "watchdog", "network", "pump", "modbus",
+    "overheated", "balboa_pause", "manual_run", "valves_back", "sus_calib", "batt_set", "powerpilot_plan", "stat_save"};
 const unsigned short eventIsError = bit(WATCHDOG_EVENT) | bit(NETWORK_EVENT) | bit(PUMP_EVENT) | bit(MODBUS_EVENT);
 
 #ifdef NO_EEPROM
@@ -81,13 +83,14 @@ void eventsWrite(int newEvent, int value1, int value2) {
   e.value1 = value1;
   e.value2 = value2;
   e.count++;
-#ifdef FS
   if (newEvent != EVENTS_SAVE_EVENT && newEvent != STATS_SAVE_EVENT) {
     char buff[64];
     sprintf_P(buff, PSTR("%s %d %d"), eventLongLabels[newEvent], events[newEvent].value1, events[newEvent].value2);
+    Blynk.logEvent(blynkCode[newEvent], buff);
+#ifdef FS
     log(buff);
-  }
 #endif
+  }
 }
 
 boolean eventsSaved() {
@@ -169,35 +172,6 @@ void eventsPrintJson(FormattedPrint& stream) {
 
 void eventsPrintJson(FormattedPrint& stream, int ix) {
   stream.printf(F("{\"i\":%i,\"t\":%lu,\"v1\":%d,\"v2\":%d,\"c\":%u}"), ix, events[ix].timestamp, events[ix].value1, events[ix].value2, events[ix].count);
-}
-
-void eventsBlynk() {
-  static unsigned long lastEventsUpdate = 0;
-
-  unsigned int i = 0;
-  for (; i < EVENTS_SIZE; i++) {
-    if (lastEventsUpdate < events[i].timestamp)
-      break;
-  }
-  if (i == EVENTS_SIZE)
-    return;
-
-  Blynk.virtualWrite(TABLE_WIDGET, "clr");
-  byte map[EVENTS_SIZE];
-  for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
-    map[i] = i;
-  }
-  qsort(map, EVENTS_SIZE, 1, eventsCompare);
-  for (unsigned int i = 0; i < EVENTS_SIZE; i++) {
-    EventStruct& event = events[map[i]];
-    unsigned long t = event.timestamp;
-    if (t != 0) {
-      char label[32];
-      sprintf(label, "%02d-%02d %02d:%02d:%02d %3d %s", month(t), day(t), hour(t), minute(t), second(t), event.count, eventLongLabels[map[i]]);
-      Blynk.virtualWrite(TABLE_WIDGET, "add", i, label, event.value1 - event.value2);
-    }
-  }
-  lastEventsUpdate = now();
 }
 
 int eventsCompare(const void * elem1, const void * elem2) {

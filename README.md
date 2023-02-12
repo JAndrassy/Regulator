@@ -100,7 +100,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * CsvLog.ino - logging heating regulation to csv files on SD card or SPIFFS
 * Stats.ino - count and store power consumption statistics
 * WebServer.ino - JSON data for the web pages with optional serving of static web page files and csv files from SD card or SPIFFS
-* Blynk.ino - control from everywhere with [Blynk](https://www.blynk.cc/) Android application. [more...](https://github.com/jandrassy/Regulator/wiki/Blynk)
+* Blynk.ino - control from everywhere with Blynk
 
 ### Symo Hybrid Battery
 * BattSett.ino - SunSpec Modbus storage control
@@ -163,4 +163,10 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 
 2022/09 MKR Connector Carrier experiment with MKR1000 with WiFi101 library. 
 
-2023/02 I removed external heater control
+2023 
+
+I have no more surplus electricity because I can get back up to 2 MW of electricity fed to the network. They call it 'virtual battery'. It will likely cause downsizing of this project.
+
+Blynk legacy ended so I migrate to Blynk IO, but because of the expected downsizing I stay limited to the Free Plan for now.
+
+2023/02 I removed external heater control.
