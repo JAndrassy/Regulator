@@ -87,7 +87,6 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * ManualRun.ino - unregulated timed heating, activated with a button or from a remote monitoring
 * ElSens.ino - functions around the electricity sensor: checking expected consumption of the pump and heating and detecting disconnection by the heater's thermostat
 * ValvesBack.ino - handles turning valves back to the main heating system, if EMS-ESP reports that the main heating is active
-* ExtHeater.h - external/extension heater for additional consumption of surplus power
 * TriacLib.h - AC dimmer module control
 
 ### Front panel
@@ -109,7 +108,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 
 ### Special
 * ConsumptionMeter.ino - take data from secondary Fronius Smart Meter measuring this heater's consumption. Value is only logged to csv for evaluation (charts in Calc). It is an alternative to WemoInsight.ino.
-* WemoInsight.ino - functions to access Belkin WiFi switch. Can be used as an alternative to ConsumptionMeter.ino or for control of external heater.
+* WemoInsight.ino - functions to access Belkin WiFi switch. Can be used as an alternative to ConsumptionMeter.ino.
 * Balboa.ino - defers hot tub heating if overall household consumption exceeds PV inverter's limit
 
 ### Web interface
@@ -133,6 +132,8 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 2018/5 Next board was Wemos D1 R2 esp8266. 
 
 2018/8 I wanted Ethernet and 32 bit MCU. I moved to Crowduino MO -SD with Ethernet Shield
+
+2019/1 ENC28J60 Ethernet module 
 
 2019/5 secondary Fronius Smart Meter measures the heater for Fronius Solarweb
 
@@ -162,3 +163,4 @@ The complete project doesn't fit into the Uno flash memory. To run it, comment o
 
 2022/09 MKR Connector Carrier experiment with MKR1000 with WiFi101 library. 
 
+2023/02 I removed external heater control

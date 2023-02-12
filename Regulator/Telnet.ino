@@ -12,8 +12,8 @@ void telnetLoop(boolean log) {
   char buff[100];
   if (log) {
     unsigned long t = now();
-    snprintf_P(buff, sizeof(buff), PSTR("%02d:%02d:%02d;%d;%c%d%d%d%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"), hour(t), minute(t), second(t),
-        freeMem, (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn, extHeaterIsOn,
+    snprintf_P(buff, sizeof(buff), PSTR("%02d:%02d:%02d;%d;%c%d%d%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"), hour(t), minute(t), second(t),
+        freeMem, (char) state, mainRelayOn, bypassRelayOn, balboaRelayOn,
         heatingPower, meterPower, pvSOC, pvChargingPower,
         powerPilotRaw, elsens, elsensPower, inverterAC, voltage, measuredPower);
 #ifdef SERIAL_DEBUG

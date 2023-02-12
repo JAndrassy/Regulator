@@ -94,10 +94,6 @@ int elsensPower; // power calculation
 //external meter measurement
 int measuredPower;
 
-// additional heater control over Wemo Inside smart socket
-byte extHeaterPlan = EXT_HEATER_NORMAL;
-bool extHeaterIsOn = true; // assume is on to turn it off in loop
-
 char msgBuff[256];
 CStringBuilder msg(msgBuff, sizeof(msgBuff));
 
@@ -243,7 +239,6 @@ void loop() {
 
   elsensLoop();
 
-  extHeaterLoop();
   pilotLoop();
 
 //  wemoLoop();
@@ -290,11 +285,6 @@ void handleSuspendAndOff() {
       digitalWrite(MAIN_RELAY_PIN, LOW);
       mainRelayOn = false;
     }
-  }
-  if (extHeaterIsOn //
-      && ((state != RegulatorState::REGULATING && state != RegulatorState::OVERHEATED) || extHeaterPlan == EXT_HEATER_DISABLED) //
-      && networkConnected()) {
-    extHeaterStop();
   }
 }
 

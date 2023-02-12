@@ -10,8 +10,6 @@ struct {
 
   Stats day;
   Stats month;
-  Stats dayExtHeater;
-  Stats monthExtHeater;
   Stats dayManualRun;
   Stats monthManualRun;
 } statsData;
@@ -21,9 +19,6 @@ unsigned long statsMilliwatMilis = 0;
 bool statsManualRunFlag;
 unsigned long statsSaveTimer = 0;
 bool updateBlynk = true;
-
-unsigned long statsExtHeaterStartMillis = 0;
-unsigned statsExtHeaterSeconds = 0;
 
 void statsSetup() {
 #ifdef NO_EEPROM
@@ -51,15 +46,6 @@ void statsLoop() {
   static unsigned long lastPowerChangeMillis = 0;
   static int lastPower = 0;
 
-  if (statsExtHeaterStartMillis == 0) { // not counting
-    if (extHeaterIsOn) {
-      statsExtHeaterStartMillis = loopStartMillis; // start counting
-    }
-  } else if (!extHeaterIsOn) { // heater stopped
-    statsExtHeaterSeconds += (loopStartMillis - statsExtHeaterStartMillis) / 1000;
-    statsExtHeaterStartMillis = 0;
-  }
-
   if (lastPowerChangeMillis == 0) { // not counting
     if (!mainRelayOn)
       return;
@@ -74,9 +60,8 @@ void statsLoop() {
     sprintf(buff, "DATA%d.CSV", year(t));
     File file = FS.open(buff, FILE_WRITE);
     if (file) {
-      sprintf(buff, "%d-%02d-%02d;%ld;%ld;%ld;%ld;%ld;%ld", year(t), month(t), day(t), //
+      sprintf(buff, "%d-%02d-%02d;%ld;%ld;%ld;%ld", year(t), month(t), day(t), //
           statsData.day.heatingTime, statsData.day.consumedPower, //
-          statsData.dayExtHeater.heatingTime, statsData.dayExtHeater.consumedPower, //
           statsData.dayManualRun.heatingTime, statsData.dayManualRun.consumedPower);
       file.println(buff);
       file.close();
@@ -87,8 +72,6 @@ void statsLoop() {
     } else {
       statsData.day.heatingTime = 0;
       statsData.day.consumedPower = 0;
-      statsData.dayExtHeater.heatingTime = 0;
-      statsData.dayExtHeater.consumedPower = 0;
       statsData.dayManualRun.heatingTime = 0;
       statsData.dayManualRun.consumedPower = 0;
     }
@@ -148,16 +131,6 @@ void statsAddMilliwats() {
     statsData.month.heatingTime += heatingTime;
     statsData.month.consumedPower += consumedPower;
   }
-
-  if (statsExtHeaterSeconds != 0) {
-    heatingTime =  round((float) statsExtHeaterSeconds / 60); // minutes
-    consumedPower = round(statsExtHeaterSeconds * ((float) EXT_HEATER_POWER / 3600)); // watt
-    statsExtHeaterSeconds = 0;
-    statsData.dayExtHeater.heatingTime += heatingTime;
-    statsData.dayExtHeater.consumedPower += consumedPower;
-    statsData.monthExtHeater.heatingTime += heatingTime;
-    statsData.monthExtHeater.consumedPower += consumedPower;
-  }
   updateBlynk = true;
 }
 
@@ -182,14 +155,12 @@ void statsSave() {
 int statsConsumedPowerToday() {
   if (day(now()) != day(statsData.timestamp))
     return 0;
-  return statsData.day.consumedPower + statsData.dayExtHeater.consumedPower + statsData.dayManualRun.consumedPower;
+  return statsData.day.consumedPower + statsData.dayManualRun.consumedPower;
 }
 
 void statsPrint(FormattedPrint& out) {
   statsPrint(out, "Day heating", statsData.day);
   statsPrint(out, "Month heating", statsData.month);
-  statsPrint(out, "Day external", statsData.dayExtHeater);
-  statsPrint(out, "Month external", statsData.monthExtHeater);
   statsPrint(out, "Day manual-run", statsData.dayManualRun);
   statsPrint(out, "Month manual-run", statsData.monthManualRun);
 }
@@ -205,15 +176,11 @@ void statsPrintJson(FormattedPrint& out) {
   out.printf(F("{\"timestamp\":%lu,"
       "\"dayHeatingTime\":%ld,\"dayConsumedPower\":%ld,"
       "\"monthHeatingTime\":%ld,\"monthConsumedPower\":%ld,"
-      "\"dayExtHeatingTime\":%ld,\"dayExtConsumedPower\":%ld,"
-      "\"monthExtHeatingTime\":%ld,\"monthExtConsumedPower\":%ld,"
       "\"dayManualRunTime\":%ld,\"dayManualRunPower\":%ld,"
       "\"monthManualRunTime\":%ld,\"monthManualRunPower\":%ld"),
       statsData.timestamp,
       statsData.day.heatingTime, statsData.day.consumedPower,
       statsData.month.heatingTime, statsData.month.consumedPower,
-      statsData.dayExtHeater.heatingTime, statsData.dayExtHeater.consumedPower,
-      statsData.monthExtHeater.heatingTime, statsData.monthExtHeater.consumedPower,
       statsData.dayManualRun.heatingTime, statsData.dayManualRun.consumedPower,
       statsData.monthManualRun.heatingTime, statsData.monthManualRun.consumedPower);
 #ifdef FS
@@ -234,8 +201,6 @@ void statsBlynk() {
   byte i = 1;
   statsBlynkRow(i++, "Day heating", statsData.day);
   statsBlynkRow(i++, "Month heating", statsData.month);
-  statsBlynkRow(i++, "Day external", statsData.dayExtHeater);
-  statsBlynkRow(i++, "Month external", statsData.monthExtHeater);
   statsBlynkRow(i++, "Day manual-run", statsData.dayManualRun);
   statsBlynkRow(i++, "Month manual-run", statsData.monthManualRun);
 }

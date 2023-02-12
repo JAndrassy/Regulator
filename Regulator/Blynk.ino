@@ -21,8 +21,6 @@
 #define BOILER_TEMP_WIDGET V17
 #define BALBOA_PAUSE_BUTTON V18
 #define POWERPILOT_PLAN_SELECTOR V19
-#define EXT_HEATER_WIDGET V20
-#define EXT_HEATER_PLAN_SELECTOR V21
 #define STATS_TABLE_WIDGET V22
 
 BLYNK_READ(GAUGE_WIDGET) {
@@ -48,11 +46,6 @@ BLYNK_WRITE(BALBOA_PAUSE_BUTTON) {
 
 BLYNK_WRITE(POWERPILOT_PLAN_SELECTOR) {
   powerPilotSetPlan(param.asInt() - 1); // Blynk Select index starts at 1
-  updateWidgets();
-}
-
-BLYNK_WRITE(EXT_HEATER_PLAN_SELECTOR) {
-  extHeaterPlan = (param.asInt() - 1); // Blynk Select index starts at 1
   updateWidgets();
 }
 
@@ -87,8 +80,6 @@ void updateWidgets() {
   Blynk.virtualWrite(MANUAL_RUN_BUTTON, state == RegulatorState::MANUAL_RUN || manualRunRequest);
   Blynk.virtualWrite(BALBOA_PAUSE_BUTTON, balboaRelayOn);
   Blynk.virtualWrite(POWERPILOT_PLAN_SELECTOR, powerPilotPlan + 1);
-  Blynk.virtualWrite(EXT_HEATER_WIDGET, extHeaterIsOn ? 0xFF : 0);
-  Blynk.virtualWrite(EXT_HEATER_PLAN_SELECTOR, extHeaterPlan + 1);
   char buff[17];
   CStringBuilder sb(buff, sizeof(buff));
   switch (state) {
@@ -180,9 +171,6 @@ void blynkChartData() {
     long hhConsumptionAvg = (hhConsumptionSum / n);
     if (state != RegulatorState::MANUAL_RUN) {
       hhConsumptionAvg -= heaterConsumptionAvg;
-    }
-    if (extHeaterIsOn) {
-      hhConsumptionAvg -= EXT_HEATER_POWER;
     }
     Blynk.virtualWrite(V35, hhConsumptionAvg);
 

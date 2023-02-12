@@ -2,7 +2,7 @@
 var host = location.hostname;
 var restPort = 80;
 if (host == "") {
-  host = "192.168.1.6";
+  host = "192.168.1.117";
 }
 
 function onLoad(cmd) {
@@ -30,11 +30,10 @@ function onLoad(cmd) {
 
 var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : "Relays", "h" : "Heating", "m" : "Meter", 
     "b" : "Battery", "i" : "Inverter", "soc" : "SoC", "ec" : "Events", "cp" : "Consumed", "ts" : "Boiler temp.", 
-    "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan", "eh" : "Ext. Heater Plan"};
+    "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "N" : "Network", "P" : "Pump", "M" : "MODBUS"};
 var planLabels  = ["Battery has priority (default)", "Heating has priority AM", "Disable heating AM", "Disable heating"];
-var extHeaterPlanLabels  = ["Ext. heater disabled", "Use ext. heater"];
 
 function showValues(jsonData) {
   var data = JSON.parse(jsonData);
@@ -64,7 +63,7 @@ function showValues(jsonData) {
     var boxDiv = document.createElement("DIV");
     if (key == "ec" || key == "err" || key == "cp" || key == "csv" || (key == "st" && val == "ALARM")) {
       boxDiv.className = "value-box value-box-clickable";
-    } else if (key == "v" || key == "p" || key == "eh") {
+    } else if (key == "v" || key == "p") {
       boxDiv.className = "value-box value-box-double";
     } else {
       boxDiv.className = "value-box";
@@ -72,8 +71,6 @@ function showValues(jsonData) {
     boxDiv.appendChild(createTextDiv("value-label", valueLabels[key]));
     if (key == "p") {
       boxDiv.appendChild(createDropDownListDiv(planLabels, val, "P"));
-    } else if (key == "eh") {
-      boxDiv.appendChild(createDropDownListDiv(extHeaterPlanLabels, val, "W"));
     } else {
       boxDiv.appendChild(createTextDiv("value-value", val + unit));
     }
@@ -105,16 +102,16 @@ function showValues(jsonData) {
     }
   }
   var s = data["r"];
-  if (s.charAt(0) == "0" && s.charAt(8) == "0") { // "0 0 0 1 0"
+  if (s.charAt(0) == "0" && s.charAt(6) == "0") { // "0 0 1 0"
     contentDiv.appendChild(createCommandBox("Valves", "Back", "V"));
   }
-  var balboaRelayOn = (s.charAt(6) == "1"); // "0 0 0 1 0"
+  var balboaRelayOn = (s.charAt(4) == "1"); // "0 0 0 1"
   contentDiv.appendChild(createCommandBox("Balboa pause", balboaRelayOn ? "Off" : "On", "B"));
 }
 
 var eventHeaders = ["timestamp", "event", "value 1", "value 2", "count"];
-var eventLabels = ["Events", "Restart", "Watchdog", "Network", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "PowerPilot plan", "Ext Heater", "Stats save"];
-var eventIsError = [false,    false,     true,       true,      true,           true,           false,      false,           false,       false,         false,                 false,      false,             true,         false];
+var eventLabels = ["Events", "Restart", "Watchdog", "Network", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "PowerPilot plan", "Stats save"];
+var eventIsError = [false,    false,     true,       true,      true,           true,           false,      false,           false,       false,         false,                 false,      false,             false];
 
 function showEvents(jsonData) {
   var data = JSON.parse(jsonData);
@@ -186,8 +183,6 @@ function showStats(jsonData) {
   contentDiv.appendChild(statsHeaderDiv);
   contentDiv.appendChild(buildStatsRow("Day heating", data["dayHeatingTime"], data["dayConsumedPower"], true));
   contentDiv.appendChild(buildStatsRow("Month heating", data["monthHeatingTime"], data["monthConsumedPower"], true));
-  contentDiv.appendChild(buildStatsRow("Day external", data["dayExtHeatingTime"], data["dayExtConsumedPower"], false));
-  contentDiv.appendChild(buildStatsRow("Month external", data["monthExtHeatingTime"], data["monthExtConsumedPower"], false));
   contentDiv.appendChild(buildStatsRow("Day manual-run", data["dayManualRunTime"], data["dayManualRunPower"], false));
   contentDiv.appendChild(buildStatsRow("Month manual-run", data["monthManualRunTime"], data["monthManualRunPower"], false));
   var fn = data["fn"];

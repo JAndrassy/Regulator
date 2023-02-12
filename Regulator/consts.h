@@ -98,8 +98,6 @@ const int BYPASS_POWER = 2100;
 const unsigned long PUMP_STOP_MILLIS = 10 * 60000; // 10 min
 const unsigned long VALVE_ROTATION_TIME = 30000; // 30 sec
 
-const int EXT_HEATER_POWER = 1000;
-
 const IPAddress symoAddress(192,168,1,7);
 
 enum struct RegulatorState {
@@ -133,7 +131,6 @@ enum {
   SUSPEND_CALIBRATION_EVENT,
   BATTSETT_LIMIT_EVENT,
   POWERPILOT_PLAN_EVENT,
-  EXT_HEATER_EVENT,
   STATS_SAVE_EVENT,
   EVENTS_SIZE
 };
@@ -143,11 +140,6 @@ enum {
   HEATING_PRIORITY_AM,
   HEATING_DISABLED_AM,
   HEATING_DISABLED
-};
-
-enum {
-  EXT_HEATER_DISABLED,
-  EXT_HEATER_NORMAL
 };
 
 struct Stats {

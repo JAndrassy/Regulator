@@ -10,7 +10,6 @@ enum struct RestRequest {
   VALVES_BACK = 'V',
   BALBOA_PAUSE = 'B',
   PLAN_CHANGE = 'P',
-  EXT_PLAN_CHANGE = 'W',
   SAVE_EVENTS = 'S'
 };
 
@@ -44,7 +43,7 @@ void webServerLoop() {
       char buff[1024];
 #endif
       ChunkedPrint chunked(client, buff, sizeof(buff));
-      if (l <= 3 && strchr("IECLAPHVBSXW", fn[1])) {
+      if (l <= 3 && strchr("IECLAPHVBSX", fn[1])) {
         webServerRestRequest(fn[1], fn[2], chunked);
       } else {
         webServerServeFile(fn, chunked);
@@ -100,10 +99,6 @@ void webServerRestRequest(char cmd, char param, ChunkedPrint& chunked) {
       break;
     case RestRequest::PLAN_CHANGE:
       powerPilotSetPlan(param - '0');
-      printValuesJson(chunked);
-      break;
-    case RestRequest::EXT_PLAN_CHANGE:
-      extHeaterPlan = param - '0';
       printValuesJson(chunked);
       break;
     case RestRequest::SAVE_EVENTS:
@@ -170,9 +165,9 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
 }
 
 void printValuesJson(FormattedPrint& client) {
-  client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d %d\",\"p\":%d,\"ec\":%d,\"ts\":%d,\"cp\":%d,\"eh\":%d"),
-      state, version, mainRelayOn, bypassRelayOn, extHeaterIsOn, balboaRelayOn, valvesBackRelayOn, powerPilotPlan,
-      eventsRealCount(false), valvesBackBoilerTemperature(), statsConsumedPowerToday(), extHeaterPlan);
+  client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d\",\"p\":%d,\"ec\":%d,\"ts\":%d,\"cp\":%d"),
+      state, version, mainRelayOn, bypassRelayOn, balboaRelayOn, valvesBackRelayOn, powerPilotPlan,
+      eventsRealCount(false), valvesBackBoilerTemperature(), statsConsumedPowerToday());
   byte errCount = eventsRealCount(true);
   if (errCount) {
     client.printf(F(",\"err\":%d"), errCount);
