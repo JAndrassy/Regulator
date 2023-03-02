@@ -33,7 +33,7 @@ var valueLabels = {"err" : "Errors", "mr" : "Manual run", "st" : "State", "r" : 
     "csv" : "CSV Files", "v" : "Version", "p" : "PowerPilot Plan"};
 var stateLabels = {"N" : "rest", "M" : "monitoring", "R" : "regulating", "O" : "OVERHEAT", "H" : "manual run", "A" : "ALARM"};
 var alarmLabels = {"-" : "No alarm", "N" : "Network", "P" : "Pump", "M" : "MODBUS"};
-var planLabels  = ["Battery has priority (default)", "Heating has priority AM", "Disable heating AM", "Disable heating"];
+var planLabels  = ["Disable heating", "Disable heating AM", "Battery has priority", "Heating has priority AM"];
 
 function showValues(jsonData) {
   var data = JSON.parse(jsonData);

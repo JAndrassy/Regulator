@@ -87,7 +87,7 @@ int voltage; // smart meter measured AC voltage
 int inverterAC; // inverter AC power
 
 // PowerPilot values
-byte powerPilotPlan = BATTERY_PRIORITY;
+byte powerPilotPlan = HEATING_DISABLED;
 int heatingPower;
 int powerPilotRaw;
 
@@ -370,7 +370,7 @@ boolean restHours() {
   if (state == RegulatorState::MONITORING) {
     state = RegulatorState::REST;
     clearData();
-    powerPilotSetPlan(BATTERY_PRIORITY);
+    powerPilotSetPlan(HEATING_DISABLED);
   }
   return true;
 }
