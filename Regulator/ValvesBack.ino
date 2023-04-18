@@ -20,11 +20,23 @@ void valvesBackLoop() {
   const int BOILER_TEMP_HOT = 65;
   const byte VALVES_BACK_HOUR = 5;
 
+  static short backAfter = -1;
+
   if (!mainRelayOn && !valvesBackTime) {
     unsigned short v = valvesBackBoilerTemperature();
-    if ((v > BOILER_TEMP_WARM && v < BOILER_TEMP_HOT) || hourNow == VALVES_BACK_HOUR) {
+    if (backAfter == -1) {
+      backAfter = 0;
+      unsigned long lastHeatingTS = events[STATS_SAVE_EVENT].timestamp;
+      unsigned long today = previousMidnight(now());
+      if (lastHeatingTS > today) {
+        backAfter = ((lastHeatingTS - today) / 60) + (statsConsumedPowerToday() / 17); // add a minute per 17 W (aprox. 1 hour for 1 kW)
+      }
+    }
+    if ((hour() * 60 + minute() > backAfter && v > BOILER_TEMP_WARM && v < BOILER_TEMP_HOT) || hourNow == VALVES_BACK_HOUR) {
       valvesBackStart(v);
     }
+  } else if (backAfter != -1) {
+    backAfter = -1;
   }
   if (valvesBackRelayOn && (loopStartMillis - valvesBackTime) > VALVE_ROTATION_TIME) {
     msg.print(" VR_off");

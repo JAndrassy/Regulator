@@ -29,10 +29,6 @@ void statsSetup() {
   }
 #else
   EEPROM.get(STATS_EEPROM_ADDR, statsData);
-  statsData.dayManualRun.heatingTime = 0;
-  statsData.dayManualRun.consumedPower = 0;
-  statsData.monthManualRun.heatingTime = 0;
-  statsData.monthManualRun.consumedPower = 0;
   if ((unsigned long) statsData.dayManualRun.heatingTime == 0xFFFFFFFF) { // empty EEPROM
     memset(&statsData, 0, sizeof(statsData));
   }
@@ -135,9 +131,9 @@ void statsAddMilliwats() {
 }
 
 void statsSave() {
-  if (!statsMilliwatMilis)
-    return;
-  statsAddMilliwats();
+  if (statsMilliwatMilis) {
+    statsAddMilliwats();
+  }
 #ifdef NO_EEPROM
   File file = FS.open(STATS_FILENAME, FILE_NEW);
   if (file) {

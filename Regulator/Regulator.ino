@@ -187,7 +187,6 @@ void setup() {
 
   beep();
 
-  valvesBackSetup();
   telnetSetup();
   blynkSetup();
   webServerSetup();
@@ -195,6 +194,7 @@ void setup() {
   eventsSetup();
   statsSetup();
   csvLogSetup();
+  valvesBackSetup();
   watchdogSetup();
 
   beep();
