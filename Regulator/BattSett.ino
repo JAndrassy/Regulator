@@ -17,13 +17,14 @@ void battSettLoop() {
   const byte LIMIT_PERCENT_SUMMER = 15;
   const byte PERCENT_PER_HOUR_SUMMER = 5;
   const byte PERCENT_PER_HOUR_WINTER = 6;
-  const byte SUMMER_FIRST_MONT = 4;
-  const byte SUMMER_LAST_MONT = 9;
+  const byte SUMMER_FIRST_MONTH = 4;
+  const byte SUMMER_LAST_MONTH = 9;
   const byte MIN_SOC = 7;
   const byte MARGINAL_SOC = 30;
 
   static boolean disableDone = false;
   static boolean enableDone = false;
+  static bool enabledForManualRun = false;
 
   // after 7 AM disable limit
   if (hourNow >= LIMIT_TARGET_HOUR && hourNow < EVAL_START_HOUR) {
@@ -38,18 +39,36 @@ void battSettLoop() {
     disableDone = false;
   }
 
+  // after manualRun disable discharge limit
+  if (enabledForManualRun && state != RegulatorState::MANUAL_RUN) {
+    int res = battSettControl(false, false);
+    if (res != 0) {
+      eventsWrite(BATTSETT_LIMIT_EVENT, -1, res);
+    }
+    enabledForManualRun = false;
+  }
+
   // after 4 PM until rest, check discharging speed
   // enable discharge limit, if SoC is lower then needed
   if (hourNow >= EVAL_START_HOUR) {
     if (!enableDone) {
-      bool winter = (month() > SUMMER_LAST_MONT || month() < SUMMER_FIRST_MONT);
+      bool winter = (month() > SUMMER_LAST_MONTH || month() < SUMMER_FIRST_MONTH);
       byte percentPerHour = winter ? PERCENT_PER_HOUR_WINTER : PERCENT_PER_HOUR_SUMMER;
       byte requiredSoc = MIN_SOC + percentPerHour * ((24 - hourNow) + LIMIT_TARGET_HOUR); // %
-      if ((pvSOC > MARGINAL_SOC) && (pvChargingPower < 0) && (pvSOC < requiredSoc)) {
+      bool limitReached = (pvSOC > MARGINAL_SOC) && (pvChargingPower < 0) && (pvSOC < requiredSoc);
+      if (enabledForManualRun) { // discharge limit already applied
+        if (limitReached) { // if limit reached while manual run, then switch to enableDone
+          enabledForManualRun = false;
+          enableDone = true;
+        }
+      } else if (limitReached || state == RegulatorState::MANUAL_RUN) {
         battSettSetLimit(REG_OutWRte, winter ? LIMIT_PERCENT_WINTER : LIMIT_PERCENT_SUMMER);
         int res = battSettControl(false, true);
         eventsWrite(BATTSETT_LIMIT_EVENT, pvSOC, res);
+        enabledForManualRun = !limitReached && (state == RegulatorState::MANUAL_RUN);
+        if (!enabledForManualRun) {
         enableDone = true;
+        }
       }
     }
   } else if (enableDone) {
