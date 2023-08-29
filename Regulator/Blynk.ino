@@ -38,6 +38,7 @@ BLYNK_WRITE(REFRESH_BUTTON) {
 
 BLYNK_WRITE(MANUAL_RUN_BUTTON) {
   manualRunRequest = param.asInt();
+  manualRunLoop();
   updateWidgets();
 }
 
@@ -68,7 +69,7 @@ void blynkSetup() {
 }
 
 void blynkLoop() {
-  const unsigned long REFRESH_MILLIS = 5000; // 5 seconds
+  const unsigned long REFRESH_MILLIS = 10000; // 10 seconds
   const unsigned long REFRESH_INTERVAL = 3UL * 60000; // 3 minutes
   static unsigned long previousMillis = 0;
 
@@ -88,6 +89,7 @@ void blynkLoop() {
 void updateWidgets() {
 //  msg.print(F("Blynk"));
   Blynk.beginGroup();
+  Blynk.virtualWrite(REFRESH_BUTTON, blynkRefreshStart ? 0xFF : 0);
   Blynk.virtualWrite(PV_PRODUCTION_WIDGET, inverterAC + pvChargingPower);
   Blynk.virtualWrite(HH_CONSUMPTION_WIDGET, inverterAC - meterPower - elsensPower);
   Blynk.virtualWrite(METER_WIDGET, meterPower);

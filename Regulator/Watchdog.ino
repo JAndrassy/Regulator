@@ -38,9 +38,7 @@ ISR(WDT_vect) {
     wdt_enable(WDTO_15MS); // self reset
   }
 }
-#endif
-
-#ifdef ARDUINO_ARCH_SAMD
+#elif ARDUINO_ARCH_SAMD
 
 #include <WDTZero.h> // https://github.com/javos65/WDTZero
 
@@ -65,6 +63,16 @@ void watchdogShutdown() {
   }
   eventsWrite(WATCHDOG_EVENT, 0, 0);
   shutdown();
+}
+
+#else
+void watchdogSetup() {
+}
+
+void watchdogLoop() {
+}
+
+void watchdogStop() {
 }
 
 #endif

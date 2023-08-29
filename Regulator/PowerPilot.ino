@@ -7,7 +7,7 @@ void pilotSetup() {
   Triac::setup(ZC_EI_PIN, TRIAC_PIN);
 }
 
-const int MIN_POWER = 300;
+const int MIN_POWER = 700;
 
 void pilotLoop() {
 
@@ -20,7 +20,7 @@ void pilotLoop() {
   const int TOP_OSCILLATION_DISCHARGE_LIMIT = -600; // W
   const int TOP_OSCILLATION_COUNTERMEASURE = -20; // W
   const int LEFT_FOR_BATTERY = -200; // W used if heating bellow BYPASS_BUFFER_SOC
-  const int MIN_START_POWER = 500; // W
+  const int MIN_START_POWER = 1000; // W
   const int BYPASS_MIN_START_POWER = BYPASS_POWER + 100;
   const int HEATING_PRIORITY_START_POWER = BYPASS_POWER + 250;
   const byte WAIT_FOR_IT_COUNT = 3;
@@ -40,7 +40,8 @@ void pilotLoop() {
   }
 
   // handle heating strategy plan
-  if (hourNow >= 12 && (powerPilotPlan == HEATING_PRIORITY_AM || powerPilotPlan == HEATING_DISABLED_AM)) {
+  if ((hourNow >= 12 && powerPilotPlan == HEATING_DISABLED_AM)
+      || (hourNow >= 14 && powerPilotPlan == HEATING_PRIORITY_AM)) {
     powerPilotPlan = BATTERY_PRIORITY;
   }
   if (powerPilotPlan == HEATING_DISABLED || powerPilotPlan == HEATING_DISABLED_AM) {
