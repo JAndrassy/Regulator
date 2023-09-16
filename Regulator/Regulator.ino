@@ -249,14 +249,12 @@ void loop() {
 
 //  wemoLoop();
   consumptionMeterLoop();
-  battSettLoop();
   balboaLoop();
 
   telnetLoop(true); // logs modbus and heating data
   csvLogLoop();
 //  blynkChartData();
 
-  susCalibLoop();
 }
 
 void shutdown() {
@@ -350,7 +348,7 @@ boolean restHours() {
 
   const unsigned long MIN_VALID_TIME = SECS_YR_2000 + SECS_PER_YEAR;
   const int BEGIN_HOUR = 8;
-  const int END_HOUR = 22; // to monitor discharge
+  const int END_HOUR = 18;
 
   if (now() < MIN_VALID_TIME || balboaRelayOn)
     return false;
