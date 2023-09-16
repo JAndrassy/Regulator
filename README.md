@@ -105,13 +105,13 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 ### Special
 * ConsumptionMeter.ino - take data from secondary Fronius Smart Meter measuring this heater's consumption. Value is only logged to csv for evaluation (charts in Calc). It is an alternative to WemoInsight.ino.
 * WemoInsight.ino - functions to access Belkin WiFi switch. Can be used as an alternative to ConsumptionMeter.ino.
-* Balboa.ino - defers hot tub heating if overall household consumption exceeds PV inverter's limit
 
 ### Removed
 these are available in the git history:
 * ExtHeater.ino - external/extension heater for additional consumption of surplus power
 * BattSett.ino - SunSpec Modbus storage control
 * SusCalib.ino - at 9 am sends 'calibration disable' for 3 hours
+* Balboa.ino - defers hot tub heating if overall household consumption exceeds PV inverter's limit
 
 ### Web interface
 
@@ -171,4 +171,4 @@ I have no more surplus electricity because I can get back up to 2 MW of electric
 
 Blynk legacy ended so I migrate to Blynk IO, but because of the expected downsizing I stay limited to the Free Plan for now.
 
-I removed ExtHeater.ino, BattSett.ino, SusCalib.ino
+I removed ExtHeater.ino, BattSett.ino, SusCalib.ino, Balboa.ino

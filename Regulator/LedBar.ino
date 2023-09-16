@@ -71,8 +71,5 @@ void ledBarLoop() {
     }
   } else {
     ledBar.setLed(BLINK_LED, 0.25);
-    if (balboaRelayOn) {
-      ledBar.setLed(ALARM_LED, 0.75);
-    }
   }
 }

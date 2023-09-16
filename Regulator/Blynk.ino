@@ -50,11 +50,6 @@ BLYNK_WRITE(VALVES_BACK_BUTTON) {
   }
 }
 
-BLYNK_WRITE(BALBOA_PAUSE_BUTTON) {
-  balboaManualPause(param.asInt());
-  updateWidgets();
-}
-
 BLYNK_WRITE(POWERPILOT_PLAN_SELECTOR) {
   powerPilotSetPlan(param.asInt());
   updateWidgets();
@@ -100,12 +95,10 @@ void updateWidgets() {
   Blynk.virtualWrite(CONSUMED_WIDGET, statsConsumedPowerToday());
   Blynk.virtualWrite(MAIN_RELAY_WIDGET, mainRelayOn ? 0xFF : 0);
   Blynk.virtualWrite(BYPASS_RELAY_WIDGET, bypassRelayOn  ? 0xFF : 0);
-  Blynk.virtualWrite(BALBOA_RELAY_WIDGET, balboaRelayOn ? 0xFF : 0);
   Blynk.virtualWrite(VALVES_BACK_WIDGET, valvesBackExecuted() ? 0xFF : 0);
   Blynk.virtualWrite(BOILER_TEMP_WIDGET, valvesBackBoilerTemperature());
   Blynk.virtualWrite(MANUAL_RUN_WIDGET, (short) manualRunMinutesLeft());
   Blynk.virtualWrite(MANUAL_RUN_BUTTON, state == RegulatorState::MANUAL_RUN || manualRunRequest);
-  Blynk.virtualWrite(BALBOA_PAUSE_BUTTON, balboaRelayOn);
   Blynk.virtualWrite(POWERPILOT_PLAN_SELECTOR, powerPilotPlan);
   char buff[17];
   CStringBuilder sb(buff, sizeof(buff));

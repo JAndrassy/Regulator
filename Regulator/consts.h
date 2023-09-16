@@ -8,7 +8,6 @@ const char version[] = "build "  __DATE__ " " __TIME__;
 #ifdef ARDUINO_SAMD_NANO_33_IOT // on Nano Grove Shield
 const byte MAIN_RELAY_PIN = 0; // D0+D1 connector (Serial1)
 const byte BYPASS_RELAY_PIN = 1; //
-const byte BALBOA_RELAY_PIN = 2;  // D2+D3
 const byte VALVES_RELAY_PIN = 3;
 const byte ZC_EI_PIN = 4; // D4+D5
 const byte TRIAC_PIN = 5;
@@ -28,7 +27,6 @@ const byte SD_SS_PIN = 10;
 #elif defined(ARDUINO_SAMD_MKRZERO) || defined(ARDUINO_SAMD_MKR1000) || defined(ARDUINO_SAMD_MKRWIFI1010)
 // on MKR Connector Carrier
 const byte TONE_PIN = 0;
-const byte BALBOA_RELAY_PIN  = 1;
 const byte VALVES_RELAY_PIN = 2;
 const byte MAIN_RELAY_PIN = 3;
 const byte BYPASS_RELAY_PIN = 4;
@@ -86,7 +84,6 @@ const byte LEDBAR_CLOCK_PIN = LEDBAR_DATA_PIN + 1; //on one Grove connector
 
 // A0 free
 const byte ELSENS_PIN = A1;
-const byte BALBOA_RELAY_PIN = A2;
 const byte VALVES_RELAY_PIN = A3;
 
 #endif

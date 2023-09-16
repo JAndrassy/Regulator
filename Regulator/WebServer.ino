@@ -8,7 +8,6 @@ enum struct RestRequest {
   PUMP_ALARM_RESET = 'X',
   MANUAL_RUN = 'H',
   VALVES_BACK = 'V',
-  BALBOA_PAUSE = 'B',
   PLAN_CHANGE = 'P',
   SAVE_EVENTS = 'S'
 };
@@ -43,7 +42,7 @@ void webServerLoop() {
       char buff[1024];
 #endif
       ChunkedPrint chunked(client, buff, sizeof(buff));
-      if (l <= 3 && strchr("IECLAPHVBSX", fn[1])) {
+      if (l <= 3 && strchr("IECLAPHVSX", fn[1])) {
         webServerRestRequest(fn[1], fn[2], chunked);
       } else {
         webServerServeFile(fn, chunked);
@@ -91,10 +90,6 @@ void webServerRestRequest(char cmd, char param, ChunkedPrint& chunked) {
       break;
     case RestRequest::VALVES_BACK:
       valvesBackStart(0);
-      printValuesJson(chunked);
-      break;
-    case RestRequest::BALBOA_PAUSE:
-      balboaManualPause(!manualBalboaPause);
       printValuesJson(chunked);
       break;
     case RestRequest::PLAN_CHANGE:
@@ -165,8 +160,8 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
 }
 
 void printValuesJson(FormattedPrint& client) {
-  client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d %d\",\"p\":%d,\"ec\":%d,\"ts\":%d,\"cp\":%d"),
-      state, version, mainRelayOn, bypassRelayOn, balboaRelayOn, valvesBackRelayOn, powerPilotPlan,
+  client.printf(F("{\"st\":\"%c\",\"v\":\"%s\",\"r\":\"%d %d %d\",\"p\":%d,\"ec\":%d,\"ts\":%d,\"cp\":%d"),
+      state, version, mainRelayOn, bypassRelayOn, valvesBackRelayOn, powerPilotPlan,
       eventsRealCount(false), valvesBackBoilerTemperature(), statsConsumedPowerToday());
   byte errCount = eventsRealCount(true);
   if (errCount) {

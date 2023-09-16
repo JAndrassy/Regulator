@@ -105,8 +105,6 @@ function showValues(jsonData) {
   if (s.charAt(0) == "0" && s.charAt(6) == "0") { // "0 0 1 0"
     contentDiv.appendChild(createCommandBox("Valves", "Back", "V"));
   }
-  var balboaRelayOn = (s.charAt(4) == "1"); // "0 0 0 1"
-  contentDiv.appendChild(createCommandBox("Balboa pause", balboaRelayOn ? "Off" : "On", "B"));
 }
 
 var eventHeaders = ["timestamp", "event", "value 1", "value 2", "count"];

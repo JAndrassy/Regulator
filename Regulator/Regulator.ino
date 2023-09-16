@@ -71,7 +71,6 @@ boolean manualRunRequest = false; // manual run start or stop request
 boolean mainRelayOn = false;
 boolean bypassRelayOn = false;
 boolean valvesBackRelayOn = false;
-boolean balboaRelayOn = false;
 
 int freeMem;
 
@@ -119,7 +118,6 @@ void setup() {
   buttonSetup();
   ledBarSetup();
 //  statusLedSetup();
-  balboaSetup();
 
   beep();
 
@@ -249,7 +247,6 @@ void loop() {
 
 //  wemoLoop();
   consumptionMeterLoop();
-  balboaLoop();
 
   telnetLoop(true); // logs modbus and heating data
   csvLogLoop();
@@ -310,7 +307,6 @@ boolean handleAlarm() {
   if (state != RegulatorState::ALARM) {
     state = RegulatorState::ALARM;
     clearData();
-    balboaReset();
     msg.printf(F("alarm %c"), (char) alarmCause);
   }
   boolean stopAlarm = false;
@@ -350,7 +346,7 @@ boolean restHours() {
   const int BEGIN_HOUR = 8;
   const int END_HOUR = 18;
 
-  if (now() < MIN_VALID_TIME || balboaRelayOn)
+  if (now() < MIN_VALID_TIME)
     return false;
 
   if (hourNow >= BEGIN_HOUR && hourNow < END_HOUR) {
