@@ -108,8 +108,8 @@ function showValues(jsonData) {
 }
 
 var eventHeaders = ["timestamp", "event", "value 1", "value 2", "count"];
-var eventLabels = ["Events", "Restart", "Watchdog", "Network", "Pump problem", "MODBUS error", "Overheat", "Balboa pause", "Manual run", "Valves back", "Suspend calibration", "BattSett", "PowerPilot plan", "Stats save"];
-var eventIsError = [false,    false,     true,       true,      true,           true,           false,      false,           false,       false,         false,                 false,      false,             false];
+var eventLabels = ["Events", "Restart", "Watchdog", "Network", "Pump problem", "MODBUS error", "Overheat", "Manual run", "Valves back", "PowerPilot plan", "Stats save"];
+var eventIsError = [false,    false,     true,       true,      true,           true,           false,      false,        false,         false,             false];
 
 function showEvents(jsonData) {
   var data = JSON.parse(jsonData);

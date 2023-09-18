@@ -1,9 +1,9 @@
 
 const unsigned long EVENTS_SAVE_INTERVAL_SEC = 10 * 60; // sec 10 min
 const char* eventLongLabels[EVENTS_SIZE] = {"Events", "Reset", "Watchdog", "Network", "Pump", "Modbus",
-    "Overheated", "Balboa pause", "Manual run", "Valves back", "Sus.calib.", "Batt.set", "PowerPilot plan", "Stat.save"};
+    "Overheated", "Manual run", "Valves back", "PowerPilot plan", "Stat.save"};
 const char* blynkCode[EVENTS_SIZE] = {"events", "reset", "watchdog", "network", "pump", "modbus",
-    "overheated", "balboa_pause", "manual_run", "valves_back", "sus_calib", "batt_set", "powerpilot_plan", "stat_save"};
+    "overheated", "manual_run", "valves_back", "powerpilot_plan", "stat_save"};
 const unsigned short eventIsError = bit(WATCHDOG_EVENT) | bit(NETWORK_EVENT) | bit(PUMP_EVENT) | bit(MODBUS_EVENT);
 
 #ifdef NO_EEPROM

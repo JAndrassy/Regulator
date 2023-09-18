@@ -63,6 +63,7 @@ const byte SD_SS_PIN = 4;  // Ethernet shield
 const byte ZC_EI_PIN = 5;  // on one Grove connector with TRIAC_PIN
 const byte TRIAC_PIN = 6;  // TCC0 WO pin for TriacLib
 const byte NET_SS_PIN = 10; // Ethernet shield
+const byte BYPASS_RELAY_PIN = A2;
 #elif defined(PROBADIO)
 const byte ZC_EI_PIN = 3; // INT1 pin. on one Grove connector with TRIAC_PIN
 const byte TRIAC_PIN = 4; // TIMER1 OC1B
@@ -122,11 +123,8 @@ enum {
   PUMP_EVENT,
   MODBUS_EVENT,
   OVERHEATED_EVENT,
-  BALBOA_PAUSE_EVENT,
   MANUAL_RUN_EVENT,
   VALVES_BACK_EVENT,
-  SUSPEND_CALIBRATION_EVENT,
-  BATTSETT_LIMIT_EVENT,
   POWERPILOT_PLAN_EVENT,
   STATS_SAVE_EVENT,
   EVENTS_SIZE
