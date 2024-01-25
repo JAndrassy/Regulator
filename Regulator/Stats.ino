@@ -22,11 +22,13 @@ bool updateBlynk = true;
 
 void statsSetup() {
 #ifdef NO_EEPROM
+#ifdef FS
   File file = FS.open(STATS_FILENAME, FILE_READ);
   if (file) {
     file.readBytes((byte*) &statsData, sizeof(statsData));
     file.close();
   }
+#endif
 #else
   EEPROM.get(STATS_EEPROM_ADDR, statsData);
   if ((unsigned long) statsData.dayManualRun.heatingTime == 0xFFFFFFFF) { // empty EEPROM
@@ -135,11 +137,13 @@ void statsSave() {
     statsAddMilliwats();
   }
 #ifdef NO_EEPROM
+#ifdef FS
   File file = FS.open(STATS_FILENAME, FILE_NEW);
   if (file) {
     file.write((byte*) &statsData, sizeof(statsData));
     file.close();
   }
+#endif
 #else
   EEPROM.put(STATS_EEPROM_ADDR, statsData);
 #endif

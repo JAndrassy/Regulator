@@ -219,7 +219,7 @@ int modbusRequest(byte uid, unsigned int addr, byte len, short *regs) {
   if (err != 0)
     return err;
 
-  byte request[] = {requestId++, 1, 0, 0, 0, 6, uid, FNC_READ_REGS, (byte) (addr / 256), (byte) (addr % 256), 0, len};
+  byte request[] = {0, requestId++, 0, 0, 0, 6, uid, FNC_READ_REGS, (byte) (addr / 256), (byte) (addr % 256), 0, len};
   modbus.write(request, sizeof(request));
   modbus.flush();
 
@@ -239,8 +239,8 @@ int modbusRequest(byte uid, unsigned int addr, byte len, short *regs) {
       default:
         return -3;
     }
-    if ((uint8_t)(requestId - 1) != response[0]) {
-      msg.printf(F(" %d!=%d"), requestId - 1, (int) response[0]);
+    if ((uint8_t)(requestId - 1) != response[1]) {
+      msg.printf(F(" %d!=%d"), requestId - 1, (int) response[1]);
       int l = response[LENGTH_IX];
       while (l > 0 && modbus.read() != -1) {
         l--;
@@ -268,7 +268,7 @@ int modbusWriteSingle(unsigned int address, int val) {
   if (err != 0)
     return err;
 
-  byte req[] = { requestId++, 1, 0, 0, 0, 6, 1, FNC_WRITE_SINGLE, // header
+  byte req[] = {0, requestId++, 0, 0, 0, 6, 1, FNC_WRITE_SINGLE, // header
         (byte) (address / 256), (byte) (address % 256),
         (byte) (val / 256), (byte) (val % 256)};
 

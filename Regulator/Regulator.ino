@@ -5,6 +5,7 @@
 //#include <WiFiNINA.h>
 //#include <WiFi101.h>
 #include <WiFiEspAT.h> // with https://github.com/JiriBilek/ESP_ATMod for more than 1 server
+//#include <EthernetEspAT.h> // with https://github.com/JiriBilek/ESP_ATMod for more than 1 server
 //#include <Ethernet.h> //Ethernet 2.00 for all W5000
 //byte mac[] = SECRET_MAC;
 //#define ETHERNET
@@ -13,7 +14,7 @@
 #define NO_OTA_PORT
 #include <ArduinoOTA.h>
 
-#if defined(ARDUINO_ARCH_SAMD)
+#ifndef ARDUINO_ARCH_AVR
 #define NO_EEPROM
 #else
 #include <EEPROM.h>
@@ -33,7 +34,7 @@
 #define BLYNK_MAX_SENDBYTES 256
 //#define BLYNK_USE_128_VPINS
 #define BLYNK_TEMPLATE_ID "TMPL97AKXy7c"
-#define BLYNK_DEVICE_NAME "Regulator"
+#define BLYNK_TEMPLATE_NAME "Regulator"
 #define BLYNK_AUTH_TOKEN SECRET_BLYNK_TOKEN
 
 #ifdef ETHERNET
@@ -128,6 +129,7 @@ void setup() {
 
 #ifdef SERIAL_DEBUG
   SERIAL_DEBUG.begin(115200);
+//  while (!SERIAL_DEBUG);
   SERIAL_DEBUG.println(version);
   SERIAL_DEBUG.print(F("mem "));
   SERIAL_DEBUG.println(freeMemory());
@@ -156,7 +158,15 @@ void setup() {
 
 #ifdef ETHERNET
   IPAddress ip(192, 168, 1, 6);
+#if defined(_ETHERNET_ESPAT_H_)
+  SERIAL_AT.begin(250000);
+  SERIAL_AT.setTimeout(2000);
+  Ethernet.init(SERIAL_AT);
+  Ethernet.wifiOff();
+#else
   Ethernet.init(NET_SS_PIN);
+#endif
+  Ethernet.setHostname("regulator");
   Ethernet.begin(mac, ip);
   delay(500);
 #elif defined(_WIFI_ESP_AT_H_)

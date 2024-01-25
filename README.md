@@ -41,7 +41,6 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * [Grove 30 A Relay module](https://www.seeedstudio.com/Grove-SPDT-Relay%2830A%29-p-1473.html) for Triac bypass at full power
 * ACS712 20 A current sensor module
 * [Grove SSR V2](https://wiki.seeedstudio.com/Grove-Solid_State_Relay_V2/) 2 pcs for circulation pump and valves
-* [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) is for Balboa hot tub heating suspend activation
 * [Grove Passive Buzzer](https://www.seeedstudio.com/Grove-Passive-Buzzer-p-4525.html) - buzzer module for strong melody beeps
 * [Grove LED Bar](https://www.seeedstudio.com/Grove-LED-Bar-v2.0-p-2474.html) - 10 LEDs with individual dimming requiring only any two digital pins 
 * 5 mm status LED with resistor as simple alternative to LED Bar
@@ -55,6 +54,7 @@ I decided to go the multiple ino code separation way with almost no encapsulatio
 * [Grove I2C ADC module](https://www.seeedstudio.com/grove-i2c-adc-p-1580.html) - to read the current sensor with esp8266
 * [Grove Temperature Sensor](https://www.seeedstudio.com/Grove-Temperature-Sensor-p-774.html) - it was measuring  the next heating distributor to determine if the main heating is running
 * [Grove Relay](https://www.seeedstudio.com/Grove-Relay-p-769.html) - for 'valves back' circuit replaced with or Grove SSR V2
+* [Grove Dry-Reed Relay](https://www.seeedstudio.com/Grove-Dry-Reed-Relay-p-1412.html) was for Balboa hot tub heating suspend activation
 
 ### MCU options
 * any classic AVR Arduino in Uno or Mega format with some shield or module for networking
@@ -97,14 +97,11 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 
 ### Monitoring
 * Telnet.ino - logging csv lines to telnet client and reading command characters sent from telnet client
-* CsvLog.ino - logging heating regulation to csv files on SD card or SPIFFS
+* CsvLog.ino - logging heating regulation to csv files on SD card
 * Stats.ino - count and store power consumption statistics
-* WebServer.ino - JSON data for the web pages with optional serving of static web page files and csv files from SD card or SPIFFS
+* WebServer.ino - JSON data for the web pages with optional serving of static web page files and csv files from SD card
 * Blynk.ino - control from everywhere with Blynk
-
-### Special
-* ConsumptionMeter.ino - take data from secondary Fronius Smart Meter measuring this heater's consumption. Value is only logged to csv for evaluation (charts in Calc). It is an alternative to WemoInsight.ino.
-* WemoInsight.ino - functions to access Belkin WiFi switch. Can be used as an alternative to ConsumptionMeter.ino.
+* ConsumptionMeter.ino - take data from secondary Fronius Smart Meter measuring this heater's consumption. Value is only logged to csv for evaluation (charts in Calc).
 
 ### Removed
 these are available in the git history:
@@ -112,6 +109,7 @@ these are available in the git history:
 * BattSett.ino - SunSpec Modbus storage control
 * SusCalib.ino - at 9 am sends 'calibration disable' for 3 hours
 * Balboa.ino - defers hot tub heating if overall household consumption exceeds PV inverter's limit
+* WemoInsight.ino - functions to access Belkin WiFi switch. Can be used as an alternative to ConsumptionMeter.ino.
 
 ### Web interface
 
@@ -119,7 +117,7 @@ The data subfolder contains static web pages of the regulator. The static web pa
 
 With Uno WiFi I had the static pages served by the esp8266 WebServer of WiFi Link firmware in the esp8266 on-board of the Uno WiFi. I added them to the SPIFFS `data` folder of WiFi Link firmware.
 
-WebServer.ino can serve the pages from SD card or SPIFFS.
+WebServer.ino can serve the pages from SD card.
 
 These static web pages can be started from a folder on a computer to show the data from Regulator. Only set the IP address of Arduino in script.js.
 
@@ -171,4 +169,4 @@ I have no more surplus electricity because I can get back up to 2 MW of electric
 
 Blynk legacy ended so I migrate to Blynk IO, but because of the expected downsizing I stay limited to the Free Plan for now.
 
-I removed ExtHeater.ino, BattSett.ino, SusCalib.ino, Balboa.ino
+I removed ExtHeater.ino, BattSett.ino, SusCalib.ino, WemoInsight.ino, Balboa.ino

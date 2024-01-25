@@ -78,7 +78,7 @@ void csvLogPrintJson(FormattedPrint& out) {
   while (file = dir.openNextFile()) { // @suppress("Assignment in condition")
     const char* fn = file.name();
 #else
-  Dir dir = SPIFFS.openDir(CSV_DIR);
+  Dir dir = FS.openDir(CSV_DIR);
   while (dir.next()) {
     File file = dir.openFile("r");
     const char* fn = file.name() + sizeof(CSV_DIR) + 1;

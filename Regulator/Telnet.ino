@@ -21,7 +21,7 @@ void telnetLoop(boolean log) {
     SERIAL_DEBUG.println(msgBuff);
 #endif
   }
-  if (!telnetClient) {
+  if (!telnetClient.connected()) {
     telnetClient = telnetServer.accept();
     if (telnetClient.connected()) {
       telnetClient.println(F("Regulator\r\n"));

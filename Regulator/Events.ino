@@ -26,6 +26,7 @@ EventStruct events[EVENTS_SIZE];
 
 void eventsSetup() {
 #ifdef NO_EEPROM
+#ifdef FS
   if (!FS.exists(EVENTS_FILENAME)) {
     events[EVENTS_SAVE_EVENT].timestamp = 0xFFFFFFFF;
   } else {
@@ -33,6 +34,7 @@ void eventsSetup() {
     file.readBytes((char*) events, sizeof(events));
     file.close();
   }
+#endif
 #else
   EEPROM.get(EVENTS_EEPROM_ADDR, events);
 #endif
@@ -106,11 +108,13 @@ void eventsSave() {
     return;
   eventsWrite(EVENTS_SAVE_EVENT, 0, 0);
 #ifdef NO_EEPROM
+#ifdef FS
   File file = FS.open(EVENTS_FILENAME, FILE_NEW);
   if (file) {
     file.write((byte*) events, sizeof(events));
     file.close();
   }
+#endif
 #else
   EEPROM.put(EVENTS_EEPROM_ADDR, events);
 #endif
@@ -150,7 +154,7 @@ void eventsPrint(Print& stream) {
 void eventsPrint(Print& s, int ix) {
   unsigned long t = events[ix].timestamp;
   char buff[64];
-  sprintf_P(buff, PSTR("%-15s|%d-%02d-%02d %02d:%02d:%02d|% 5d|% 5d|% 3u|"), eventLongLabels[ix],
+  sprintf_P(buff, PSTR("%-15s|%d-%02d-%02d %02d:%02d:%02d|%5d|%5d|%3u|"), eventLongLabels[ix],
       year(t), month(t), day(t), hour(t), minute(t), second(t),
       events[ix].value1, events[ix].value2, events[ix].count);
   s.print(buff);
