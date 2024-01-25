@@ -13,7 +13,7 @@
 #define NO_OTA_PORT
 #include <ArduinoOTA.h>
 
-#if defined(ARDUINO_ARCH_SAMD)
+#ifndef ARDUINO_ARCH_AVR
 #define NO_EEPROM
 #else
 #include <EEPROM.h>
@@ -33,7 +33,7 @@
 #define BLYNK_MAX_SENDBYTES 256
 //#define BLYNK_USE_128_VPINS
 #define BLYNK_TEMPLATE_ID "TMPL97AKXy7c"
-#define BLYNK_DEVICE_NAME "Regulator"
+#define BLYNK_TEMPLATE_NAME "Regulator"
 #define BLYNK_AUTH_TOKEN SECRET_BLYNK_TOKEN
 
 #ifdef ETHERNET
