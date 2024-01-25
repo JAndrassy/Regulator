@@ -116,7 +116,7 @@ void webServerServeFile(const char *fn, BufferedPrint& bp) {
       ext[1] = '1';
       ext += 2;
     }
-    File dataFile = SD.open(fn);
+    File dataFile = FS.open(fn, FILE_READ);
     if (dataFile) {
       notFound = false;
       bp.println(F("HTTP/1.1 200 OK"));
