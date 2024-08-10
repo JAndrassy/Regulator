@@ -35,25 +35,9 @@ void modbusSetup() {
 boolean modbusLoop() {
 
   const int DELAY_MILLIS = 8000;
-  const int DATASET_MILLIS = 12000;
-  const byte DATASET_FAIL_COUNT = 5;
 
   static byte datasetState = MODBUS_DELAY;
   static unsigned long datasetStart;
-  static byte datasetFailCounter;
-
-  if (datasetState != MODBUS_DELAY && loopStartMillis - datasetStart > DATASET_MILLIS) { // problems getting complete data-set in time
-    modbusClearData(); // for UI
-    byte failDataState = datasetState;
-    datasetState = BATTERY_DATA; // start again
-    datasetStart = loopStartMillis;
-    datasetFailCounter++;
-    if (datasetFailCounter == DATASET_FAIL_COUNT) {
-      eventsWrite(MODBUS_EVENT, 0, failDataState);
-      alarmCause = AlarmCause::MODBUS;
-      return false;
-    }
-  }
 
   switch (datasetState) {
     case MODBUS_DELAY:
@@ -63,23 +47,24 @@ boolean modbusLoop() {
       datasetStart = loopStartMillis;
       break;
     case BATTERY_DATA:
-      if (!requestBattery())
-        return false;
-      datasetState = INVERTER_DATA;
+      if (!requestBattery()) {
+        datasetState = MODBUS_DELAY;
+      } else {
+        datasetState = INVERTER_DATA;
+      }
       break;
     case INVERTER_DATA:
-      if (!requestInverter())
-        return false;
-      datasetState = METER_DATA;
+      if (!requestInverter()) {
+        datasetState = MODBUS_DELAY;
+      } else {
+        datasetState = METER_DATA;
+      }
       break;
     case METER_DATA:
-      if (!requestMeter())
-        return false;
       datasetState = MODBUS_DELAY;
-      datasetFailCounter = 0;
-      break;
+      return requestMeter();
   }
-  return (datasetState == MODBUS_DELAY);
+  return false;
 }
 
 void modbusClearData() {
@@ -173,7 +158,7 @@ boolean requestBattery() {
 
 boolean modbusError(int err) {
 
-  const byte ERROR_COUNT_ALARM = 8;
+  const byte ERROR_COUNT_ALARM = 5;
 
   static byte modbusErrorCounter = 0;
   static int modbusErrorCode = 0;
@@ -297,7 +282,7 @@ int modbusConnection() {
     modbus.stop();
     if (!modbus.connect(symoAddress, 502))
       return MODBUS_CONNECT_ERROR;
-    modbus.setTimeout(2000);
+    modbus.setTimeout(3000);
     msg.print(F(" MB_reconnect"));
   }
   return 0;
