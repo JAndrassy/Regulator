@@ -100,7 +100,7 @@ Copy the folder `Regulator`from this GitHub repository into your sketch folder o
 * CsvLog.ino - logging heating regulation to csv files on SD card
 * Stats.ino - count and store power consumption statistics
 * WebServer.ino - JSON data for the web pages with optional serving of static web page files and csv files from SD card
-* Blynk.ino - control from everywhere with Blynk
+* Blynk.ino - control from everywhere with Blynk. Screenshots of the Blynk dashboard and its configuration are in [Wiki](https://github.com/jandrassy/Regulator/wiki/Blynk).
 * ConsumptionMeter.ino - take data from secondary Fronius Smart Meter measuring this heater's consumption. Value is only logged to csv for evaluation (charts in Calc).
 
 ### Removed
